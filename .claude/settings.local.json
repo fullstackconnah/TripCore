@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(head:*)",
+      "Bash(docker exec:*)",
+      "Bash(echo \"POSTGRES_PASSWORD=$POSTGRES_PASSWORD\" && ls \"F:/Projects/personal/Trip Planner/.env\" 2>/dev/null && cat \"F:/Projects/personal/Trip Planner/.env\" 2>/dev/null)",
+      "Bash(find \"F:/Projects/personal/Trip Planner/backend\" -name \"*.cs\" | xargs grep -l -i \"seed\\\\|seeder\\\\|password\\\\|admin\" 2>/dev/null)",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(taskkill:*)",
+      "Bash(sleep 5 && curl -s http://localhost:5000/api/v1/bookings | head -100 2>&1 || curl -s https://localhost:5001/api/v1/bookings | head -100 2>&1)",
+      "Bash(sleep 5:*)",
+      "Bash(echo Exit code: $?:*)",
+      "Bash(grep:*)",
+      "Bash(cd \"F:/Projects/personal/Trip Planner/backend\" && dotnet tool list 2>&1)",
+      "Bash(dotnet tool:*)",
+      "Bash(cd \"F:/Projects/personal/Trip Planner/backend\" && dotnet ef migrations list --project TripCore.Infrastructure --startup-project TripCore.Api 2>&1)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(python3:*)",
+      "Bash(find \"C:/Users/conna/.claude/plugins/cache/claude-plugins-official/security-guidance/\" -type f \\\\\\( -name \"*.md\" -o -name \"*.txt\" \\\\\\) 2>/dev/null | head -10)",
+      "Bash(npm list:*)",
+      "Bash(gh auth:*)",
+      "Bash(coderabbit --version 2>/dev/null || which coderabbit 2>/dev/null; echo \"EXIT: $?\")"
+    ]
+  }
+}

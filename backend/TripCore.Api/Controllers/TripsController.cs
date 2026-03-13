@@ -1,0 +1,280 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TripCore.Application.Common;
+using TripCore.Application.DTOs;
+using TripCore.Domain.Entities;
+using TripCore.Domain.Enums;
+using TripCore.Infrastructure.Data;
+
+namespace TripCore.Api.Controllers;
+
+/// <summary>
+/// CRUD and sub-resource operations for trip instances.
+/// </summary>
+[ApiController]
+[Route("api/v1/trips")]
+public class TripsController : ControllerBase
+{
+    private readonly TripCoreDbContext _db;
+    public TripsController(TripCoreDbContext db) => _db = db;
+
+    /// <summary>List trips with optional filters.</summary>
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<TripListDto>>>> GetAll(
+        [FromQuery] TripStatus? status, [FromQuery] string? region, [FromQuery] string? search,
+        [FromQuery] DateOnly? startFrom, [FromQuery] DateOnly? startTo, CancellationToken ct)
+    {
+        var query = _db.TripInstances.Include(t => t.LeadCoordinator).Include(t => t.Bookings).AsQueryable();
+        if (status.HasValue) query = query.Where(t => t.Status == status.Value);
+        if (!string.IsNullOrWhiteSpace(region)) query = query.Where(t => t.Region == region);
+        if (!string.IsNullOrWhiteSpace(search)) query = query.Where(t => t.TripName.Contains(search) || (t.Destination != null && t.Destination.Contains(search)));
+        if (startFrom.HasValue) query = query.Where(t => t.StartDate >= startFrom.Value);
+        if (startTo.HasValue) query = query.Where(t => t.StartDate <= startTo.Value);
+
+        var items = await query.OrderByDescending(t => t.StartDate)
+            .Select(t => new TripListDto
+            {
+                Id = t.Id, TripName = t.TripName, TripCode = t.TripCode, Destination = t.Destination,
+                Region = t.Region, StartDate = t.StartDate, EndDate = t.StartDate.AddDays(t.DurationDays - 1),
+                DurationDays = t.DurationDays, Status = t.Status, MaxParticipants = t.MaxParticipants,
+                CurrentParticipantCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Confirmed),
+                WaitlistCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Waitlist),
+                LeadCoordinatorName = t.LeadCoordinator != null ? t.LeadCoordinator.FirstName + " " + t.LeadCoordinator.LastName : null
+            }).ToListAsync(ct);
+
+        return Ok(ApiResponse<List<TripListDto>>.Ok(items));
+    }
+
+    /// <summary>Get full trip detail including computed counts.</summary>
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<TripDetailDto>>> GetById(Guid id, CancellationToken ct)
+    {
+        var t = await _db.TripInstances
+            .Include(x => x.LeadCoordinator).Include(x => x.EventTemplate)
+            .Include(x => x.Bookings).Include(x => x.StaffAssignments)
+            .Include(x => x.Tasks)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (t == null) return NotFound(ApiResponse<TripDetailDto>.Fail("Trip not found"));
+
+        return Ok(ApiResponse<TripDetailDto>.Ok(new TripDetailDto
+        {
+            Id = t.Id, TripName = t.TripName, TripCode = t.TripCode, Destination = t.Destination,
+            Region = t.Region, StartDate = t.StartDate, EndDate = t.EndDate, DurationDays = t.DurationDays,
+            Status = t.Status, MaxParticipants = t.MaxParticipants, MinParticipants = t.MinParticipants,
+            EventTemplateId = t.EventTemplateId, EventTemplateName = t.EventTemplate?.EventName,
+            OopDueDate = t.OopDueDate, BookingCutoffDate = t.BookingCutoffDate,
+            LeadCoordinatorId = t.LeadCoordinatorId,
+            LeadCoordinatorName = t.LeadCoordinator != null ? t.LeadCoordinator.FirstName + " " + t.LeadCoordinator.LastName : null,
+            RequiredWheelchairCapacity = t.RequiredWheelchairCapacity, RequiredBeds = t.RequiredBeds,
+            RequiredBedrooms = t.RequiredBedrooms, MinStaffRequired = t.MinStaffRequired,
+            CalculatedStaffRequired = t.CalculatedStaffRequired, Notes = t.Notes,
+            CurrentParticipantCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Confirmed),
+            WaitlistCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Waitlist),
+            HighSupportCount = t.Bookings.Count(b => b.HighSupportRequired && b.BookingStatus == BookingStatus.Confirmed),
+            WheelchairCount = t.Bookings.Count(b => b.WheelchairRequired && b.BookingStatus == BookingStatus.Confirmed),
+            OvernightSupportCount = t.Bookings.Count(b => b.NightSupportRequired && b.BookingStatus == BookingStatus.Confirmed),
+            StaffAssignedCount = t.StaffAssignments.Count(s => s.Status != AssignmentStatus.Cancelled),
+            OutstandingTaskCount = t.Tasks.Count(tk => tk.Status != TaskItemStatus.Completed && tk.Status != TaskItemStatus.Cancelled),
+            CreatedAt = t.CreatedAt, UpdatedAt = t.UpdatedAt
+        }));
+    }
+
+    /// <summary>Create a new trip instance.</summary>
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<TripDetailDto>>> Create([FromBody] CreateTripDto dto, CancellationToken ct)
+    {
+        var trip = new TripInstance
+        {
+            Id = Guid.NewGuid(), TripName = dto.TripName, TripCode = dto.TripCode,
+            EventTemplateId = dto.EventTemplateId, Destination = dto.Destination, Region = dto.Region,
+            StartDate = dto.StartDate, DurationDays = dto.DurationDays, BookingCutoffDate = dto.BookingCutoffDate,
+            Status = dto.Status, LeadCoordinatorId = dto.LeadCoordinatorId,
+            MinParticipants = dto.MinParticipants, MaxParticipants = dto.MaxParticipants,
+            RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity, RequiredBeds = dto.RequiredBeds,
+            RequiredBedrooms = dto.RequiredBedrooms, MinStaffRequired = dto.MinStaffRequired, Notes = dto.Notes
+        };
+        _db.TripInstances.Add(trip);
+        await _db.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(GetById), new { id = trip.Id },
+            ApiResponse<TripDetailDto>.Ok(new TripDetailDto { Id = trip.Id, TripName = trip.TripName, Status = trip.Status, StartDate = trip.StartDate, EndDate = trip.EndDate, DurationDays = trip.DurationDays }));
+    }
+
+    /// <summary>Update a trip instance.</summary>
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<TripDetailDto>>> Update(Guid id, [FromBody] UpdateTripDto dto, CancellationToken ct)
+    {
+        var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (t == null) return NotFound(ApiResponse<TripDetailDto>.Fail("Trip not found"));
+
+        t.TripName = dto.TripName; t.TripCode = dto.TripCode; t.EventTemplateId = dto.EventTemplateId;
+        t.Destination = dto.Destination; t.Region = dto.Region; t.StartDate = dto.StartDate;
+        t.DurationDays = dto.DurationDays; t.BookingCutoffDate = dto.BookingCutoffDate; t.Status = dto.Status;
+        t.LeadCoordinatorId = dto.LeadCoordinatorId; t.MinParticipants = dto.MinParticipants;
+        t.MaxParticipants = dto.MaxParticipants; t.RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity;
+        t.RequiredBeds = dto.RequiredBeds; t.RequiredBedrooms = dto.RequiredBedrooms;
+        t.MinStaffRequired = dto.MinStaffRequired; t.Notes = dto.Notes; t.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<TripDetailDto>.Ok(new TripDetailDto { Id = t.Id, TripName = t.TripName, Status = t.Status }));
+    }
+
+    /// <summary>Soft-delete (archive) a trip.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
+    {
+        var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (t == null) return NotFound(ApiResponse<bool>.Fail("Trip not found"));
+        t.Status = TripStatus.Archived; t.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true, "Trip archived"));
+    }
+
+    /// <summary>Get bookings for a trip.</summary>
+    [HttpGet("{id:guid}/bookings")]
+    public async Task<ActionResult<ApiResponse<List<BookingListDto>>>> GetBookings(Guid id, CancellationToken ct)
+    {
+        var bookings = await _db.ParticipantBookings.Include(b => b.Participant)
+            .Where(b => b.TripInstanceId == id)
+            .Select(b => new BookingListDto
+            {
+                Id = b.Id, TripInstanceId = b.TripInstanceId, ParticipantId = b.ParticipantId,
+                ParticipantName = b.Participant.FirstName + " " + b.Participant.LastName,
+                BookingStatus = b.BookingStatus, BookingDate = b.BookingDate,
+                WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
+                NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
+                SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<BookingListDto>>.Ok(bookings));
+    }
+
+    /// <summary>Get accommodation reservations for a trip.</summary>
+    [HttpGet("{id:guid}/accommodation")]
+    public async Task<ActionResult<ApiResponse<List<ReservationDto>>>> GetAccommodation(Guid id, CancellationToken ct)
+    {
+        var items = await _db.AccommodationReservations.Include(r => r.AccommodationProperty)
+            .Where(r => r.TripInstanceId == id)
+            .Select(r => new ReservationDto
+            {
+                Id = r.Id, TripInstanceId = r.TripInstanceId, AccommodationPropertyId = r.AccommodationPropertyId,
+                PropertyName = r.AccommodationProperty.PropertyName, CheckInDate = r.CheckInDate,
+                CheckOutDate = r.CheckOutDate, ReservationStatus = r.ReservationStatus,
+                ConfirmationReference = r.ConfirmationReference, BedroomsReserved = r.BedroomsReserved,
+                BedsReserved = r.BedsReserved, Cost = r.Cost, HasOverlapConflict = r.HasOverlapConflict,
+                Comments = r.Comments, RequestSentDate = r.RequestSentDate, DateBooked = r.DateBooked,
+                DateConfirmed = r.DateConfirmed
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<ReservationDto>>.Ok(items));
+    }
+
+    /// <summary>Get vehicle assignments for a trip.</summary>
+    [HttpGet("{id:guid}/vehicles")]
+    public async Task<ActionResult<ApiResponse<List<VehicleAssignmentDto>>>> GetVehicles(Guid id, CancellationToken ct)
+    {
+        var items = await _db.VehicleAssignments.Include(v => v.Vehicle).Include(v => v.DriverStaff)
+            .Where(v => v.TripInstanceId == id)
+            .Select(v => new VehicleAssignmentDto
+            {
+                Id = v.Id, TripInstanceId = v.TripInstanceId, VehicleId = v.VehicleId,
+                VehicleName = v.Vehicle.VehicleName, Registration = v.Vehicle.Registration,
+                Status = v.Status, RequestedDate = v.RequestedDate, ConfirmedDate = v.ConfirmedDate,
+                DriverStaffId = v.DriverStaffId, DriverName = v.DriverStaff != null ? v.DriverStaff.FirstName + " " + v.DriverStaff.LastName : null,
+                SeatRequirement = v.SeatRequirement, WheelchairPositionRequirement = v.WheelchairPositionRequirement,
+                PickupTravelNotes = v.PickupTravelNotes, Comments = v.Comments, HasOverlapConflict = v.HasOverlapConflict
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<VehicleAssignmentDto>>.Ok(items));
+    }
+
+    /// <summary>Get staff assignments for a trip.</summary>
+    [HttpGet("{id:guid}/staff")]
+    public async Task<ActionResult<ApiResponse<List<StaffAssignmentDto>>>> GetStaff(Guid id, CancellationToken ct)
+    {
+        var items = await _db.StaffAssignments.Include(s => s.Staff)
+            .Where(s => s.TripInstanceId == id)
+            .Select(s => new StaffAssignmentDto
+            {
+                Id = s.Id, TripInstanceId = s.TripInstanceId, StaffId = s.StaffId,
+                StaffName = s.Staff.FirstName + " " + s.Staff.LastName, AssignmentRole = s.AssignmentRole,
+                AssignmentStart = s.AssignmentStart, AssignmentEnd = s.AssignmentEnd,
+                Status = s.Status, IsDriver = s.IsDriver, SleepoverType = s.SleepoverType,
+                ShiftNotes = s.ShiftNotes, HasConflict = s.HasConflict
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<StaffAssignmentDto>>.Ok(items));
+    }
+
+    /// <summary>Get tasks for a trip.</summary>
+    [HttpGet("{id:guid}/tasks")]
+    public async Task<ActionResult<ApiResponse<List<TaskDto>>>> GetTasks(Guid id, CancellationToken ct)
+    {
+        var items = await _db.BookingTasks.Include(t => t.Owner)
+            .Where(t => t.TripInstanceId == id)
+            .Select(t => new TaskDto
+            {
+                Id = t.Id, TripInstanceId = t.TripInstanceId, TaskType = t.TaskType, Title = t.Title,
+                OwnerId = t.OwnerId, OwnerName = t.Owner != null ? t.Owner.FirstName + " " + t.Owner.LastName : null,
+                Priority = t.Priority, DueDate = t.DueDate, Status = t.Status,
+                CompletedDate = t.CompletedDate, Notes = t.Notes
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<TaskDto>>.Ok(items));
+    }
+
+    /// <summary>Get schedule (trip days with activities) for a trip.</summary>
+    [HttpGet("{id:guid}/schedule")]
+    public async Task<ActionResult<ApiResponse<List<TripDayDto>>>> GetSchedule(Guid id, CancellationToken ct)
+    {
+        var days = await _db.TripDays.Include(d => d.ScheduledActivities).ThenInclude(sa => sa.Activity)
+            .Where(d => d.TripInstanceId == id).OrderBy(d => d.DayNumber)
+            .Select(d => new TripDayDto
+            {
+                Id = d.Id, TripInstanceId = d.TripInstanceId, DayNumber = d.DayNumber,
+                Date = d.Date, DayTitle = d.DayTitle, DayNotes = d.DayNotes,
+                ScheduledActivities = d.ScheduledActivities.OrderBy(sa => sa.SortOrder)
+                    .Select(sa => new ScheduledActivityDto
+                    {
+                        Id = sa.Id, TripDayId = sa.TripDayId, ActivityId = sa.ActivityId,
+                        Title = sa.Title, StartTime = sa.StartTime, EndTime = sa.EndTime,
+                        Location = sa.Location, AccessibilityNotes = sa.AccessibilityNotes,
+                        Notes = sa.Notes, SortOrder = sa.SortOrder
+                    }).ToList()
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<TripDayDto>>.Ok(days));
+    }
+
+    /// <summary>Get documents for a trip.</summary>
+    [HttpGet("{id:guid}/documents")]
+    public async Task<ActionResult<ApiResponse<List<TripDocumentDto>>>> GetDocuments(Guid id, CancellationToken ct)
+    {
+        var items = await _db.TripDocuments.Where(d => d.TripInstanceId == id)
+            .Select(d => new TripDocumentDto
+            {
+                Id = d.Id, TripInstanceId = d.TripInstanceId, ParticipantBookingId = d.ParticipantBookingId,
+                DocumentType = d.DocumentType, FileName = d.FileName, FilePath = d.FilePath,
+                FileSize = d.FileSize, DocumentDate = d.DocumentDate, Notes = d.Notes, UploadedAt = d.UploadedAt
+            }).ToListAsync(ct);
+        return Ok(ApiResponse<List<TripDocumentDto>>.Ok(items));
+    }
+
+    /// <summary>Auto-generate empty TripDay records from trip dates.</summary>
+    [HttpPost("{id:guid}/schedule/generate")]
+    public async Task<ActionResult<ApiResponse<List<TripDayDto>>>> GenerateSchedule(Guid id, CancellationToken ct)
+    {
+        var trip = await _db.TripInstances.FirstOrDefaultAsync(t => t.Id == id, ct);
+        if (trip == null) return NotFound(ApiResponse<List<TripDayDto>>.Fail("Trip not found"));
+
+        var existingDays = await _db.TripDays.Where(d => d.TripInstanceId == id).CountAsync(ct);
+        if (existingDays > 0) return BadRequest(ApiResponse<List<TripDayDto>>.Fail("Schedule days already exist"));
+
+        var days = new List<TripDay>();
+        for (int i = 0; i < trip.DurationDays; i++)
+        {
+            days.Add(new TripDay
+            {
+                Id = Guid.NewGuid(), TripInstanceId = id, DayNumber = i + 1,
+                Date = trip.StartDate.AddDays(i), DayTitle = i == 0 ? "Arrival Day" : i == trip.DurationDays - 1 ? "Departure Day" : $"Day {i + 1}"
+            });
+        }
+        _db.TripDays.AddRange(days);
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<List<TripDayDto>>.Ok(days.Select(d => new TripDayDto { Id = d.Id, TripInstanceId = d.TripInstanceId, DayNumber = d.DayNumber, Date = d.Date, DayTitle = d.DayTitle }).ToList()));
+    }
+}

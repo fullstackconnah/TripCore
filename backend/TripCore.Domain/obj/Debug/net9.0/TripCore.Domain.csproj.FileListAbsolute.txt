@@ -1,0 +1,11 @@
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\bin\Debug\net9.0\TripCore.Domain.deps.json
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\bin\Debug\net9.0\TripCore.Domain.dll
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\bin\Debug\net9.0\TripCore.Domain.pdb
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.AssemblyInfoInputs.cache
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.AssemblyInfo.cs
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.csproj.CoreCompileInputs.cache
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.dll
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\refint\TripCore.Domain.dll
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\TripCore.Domain.pdb
+F:\Projects\personal\Trip Planner\backend\TripCore.Domain\obj\Debug\net9.0\ref\TripCore.Domain.dll

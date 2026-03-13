@@ -1,0 +1,57 @@
+import { useAccommodation } from '@/api/hooks'
+import { Search } from 'lucide-react'
+import { useState } from 'react'
+
+export default function AccommodationPage() {
+  const [search, setSearch] = useState('')
+  const { data: properties = [], isLoading } = useAccommodation()
+
+  const filtered = search
+    ? properties.filter((a: any) => a.propertyName.toLowerCase().includes(search.toLowerCase()) || a.location?.toLowerCase().includes(search.toLowerCase()))
+    : properties
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Accommodation</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{filtered.length} properties</p>
+        </div>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search properties..."
+          className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]" />
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12 text-[var(--color-muted-foreground)]">Loading...</div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((a: any) => (
+            <div key={a.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)]/30 transition-colors">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-semibold">{a.propertyName}</h3>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{a.isActive ? 'Active' : 'Inactive'}</span>
+              </div>
+              <div className="space-y-2 text-sm text-[var(--color-muted-foreground)]">
+                <p>📍 {a.location || '—'} {a.region ? `· ${a.region}` : ''}</p>
+                <div className="flex flex-wrap gap-2">
+                  {a.isWheelchairAccessible && <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400">♿ Accessible</span>}
+                  {a.isFullyModified && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400">Fully Modified</span>}
+                  {a.isSemiModified && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400">Semi Modified</span>}
+                </div>
+                <div className="flex gap-4 pt-2 border-t border-[var(--color-border)]">
+                  <span>🛏 {a.bedCount || '—'} beds</span>
+                  <span>🚪 {a.bedroomCount || '—'} rooms</span>
+                  <span>👥 max {a.maxCapacity || '—'}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -5,9 +5,7 @@ services:
     environment:
       POSTGRES_DB: tripcore
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,18 +15,13 @@ services:
       retries: 5
 
   api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/fullstackconnah/tripcore-api:latest
     container_name: tripcore-api
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tripcore;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_CONNECTION_STRING=Host=db;Port=5432;Database=tripcore;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
-      - JWT_SECRET=${JWT_SECRET:-TripCore-Production-Secret-Key-Change-Me-32-Characters!}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost,http://localhost:80}
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-    ports:
-      - "5000:5000"
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tripcore;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
     depends_on:
       db:
         condition: service_healthy
@@ -36,12 +29,10 @@ services:
       - documents:/data/documents
 
   frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
+    image: ghcr.io/fullstackconnah/tripcore-frontend:latest
     container_name: tripcore-frontend
     ports:
-      - "3000:80"
+      - "8475:80"
     depends_on:
       - api
 

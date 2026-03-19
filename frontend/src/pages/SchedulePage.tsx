@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   CalendarRange, Users, Truck, ChevronDown, ChevronRight,
   Car, Shield, Pill, HandMetal, Moon, MapPin, X, UserPlus, Plus, Trash2
@@ -130,6 +130,7 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
 
   function handleSave(a: any) {
     const e = getEdit(a)
+    if (!e.startDate || !e.endDate || e.endDate < e.startDate) return
     updateAvail.mutate({
       id: a.id,
       data: {
@@ -153,7 +154,7 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
   }
 
   function handleAdd() {
-    if (!adding || !adding.startDate || !adding.endDate) return
+    if (!adding || !adding.startDate || !adding.endDate || adding.endDate < adding.startDate) return
     createAvail.mutate({
       staffId,
       startDateTime: toStartDt(adding.startDate),
@@ -258,7 +259,7 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
             />
             <button
               onClick={handleAdd}
-              disabled={!adding.startDate || !adding.endDate || createAvail.isPending}
+              disabled={!adding.startDate || !adding.endDate || adding.endDate < adding.startDate || createAvail.isPending}
               className="px-2 py-0.5 rounded bg-[var(--color-primary)] text-white text-[10px] font-medium hover:opacity-90 disabled:opacity-50"
             >
               {createAvail.isPending ? '…' : 'Save'}
@@ -642,8 +643,8 @@ export default function SchedulePage() {
                 </tr>
 
                 {sectionStaff && staff?.map((s: any) => (
-                  <>
-                    <tr key={s.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-accent)]/30 transition-colors">
+                  <React.Fragment key={s.id}>
+                    <tr className="border-b border-[var(--color-border)] hover:bg-[var(--color-accent)]/30 transition-colors">
                       <td className="sticky left-0 z-10 bg-[var(--color-card)] p-3 border-r border-[var(--color-border)]">
                         <div
                           className="flex items-center gap-2 cursor-pointer"
@@ -695,7 +696,7 @@ export default function SchedulePage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
 
                 {/* ── Vehicle Section ── */}

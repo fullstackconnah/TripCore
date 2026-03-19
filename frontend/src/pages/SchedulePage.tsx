@@ -29,7 +29,7 @@ function StatusBadge({ status, role, clickable, onClick, onUnassign }: { status:
         <button
           onClick={e => { e.stopPropagation(); onUnassign() }}
           title="Unassign"
-          className="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-white/20 transition-colors -mt-0.5"
+          className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-white/20 transition-colors"
         >
           <X className="w-2.5 h-2.5" />
         </button>

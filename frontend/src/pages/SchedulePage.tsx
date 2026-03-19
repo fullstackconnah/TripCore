@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import {
   CalendarRange, Users, Truck, ChevronDown, ChevronRight,
-  Car, Shield, Pill, HandMetal, Moon, MapPin, Clock, X, UserPlus, Plus
+  Car, Shield, Pill, HandMetal, Moon, MapPin, X, UserPlus, Plus, Trash2
 } from 'lucide-react'
-import { useScheduleOverview, useCreateStaffAssignment, useCreateVehicleAssignment, useDeleteStaffAssignment } from '../api/hooks'
+import {
+  useScheduleOverview, useCreateStaffAssignment, useCreateVehicleAssignment, useDeleteStaffAssignment,
+  useCreateStaffAvailability, useUpdateStaffAvailability, useDeleteStaffAvailability,
+} from '../api/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 
 const statusColors: Record<string, { bg: string; text: string; label: string }> = {
@@ -68,31 +71,198 @@ function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: '2-digit', month: 'short' })
 }
 
-function AvailabilityDetail({ availability }: { availability: any[] }) {
-  if (!availability || availability.length === 0) {
-    return <p className="text-xs text-[var(--color-muted-foreground)] italic py-2 px-4">No availability records</p>
+// Convert a UTC datetime string to a date-input value (YYYY-MM-DD)
+function toDateInput(dt: string) {
+  return new Date(dt).toISOString().slice(0, 10)
+}
+function toStartDt(d: string) { return d + 'T00:00:00' }
+function toEndDt(d: string) { return d + 'T23:59:59' }
+
+const availTypeColors: Record<string, string> = {
+  Available: 'text-emerald-400 bg-emerald-500/10',
+  Unavailable: 'text-red-400 bg-red-500/10',
+  Leave: 'text-red-400 bg-red-500/10',
+  Training: 'text-purple-400 bg-purple-500/10',
+  Preferred: 'text-blue-400 bg-blue-500/10',
+  Tentative: 'text-amber-400 bg-amber-500/10',
+}
+
+interface AvailabilityEditorProps {
+  staffId: string
+  availability: any[]
+}
+
+function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) {
+  const createAvail = useCreateStaffAvailability()
+  const updateAvail = useUpdateStaffAvailability()
+  const deleteAvail = useDeleteStaffAvailability()
+
+  const [edits, setEdits] = useState<Record<string, { startDate: string; endDate: string; notes: string }>>({})
+  const [adding, setAdding] = useState<{ startDate: string; endDate: string; notes: string } | null>(null)
+
+  function getEdit(a: any) {
+    return edits[a.id] ?? {
+      startDate: toDateInput(a.startDateTime),
+      endDate: toDateInput(a.endDateTime),
+      notes: a.notes ?? '',
+    }
   }
+
+  function isDirty(a: any) {
+    const e = edits[a.id]
+    if (!e) return false
+    return (
+      e.startDate !== toDateInput(a.startDateTime) ||
+      e.endDate !== toDateInput(a.endDateTime) ||
+      e.notes !== (a.notes ?? '')
+    )
+  }
+
+  function patchEdit(id: string, patch: Partial<{ startDate: string; endDate: string; notes: string }>, base: any) {
+    setEdits(prev => ({ ...prev, [id]: { ...getEdit(base), ...prev[id], ...patch } }))
+  }
+
+  function handleSave(a: any) {
+    const e = getEdit(a)
+    updateAvail.mutate({
+      id: a.id,
+      data: {
+        staffId,
+        startDateTime: toStartDt(e.startDate),
+        endDateTime: toEndDt(e.endDate),
+        availabilityType: a.availabilityType,
+        isRecurring: a.isRecurring ?? false,
+        recurrenceNotes: a.recurrenceNotes ?? undefined,
+        notes: e.notes || undefined,
+      },
+    }, {
+      onSuccess: () => setEdits(prev => { const next = { ...prev }; delete next[a.id]; return next }),
+    })
+  }
+
+  function handleDelete(id: string) {
+    deleteAvail.mutate(id)
+  }
+
+  function handleAdd() {
+    if (!adding || !adding.startDate || !adding.endDate) return
+    createAvail.mutate({
+      staffId,
+      startDateTime: toStartDt(adding.startDate),
+      endDateTime: toEndDt(adding.endDate),
+      availabilityType: 'Leave',
+      isRecurring: false,
+      notes: adding.notes || undefined,
+    }, { onSuccess: () => setAdding(null) })
+  }
+
+  const dateInputClass =
+    'px-1.5 py-0.5 rounded bg-[var(--color-sidebar)] border border-[var(--color-border)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]/50'
+  const notesInputClass =
+    'flex-1 px-1.5 py-0.5 rounded bg-[var(--color-sidebar)] border border-[var(--color-border)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]/50'
+
   return (
-    <div className="px-4 py-2 space-y-1">
-      {availability.map((a: any) => {
-        const typeColors: Record<string, string> = {
-          Available: 'text-emerald-400', Unavailable: 'text-red-400',
-          Leave: 'text-red-400', Training: 'text-purple-400',
-          Preferred: 'text-blue-400', Tentative: 'text-amber-400',
-        }
-        const start = new Date(a.startDateTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
-        const end = new Date(a.endDateTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
-        return (
-          <div key={a.id} className="flex items-center gap-3 text-xs">
-            <span className={`font-medium min-w-[80px] ${typeColors[a.availabilityType] || 'text-gray-400'}`}>
-              {a.availabilityType}
+    <div className="pl-8 py-2">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-[var(--color-muted-foreground)]">Availability Records</p>
+        {!adding && (
+          <button
+            onClick={() => setAdding({ startDate: '', endDate: '', notes: '' })}
+            className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1"
+          >
+            <Plus className="w-3 h-3" /> Add Leave
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        {availability.length === 0 && !adding && (
+          <p className="text-xs text-[var(--color-muted-foreground)] italic py-1">No availability records</p>
+        )}
+
+        {availability.map((a: any) => {
+          const e = getEdit(a)
+          const dirty = isDirty(a)
+          const colorClass = availTypeColors[a.availabilityType] ?? 'text-gray-400 bg-gray-500/10'
+          return (
+            <div key={a.id} className="flex items-center gap-2 text-xs">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[72px] text-center ${colorClass}`}>
+                {a.availabilityType}
+              </span>
+              <input
+                type="date" value={e.startDate}
+                onChange={ev => patchEdit(a.id, { startDate: ev.target.value }, a)}
+                className={dateInputClass}
+              />
+              <span className="text-[var(--color-muted-foreground)]">—</span>
+              <input
+                type="date" value={e.endDate}
+                onChange={ev => patchEdit(a.id, { endDate: ev.target.value }, a)}
+                className={dateInputClass}
+              />
+              <input
+                type="text" value={e.notes} placeholder="Notes…"
+                onChange={ev => patchEdit(a.id, { notes: ev.target.value }, a)}
+                className={notesInputClass}
+              />
+              {dirty && (
+                <button
+                  onClick={() => handleSave(a)}
+                  disabled={updateAvail.isPending}
+                  className="px-2 py-0.5 rounded bg-[var(--color-primary)] text-white text-[10px] font-medium hover:opacity-90 disabled:opacity-50"
+                >
+                  Save
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(a.id)}
+                disabled={deleteAvail.isPending}
+                title="Delete"
+                className="p-0.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          )
+        })}
+
+        {adding && (
+          <div className="flex items-center gap-2 text-xs border-t border-[var(--color-border)] pt-1.5 mt-1">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium min-w-[72px] text-center text-red-400 bg-red-500/10">
+              Leave
             </span>
-            <Clock className="w-3 h-3 text-[var(--color-muted-foreground)]" />
-            <span className="text-[var(--color-muted-foreground)]">{start} — {end}</span>
-            {a.notes && <span className="text-[var(--color-muted-foreground)] italic truncate">({a.notes})</span>}
+            <input
+              type="date" value={adding.startDate}
+              onChange={e => setAdding(prev => prev ? { ...prev, startDate: e.target.value } : null)}
+              className={dateInputClass}
+            />
+            <span className="text-[var(--color-muted-foreground)]">—</span>
+            <input
+              type="date" value={adding.endDate}
+              onChange={e => setAdding(prev => prev ? { ...prev, endDate: e.target.value } : null)}
+              className={dateInputClass}
+            />
+            <input
+              type="text" value={adding.notes} placeholder="Notes…"
+              onChange={e => setAdding(prev => prev ? { ...prev, notes: e.target.value } : null)}
+              className={notesInputClass}
+            />
+            <button
+              onClick={handleAdd}
+              disabled={!adding.startDate || !adding.endDate || createAvail.isPending}
+              className="px-2 py-0.5 rounded bg-[var(--color-primary)] text-white text-[10px] font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {createAvail.isPending ? '…' : 'Save'}
+            </button>
+            <button
+              onClick={() => setAdding(null)}
+              className="px-2 py-0.5 rounded border border-[var(--color-border)] text-[10px] hover:bg-[var(--color-accent)] transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-        )
-      })}
+        )}
+      </div>
     </div>
   )
 }
@@ -512,7 +682,7 @@ export default function SchedulePage() {
                         <td colSpan={tripCount + 1} className="sticky left-0 z-10">
                           <div className="pl-8 py-1">
                             <p className="text-xs font-medium text-[var(--color-muted-foreground)] mb-1">Availability Records</p>
-                            <AvailabilityDetail availability={s.availability} />
+                            <AvailabilityEditor staffId={s.id} availability={s.availability} />
                           </div>
                         </td>
                       </tr>

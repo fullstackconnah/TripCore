@@ -59,7 +59,8 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
         isInternal,
         isActive,
       })
-      newVehicleId = res.data.id
+      newVehicleId = res.data?.id
+      if (!newVehicleId) throw new Error('No vehicle ID returned')
     } catch {
       return // createVehicle.isError shows the inline error
     }
@@ -100,7 +101,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
           {(['existing', 'new'] as const).map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); createAssignment.reset(); createVehicle.reset() }}
               className={`flex-1 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]'
@@ -147,7 +148,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
                   <p className="font-medium text-sm">{v.vehicleName}</p>
                   <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
                     {v.registration || 'No rego'} · {v.vehicleType} · {v.totalSeats} seats
-                    {v.wheelchairPositions > 0 && ` · ♿ ${v.wheelchairPositions}`}
+                    {` · ♿ ${v.wheelchairPositions}`}
                   </p>
                 </button>
               ))}

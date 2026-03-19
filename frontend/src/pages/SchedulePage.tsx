@@ -73,7 +73,7 @@ function formatDate(d: string) {
 
 // Convert a UTC datetime string to a date-input value (YYYY-MM-DD)
 function toDateInput(dt: string) {
-  return new Date(dt).toISOString().slice(0, 10)
+  return dt.slice(0, 10)
 }
 function toStartDt(d: string) { return d + 'T00:00:00' }
 function toEndDt(d: string) { return d + 'T23:59:59' }
@@ -119,7 +119,13 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
   }
 
   function patchEdit(id: string, patch: Partial<{ startDate: string; endDate: string; notes: string }>, base: any) {
-    setEdits(prev => ({ ...prev, [id]: { ...getEdit(base), ...prev[id], ...patch } }))
+    setEdits(prev => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] ?? { startDate: base.startDateTime.slice(0, 10), endDate: base.endDateTime.slice(0, 10), notes: base.notes ?? '' }),
+        ...patch,
+      },
+    }))
   }
 
   function handleSave(a: any) {
@@ -141,7 +147,9 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
   }
 
   function handleDelete(id: string) {
-    deleteAvail.mutate(id)
+    deleteAvail.mutate(id, {
+      onSuccess: () => setEdits(prev => { const next = { ...prev }; delete next[id]; return next }),
+    })
   }
 
   function handleAdd() {

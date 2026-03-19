@@ -1,8 +1,9 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Plus, X, Pencil, ExternalLink, Trash2 } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import AddVehicleModal from '@/components/AddVehicleModal'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'schedule'
 
@@ -10,6 +11,7 @@ export default function TripDetailPage() {
   const { id } = useParams()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [showAddBooking, setShowAddBooking] = useState(false)
+  const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [selectedParticipantId, setSelectedParticipantId] = useState('')
   const [bookingStatus, setBookingStatus] = useState('Enquiry')
   const [wheelchairRequired, setWheelchairRequired] = useState(false)
@@ -1286,26 +1288,84 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'vehicles' && (
-          <div className="grid gap-4 md:grid-cols-2">
-            {vehicles.length === 0 ? <p className="text-[var(--color-muted-foreground)] col-span-2">No vehicle assignments</p> : vehicles.map((v: any) => (
-              <div key={v.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-semibold">{v.vehicleName}</h4>
-                    <p className="text-sm text-[var(--color-muted-foreground)]">{v.registration || 'No rego'}</p>
+          <div className="space-y-4">
+            {/* Driver summary header */}
+            {(() => {
+              const tripDrivers = (staff as any[]).filter((s: any) => s.isDriver)
+              const needed = (vehicles as any[]).length
+              const assigned = tripDrivers.length
+              const shortfall = needed - assigned
+              return (
+                <div className="flex items-center justify-between gap-4">
+                  {needed === 0 ? (
+                    <span className="text-sm text-[var(--color-muted-foreground)] italic">No vehicles assigned yet</span>
+                  ) : assigned === 0 ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--color-destructive)]/10 text-[var(--color-destructive)]">
+                        <XCircle className="w-4 h-4" />
+                        <span>Drivers: 0 / {needed}</span>
+                      </div>
+                      <span className="text-xs text-[var(--color-muted-foreground)]">No drivers assigned to this trip yet</span>
+                    </div>
+                  ) : assigned < needed ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/10 text-amber-500">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span>Drivers: {assigned} / {needed} · need {shortfall} more</span>
+                      </div>
+                      <span className="text-xs text-[var(--color-muted-foreground)]">
+                        {tripDrivers.map((s: any) => s.staffName).join(', ')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--color-success,#22c55e)]/10 text-[var(--color-success,#22c55e)]">
+                        <Car className="w-4 h-4" />
+                        <span>Drivers: {assigned} / {needed}</span>
+                      </div>
+                      <span className="text-xs text-[var(--color-muted-foreground)]">
+                        {tripDrivers.map((s: any) => s.staffName).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowAddVehicle(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="w-4 h-4" /> Add Vehicle
+                  </button>
+                </div>
+              )
+            })()}
+
+            {/* Vehicle cards */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {(vehicles as any[]).length === 0 ? null : (vehicles as any[]).map((v: any) => (
+                <div key={v.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-semibold">{v.vehicleName}</h4>
+                      <p className="text-sm text-[var(--color-muted-foreground)]">{v.registration || 'No rego'}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(v.status)}`}>{v.status}</span>
+                      {v.hasOverlapConflict && <span className="badge-conflict text-xs px-2 py-0.5 rounded-full">⚠ Conflict</span>}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(v.status)}`}>{v.status}</span>
-                    {v.hasOverlapConflict && <span className="badge-conflict text-xs px-2 py-0.5 rounded-full">⚠ Conflict</span>}
+                  <div className="mt-3 text-sm text-[var(--color-muted-foreground)]">
+                    <p>{v.vehicleType} · {v.totalSeats} seats{v.wheelchairPositions ? ` · ♿ ${v.wheelchairPositions}` : ''}</p>
                   </div>
                 </div>
-                <div className="mt-3 text-sm text-[var(--color-muted-foreground)]">
-                  {v.driverName && <p>Driver: {v.driverName}</p>}
-                  {v.seatRequirement && <p>Seats needed: {v.seatRequirement}</p>}
-                  {v.wheelchairPositionRequirement && <p>Wheelchair positions: {v.wheelchairPositionRequirement}</p>}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Add Vehicle Modal */}
+            {showAddVehicle && id && (
+              <AddVehicleModal
+                tripInstanceId={id}
+                onClose={() => setShowAddVehicle(false)}
+              />
+            )}
           </div>
         )}
 

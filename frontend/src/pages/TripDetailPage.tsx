@@ -1363,6 +1363,7 @@ export default function TripDetailPage() {
             {showAddVehicle && id && (
               <AddVehicleModal
                 tripInstanceId={id}
+                assignedVehicleIds={new Set((vehicles as any[]).map((v: any) => v.vehicleId))}
                 onClose={() => setShowAddVehicle(false)}
               />
             )}

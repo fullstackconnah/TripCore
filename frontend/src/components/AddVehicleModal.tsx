@@ -4,10 +4,11 @@ import { useVehicles, useCreateVehicleAssignment, useCreateVehicle } from '@/api
 
 interface AddVehicleModalProps {
   tripInstanceId: string
+  assignedVehicleIds: Set<string>
   onClose: () => void
 }
 
-export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleModalProps) {
+export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, onClose }: AddVehicleModalProps) {
   const [activeTab, setActiveTab] = useState<'existing' | 'new'>('existing')
 
   // Tab 1 state
@@ -31,7 +32,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredVehicles = (allVehicles as any[])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((v: any) => v.isActive)
+    .filter((v: any) => v.isActive && !assignedVehicleIds.has(v.id))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((v: any) => {
       if (!search.trim()) return true

@@ -11,8 +11,25 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(TripCoreDbContext context, CancellationToken ct = default)
     {
-        if (await context.Participants.AnyAsync(ct))
-            return; // Already seeded
+        var hasParticipants = await context.Participants.AnyAsync(ct);
+        var hasUsers = await context.Users.AnyAsync(ct);
+
+        // Seed users independently so they are created even if other data already exists
+        if (!hasUsers)
+        {
+            var staff = await context.Staff.ToListAsync(ct);
+            var users = new List<User>
+            {
+                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin },
+                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = staff.Count > 0 ? staff[0].Id : null },
+                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = staff.Count > 1 ? staff[1].Id : null }
+            };
+            context.Users.AddRange(users);
+            await context.SaveChangesAsync(ct);
+        }
+
+        if (hasParticipants)
+            return; // Rest of data already seeded
 
         // ── Staff (5) ────────────────────────────────────────────
         var staff = new List<Staff>
@@ -25,14 +42,13 @@ public static class DbSeeder
         };
         context.Staff.AddRange(staff);
 
-        // ── Users (seeded accounts) ──────────────────────────────
-        var users = new List<User>
-        {
-            new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin },
-            new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = staff[0].Id },
-            new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = staff[1].Id }
-        };
-        context.Users.AddRange(users);
+        // ── Users — linked to seeded staff ──────────────────────
+        // Note: users are seeded independently above; here we update StaffId links if not yet set
+        var existingUsers = await context.Users.ToListAsync(ct);
+        var adminUser = existingUsers.FirstOrDefault(u => u.Username == "sarah.mitchell");
+        var jamesUser = existingUsers.FirstOrDefault(u => u.Username == "james.obrien");
+        if (adminUser != null && adminUser.StaffId == null) { adminUser.StaffId = staff[0].Id; }
+        if (jamesUser != null && jamesUser.StaffId == null) { jamesUser.StaffId = staff[1].Id; }
 
         // ── Event Templates (3) ──────────────────────────────────
         var templates = new List<EventTemplate>

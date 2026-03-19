@@ -122,7 +122,7 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
     setEdits(prev => ({
       ...prev,
       [id]: {
-        ...(prev[id] ?? { startDate: base.startDateTime.slice(0, 10), endDate: base.endDateTime.slice(0, 10), notes: base.notes ?? '' }),
+        ...(prev[id] ?? { startDate: toDateInput(base.startDateTime), endDate: toDateInput(base.endDateTime), notes: base.notes ?? '' }),
         ...patch,
       },
     }))

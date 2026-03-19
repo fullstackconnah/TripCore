@@ -17,12 +17,12 @@ public static class DbSeeder
         // Seed users independently so they are created even if other data already exists
         if (!hasUsers)
         {
-            var staff = await context.Staff.ToListAsync(ct);
+            var existingStaff = await context.Staff.ToListAsync(ct);
             var users = new List<User>
             {
                 new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin },
-                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = staff.Count > 0 ? staff[0].Id : null },
-                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = staff.Count > 1 ? staff[1].Id : null }
+                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : null },
+                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : null }
             };
             context.Users.AddRange(users);
             await context.SaveChangesAsync(ct);

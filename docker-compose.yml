@@ -18,7 +18,7 @@ services:
     image: ghcr.io/fullstackconnah/tripcore-api:latest
     container_name: tripcore-api
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tripcore;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tripcore;Username=postgres;Password=${POSTGRES_PASSWORD};Trust Server Certificate=true;SSL Mode=Disable
       - JWT_SECRET=${JWT_SECRET}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}

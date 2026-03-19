@@ -22,6 +22,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
   const [wheelchairPositions, setWheelchairPositions] = useState('0')
   const [isInternal, setIsInternal] = useState(true)
   const [isActive, setIsActive] = useState(true)
+  const [noIdReturned, setNoIdReturned] = useState(false)
 
   const { data: allVehicles = [] } = useVehicles()
   const createAssignment = useCreateVehicleAssignment()
@@ -48,6 +49,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
 
   const handleCreateAndAssign = async () => {
     if (!vehicleName || !vehicleType || totalSeats === '') return
+    setNoIdReturned(false)
     let newVehicleId: string | undefined
     try {
       const res = await createVehicle.mutateAsync({
@@ -60,13 +62,17 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
         isActive,
       })
       newVehicleId = res.data?.id
-      if (!newVehicleId) throw new Error('No vehicle ID returned')
     } catch {
       return // createVehicle.isError shows the inline error
     }
+    if (!newVehicleId) {
+      // Mutation succeeded but response had no ID — unexpected API shape.
+      // Vehicle was created; user can assign it manually from the fleet list.
+      setNoIdReturned(true)
+      return
+    }
     try {
-      // newVehicleId is guaranteed defined here — the throw guard above exits if falsy
-      await createAssignment.mutateAsync({ tripInstanceId, vehicleId: newVehicleId! })
+      await createAssignment.mutateAsync({ tripInstanceId, vehicleId: newVehicleId })
       onClose()
     } catch {
       // createAssignment.isError shows the inline error.
@@ -102,7 +108,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
           {(['existing', 'new'] as const).map(tab => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); createAssignment.reset(); createVehicle.reset() }}
+              onClick={() => { setActiveTab(tab); createAssignment.reset(); createVehicle.reset(); setNoIdReturned(false) }}
               className={`flex-1 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]'
@@ -254,7 +260,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
             {createVehicle.isError && (
               <p className="text-sm text-[var(--color-destructive)]">Failed to create vehicle. Please try again.</p>
             )}
-            {createAssignment.isError && !createVehicle.isError && (
+            {(createAssignment.isError || noIdReturned) && !createVehicle.isError && (
               <p className="text-sm text-[var(--color-destructive)]">
                 Vehicle was created but could not be assigned. Find it in the Vehicles list and assign it manually.
               </p>

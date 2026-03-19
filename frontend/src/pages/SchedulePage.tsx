@@ -3,7 +3,7 @@ import {
   CalendarRange, Users, Truck, ChevronDown, ChevronRight,
   Car, Shield, Pill, HandMetal, Moon, MapPin, Clock, X, UserPlus, Plus
 } from 'lucide-react'
-import { useScheduleOverview, useCreateStaffAssignment, useCreateVehicleAssignment } from '../api/hooks'
+import { useScheduleOverview, useCreateStaffAssignment, useCreateVehicleAssignment, useDeleteStaffAssignment } from '../api/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 
 const statusColors: Record<string, { bg: string; text: string; label: string }> = {
@@ -13,18 +13,27 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
   Conflict:    { bg: 'bg-amber-500/20',   text: 'text-amber-400',   label: 'Conflict' },
 }
 
-function StatusBadge({ status, role, clickable, onClick }: { status: string; role?: string; clickable?: boolean; onClick?: () => void }) {
+function StatusBadge({ status, role, clickable, onClick, onUnassign }: { status: string; role?: string; clickable?: boolean; onClick?: () => void; onUnassign?: () => void }) {
   const s = statusColors[status] || statusColors.Available
   const clickClass = clickable ? 'cursor-pointer hover:ring-2 hover:ring-[var(--color-primary)]/50 hover:scale-105 transition-all' : ''
   return (
     <div
-      className={`${s.bg} ${s.text} px-2 py-1 rounded text-xs font-medium text-center leading-tight ${clickClass}`}
+      className={`${s.bg} ${s.text} px-2 py-1 rounded text-xs font-medium text-center leading-tight ${clickClass} relative`}
       onClick={clickable ? onClick : undefined}
       title={clickable ? 'Click to assign' : undefined}
     >
       {clickable && <Plus className="w-3 h-3 inline-block mr-0.5 -mt-0.5" />}
       <span>{s.label}</span>
       {role && <div className="text-[10px] opacity-75 mt-0.5">{role}</div>}
+      {onUnassign && status === 'Assigned' && (
+        <button
+          onClick={e => { e.stopPropagation(); onUnassign() }}
+          title="Unassign"
+          className="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-white/20 transition-colors -mt-0.5"
+        >
+          <X className="w-2.5 h-2.5" />
+        </button>
+      )}
     </div>
   )
 }
@@ -326,6 +335,7 @@ export default function SchedulePage() {
 
   const staffAssign = useCreateStaffAssignment()
   const vehicleAssign = useCreateVehicleAssignment()
+  const staffUnassign = useDeleteStaffAssignment()
 
   const handleStaffAssign = (assignData: any) => {
     staffAssign.mutate(assignData, {
@@ -489,6 +499,9 @@ export default function SchedulePage() {
                               role={ts.assignmentRole}
                               clickable={isAvailable}
                               onClick={isAvailable ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
+                              onUnassign={ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
+                                onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedule-overview'] })
+                              }) : undefined}
                             />
                           </td>
                         )

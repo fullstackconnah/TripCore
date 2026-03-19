@@ -106,7 +106,8 @@ public class ScheduleController : ControllerBase
                         TripId = t.Id,
                         Status = "Assigned",
                         AssignmentRole = assignedToThis.AssignmentRole,
-                        AssignmentStatus = assignedToThis.Status
+                        AssignmentStatus = assignedToThis.Status,
+                        AssignmentId = assignedToThis.Id,
                     };
                 }
 

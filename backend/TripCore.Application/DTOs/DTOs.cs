@@ -828,6 +828,7 @@ public record ScheduleStaffTripStatusDto
     public string Status { get; init; } = string.Empty;
     public string? AssignmentRole { get; init; }
     public AssignmentStatus? AssignmentStatus { get; init; }
+    public Guid? AssignmentId { get; init; }
 }
 
 public record ScheduleVehicleDto

@@ -339,6 +339,14 @@ export function useCreateVehicleAssignment() {
   })
 }
 
+export function useCreateVehicle() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.post('/vehicles', data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vehicles'] }),
+  })
+}
+
 export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({

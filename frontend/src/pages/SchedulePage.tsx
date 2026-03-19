@@ -163,16 +163,8 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
 
   return (
     <div className="pl-8 py-2">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2">
         <p className="text-xs font-medium text-[var(--color-muted-foreground)]">Availability Records</p>
-        {!adding && (
-          <button
-            onClick={() => setAdding({ startDate: '', endDate: '', notes: '' })}
-            className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" /> Add Leave
-          </button>
-        )}
       </div>
 
       <div className="space-y-1.5">
@@ -225,6 +217,15 @@ function AvailabilityEditor({ staffId, availability }: AvailabilityEditorProps) 
             </div>
           )
         })}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding({ startDate: '', endDate: '', notes: '' })}
+            className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1 mt-1"
+          >
+            <Plus className="w-3 h-3" /> Add Leave
+          </button>
+        )}
 
         {adding && (
           <div className="flex items-center gap-2 text-xs border-t border-[var(--color-border)] pt-1.5 mt-1">
@@ -681,7 +682,6 @@ export default function SchedulePage() {
                       <tr key={`${s.id}-detail`} className="border-b border-[var(--color-border)] bg-[var(--color-sidebar)]/50">
                         <td colSpan={tripCount + 1} className="sticky left-0 z-10">
                           <div className="pl-8 py-1">
-                            <p className="text-xs font-medium text-[var(--color-muted-foreground)] mb-1">Availability Records</p>
                             <AvailabilityEditor staffId={s.id} availability={s.availability} />
                           </div>
                         </td>

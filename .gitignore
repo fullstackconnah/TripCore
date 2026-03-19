@@ -1,0 +1,34 @@
+# ── Secrets ──────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── AI tool config ────────────────────────────────────────────────────────────
+.claude/
+CLAUDE.md
+.worktrees/
+.superpowers/
+
+# ── Documentation / planning ─────────────────────────────────────────────────
+docs/
+
+# ── .NET build artifacts ─────────────────────────────────────────────────────
+backend/**/bin/
+backend/**/obj/
+backend/.vs/
+backend/**/*.user
+backend/**/TestResults/
+backend/**/*.ncrunchproject
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+*.suo
+*.sln.docstates
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log

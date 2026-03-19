@@ -1303,7 +1303,7 @@ export default function TripDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--color-destructive)]/10 text-[var(--color-destructive)]">
                         <XCircle className="w-4 h-4" />
-                        <span>Drivers: 0 / {needed}</span>
+                        <span>0 / {needed}</span>
                       </div>
                       <span className="text-xs text-[var(--color-muted-foreground)]">No drivers assigned to this trip yet</span>
                     </div>
@@ -1311,7 +1311,7 @@ export default function TripDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/10 text-amber-500">
                         <AlertTriangle className="w-4 h-4" />
-                        <span>Drivers: {assigned} / {needed} · need {shortfall} more</span>
+                        <span>{assigned} / {needed} · need {shortfall} more</span>
                       </div>
                       <span className="text-xs text-[var(--color-muted-foreground)]">
                         {tripDrivers.map((s: any) => s.staffName).join(', ')}
@@ -1321,7 +1321,7 @@ export default function TripDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--color-success,#22c55e)]/10 text-[var(--color-success,#22c55e)]">
                         <Car className="w-4 h-4" />
-                        <span>Drivers: {assigned} / {needed}</span>
+                        <span>{assigned} / {needed}</span>
                       </div>
                       <span className="text-xs text-[var(--color-muted-foreground)]">
                         {tripDrivers.map((s: any) => s.staffName).join(', ')}

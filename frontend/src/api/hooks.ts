@@ -383,3 +383,28 @@ export function useScheduleOverview(params?: Record<string, string>) {
     queryFn: () => apiClient.get<ApiResponse<any>>('/schedule', { params }).then(r => r.data.data),
   })
 }
+
+export function useCreateStaffAvailability() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.post('/staff-availability', data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['schedule-overview'] }),
+  })
+}
+
+export function useUpdateStaffAvailability() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiClient.put(`/staff-availability/${id}`, data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['schedule-overview'] }),
+  })
+}
+
+export function useDeleteStaffAvailability() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/staff-availability/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['schedule-overview'] }),
+  })
+}

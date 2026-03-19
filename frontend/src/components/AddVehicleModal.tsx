@@ -48,7 +48,7 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
 
   const handleCreateAndAssign = async () => {
     if (!vehicleName || !vehicleType || totalSeats === '') return
-    let newVehicleId: string = ''
+    let newVehicleId: string | undefined
     try {
       const res = await createVehicle.mutateAsync({
         vehicleName,
@@ -65,7 +65,8 @@ export default function AddVehicleModal({ tripInstanceId, onClose }: AddVehicleM
       return // createVehicle.isError shows the inline error
     }
     try {
-      await createAssignment.mutateAsync({ tripInstanceId, vehicleId: newVehicleId })
+      // newVehicleId is guaranteed defined here — the throw guard above exits if falsy
+      await createAssignment.mutateAsync({ tripInstanceId, vehicleId: newVehicleId! })
       onClose()
     } catch {
       // createAssignment.isError shows the inline error.

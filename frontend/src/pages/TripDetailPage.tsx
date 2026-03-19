@@ -1292,7 +1292,7 @@ export default function TripDetailPage() {
             {/* Driver summary header */}
             {(() => {
               const tripDrivers = (staff as any[]).filter((s: any) => s.isDriver)
-              const needed = (vehicles as any[]).length
+              const needed = (vehicles as any[]).length  // 1 driver required per vehicle
               const assigned = tripDrivers.length
               const shortfall = needed - assigned
               return (

@@ -30,6 +30,23 @@ public class VehiclesController : ControllerBase
         return Ok(ApiResponse<List<VehicleListDto>>.Ok(items));
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<VehicleDetailDto>>> GetById(Guid id, CancellationToken ct)
+    {
+        var v = await _db.Vehicles.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (v == null) return NotFound(ApiResponse<VehicleDetailDto>.Fail("Vehicle not found"));
+
+        return Ok(ApiResponse<VehicleDetailDto>.Ok(new VehicleDetailDto
+        {
+            Id = v.Id, VehicleName = v.VehicleName, Registration = v.Registration,
+            VehicleType = v.VehicleType, TotalSeats = v.TotalSeats,
+            WheelchairPositions = v.WheelchairPositions, IsInternal = v.IsInternal,
+            IsActive = v.IsActive, ServiceDueDate = v.ServiceDueDate,
+            RegistrationDueDate = v.RegistrationDueDate, RampHoistDetails = v.RampHoistDetails,
+            DriverRequirements = v.DriverRequirements, Notes = v.Notes
+        }));
+    }
+
     [HttpPost]
     public async Task<ActionResult<ApiResponse<VehicleDetailDto>>> Create([FromBody] CreateVehicleDto dto, CancellationToken ct)
     {

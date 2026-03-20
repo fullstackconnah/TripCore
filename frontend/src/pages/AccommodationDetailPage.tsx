@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useAccommodationDetail } from '@/api/hooks'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Pencil } from 'lucide-react'
 
 export default function AccommodationDetailPage() {
   const { id } = useParams()
@@ -19,9 +19,14 @@ export default function AccommodationDetailPage() {
           <h1 className="text-2xl font-bold">{property.propertyName}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">{property.location || 'No location'}{property.region ? ` · ${property.region}` : ''}</p>
         </div>
-        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${property.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
-          {property.isActive ? 'Active' : 'Inactive'}
-        </span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className={`text-xs px-2 py-0.5 rounded-full ${property.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
+            {property.isActive ? 'Active' : 'Inactive'}
+          </span>
+          <Link to={`/accommodation/${id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+            <Pencil className="w-4 h-4" /> Edit
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

@@ -1,5 +1,6 @@
 import { useAccommodation } from '@/api/hooks'
-import { Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Search, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 export default function AccommodationPage() {
@@ -17,6 +18,9 @@ export default function AccommodationPage() {
           <h1 className="text-2xl font-bold">Accommodation</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{filtered.length} properties</p>
         </div>
+        <Link to="/accommodation/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+          <Plus className="w-4 h-4" /> New Accommodation
+        </Link>
       </div>
 
       <div className="relative max-w-md">
@@ -30,7 +34,7 @@ export default function AccommodationPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((a: any) => (
-            <div key={a.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)]/30 transition-colors">
+            <Link key={a.id} to={`/accommodation/${a.id}`} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)]/30 transition-colors block">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-semibold">{a.propertyName}</h3>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{a.isActive ? 'Active' : 'Inactive'}</span>
@@ -48,7 +52,7 @@ export default function AccommodationPage() {
                   <span>👥 max {a.maxCapacity || '—'}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

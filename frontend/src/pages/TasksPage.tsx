@@ -1,7 +1,8 @@
 import { useTasks, useUpdateTask } from '@/api/hooks'
+import { Link } from 'react-router-dom'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { useState } from 'react'
-import { Filter, CheckCircle } from 'lucide-react'
+import { Filter, CheckCircle, Plus, Pencil } from 'lucide-react'
 
 export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('')
@@ -22,6 +23,9 @@ export default function TasksPage() {
           <h1 className="text-2xl font-bold">Tasks</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
         </div>
+        <Link to="/tasks/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+          <Plus className="w-4 h-4" /> New Task
+        </Link>
       </div>
 
       <div className="flex gap-3">
@@ -52,6 +56,7 @@ export default function TasksPage() {
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Due</th>
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Priority</th>
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
+                <th className="w-10 p-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
@@ -71,6 +76,11 @@ export default function TasksPage() {
                   <td className="p-3 text-[var(--color-muted-foreground)]">{formatDateAu(t.dueDate)}</td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span></td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}`}>{t.status}</span></td>
+                  <td className="p-3">
+                    <Link to={`/tasks/${t.id}/edit`} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

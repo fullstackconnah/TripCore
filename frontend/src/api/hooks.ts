@@ -128,6 +128,14 @@ export function useCreateAccommodation() {
   })
 }
 
+export function useUpdateAccommodation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/accommodation/${id}`, data).then(r => r.data),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ['accommodation'] }); qc.invalidateQueries({ queryKey: ['accommodation-detail', vars.id] }) },
+  })
+}
+
 export function useAccommodationDetail(id: string | undefined) {
   return useQuery({
     queryKey: ['accommodation-detail', id],
@@ -140,6 +148,14 @@ export function useVehicles() {
   return useQuery({
     queryKey: ['vehicles'],
     queryFn: () => apiClient.get<ApiResponse<any[]>>('/vehicles').then(r => r.data.data ?? []),
+  })
+}
+
+export function useVehicleDetail(id: string | undefined) {
+  return useQuery({
+    queryKey: ['vehicle-detail', id],
+    queryFn: () => apiClient.get<ApiResponse<any>>(`/vehicles/${id}`).then(r => r.data.data),
+    enabled: !!id,
   })
 }
 
@@ -344,6 +360,30 @@ export function useCreateVehicle() {
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/vehicles', data).then(r => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['vehicles'] }),
+  })
+}
+
+export function useUpdateVehicle() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/vehicles/${id}`, data).then(r => r.data),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ['vehicles'] }); qc.invalidateQueries({ queryKey: ['vehicle-detail', vars.id] }) },
+  })
+}
+
+export function useCreateStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.post('/staff', data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff'] }),
+  })
+}
+
+export function useUpdateStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/staff/${id}`, data).then(r => r.data),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ['staff'] }); qc.invalidateQueries({ queryKey: ['staff-detail', vars.id] }) },
   })
 }
 

@@ -1,3 +1,5 @@
+using TripCore.Domain.Enums;
+
 namespace TripCore.Domain.Entities;
 
 /// <summary>
@@ -17,6 +19,13 @@ public class ScheduledActivity
     public string? AccessibilityNotes { get; set; }
     public string? Notes { get; set; }
     public int SortOrder { get; set; }
+    public ScheduledActivityStatus Status { get; set; } = ScheduledActivityStatus.Planned;
+    public string? BookingReference { get; set; }
+    public string? ProviderName { get; set; }
+    public string? ProviderPhone { get; set; }
+    public string? ProviderEmail { get; set; }
+    public string? ProviderWebsite { get; set; }
+    public decimal? EstimatedCost { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

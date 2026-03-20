@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 
@@ -17,6 +17,7 @@ export default function TripDetailPage() {
   const [editingScheduledActivity, setEditingScheduledActivity] = useState<any>(null)
   const [addActivityDayId, setAddActivityDayId] = useState('')
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set())
+  const [deletingActivity, setDeletingActivity] = useState<any>(null)
   const [selectedParticipantId, setSelectedParticipantId] = useState('')
   const [bookingStatus, setBookingStatus] = useState('Enquiry')
   const [wheelchairRequired, setWheelchairRequired] = useState(false)
@@ -36,6 +37,8 @@ export default function TripDetailPage() {
   const { data: participants = [] } = useParticipants()
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
+  const generateSchedule = useGenerateSchedule()
+  const deleteScheduledActivity = useDeleteScheduledActivity()
 
   // Filter out participants already booked on this trip
   const bookedParticipantIds = new Set(bookings.map((b: any) => b.participantId))
@@ -55,10 +58,12 @@ export default function TripDetailPage() {
   }, [selectedParticipantId, participants])
 
   // Auto-generate trip days when activities tab is opened
+  const hasTriedGenerate = useRef(false)
   useEffect(() => {
-    if (activeTab === 'activities' && id && schedule.length === 0 && trip && !generateSchedule.isPending) {
-      generateSchedule.mutate(id)
-    }
+    if (activeTab !== 'activities') { hasTriedGenerate.current = false; return }
+    if (!id || !trip || schedule.length > 0 || generateSchedule.isPending || hasTriedGenerate.current) return
+    hasTriedGenerate.current = true
+    generateSchedule.mutate(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, id, schedule.length, trip])
 
@@ -86,8 +91,6 @@ export default function TripDetailPage() {
 
   const deleteBooking = useDeleteBooking()
   const cancelBooking = useCancelBooking()
-  const generateSchedule = useGenerateSchedule()
-  const deleteScheduledActivity = useDeleteScheduledActivity()
   const [deletingBooking, setDeletingBooking] = useState<any>(null)
 
   const [editingBooking, setEditingBooking] = useState<any>(null)
@@ -1767,7 +1770,7 @@ export default function TripDetailPage() {
                   {!isReadOnly && (
                     <button onClick={() => { setAddActivityDayId(day.id); setShowAddActivity(true) }}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90">
-                      <Plus className="w-3.5 h-3.5" /> Add
+                      <Plus className="w-3.5 h-3.5" /> Add Activity
                     </button>
                   )}
                 </div>
@@ -1797,7 +1800,7 @@ export default function TripDetailPage() {
                                   className="p-1.5 hover:bg-[var(--color-accent)] rounded-lg" title="Edit">
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
-                                <button onClick={() => { if (confirm('Are you sure you want to delete this activity?')) deleteScheduledActivity.mutate(a.id) }}
+                                <button onClick={() => setDeletingActivity(a)}
                                   className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500" title="Delete">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -1812,7 +1815,7 @@ export default function TripDetailPage() {
                               {a.providerName && <div><span className="text-[var(--color-muted-foreground)]">Provider:</span> {a.providerName}</div>}
                               {a.providerPhone && <div><span className="text-[var(--color-muted-foreground)]">Phone:</span> {a.providerPhone}</div>}
                               {a.providerEmail && <div><span className="text-[var(--color-muted-foreground)]">Email:</span> {a.providerEmail}</div>}
-                              {a.providerWebsite && (
+                              {a.providerWebsite && /^https?:\/\//i.test(a.providerWebsite) && (
                                 <div><span className="text-[var(--color-muted-foreground)]">Website:</span>{' '}
                                   <a href={a.providerWebsite} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline inline-flex items-center gap-1">
                                     {a.providerWebsite} <ExternalLink className="w-3 h-3" />
@@ -1840,6 +1843,37 @@ export default function TripDetailPage() {
                 eventTemplateId={trip?.eventTemplateId}
                 onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
               />
+            )}
+
+            {deletingActivity && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeletingActivity(null)}>
+                <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold">Delete Activity</h3>
+                    <button onClick={() => setDeletingActivity(null)} className="p-1 rounded hover:bg-[var(--color-accent)] transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-[var(--color-muted-foreground)]">
+                    Are you sure you want to delete <span className="font-medium text-[var(--color-foreground)]">{deletingActivity.title}</span>? This cannot be undone.
+                  </p>
+                  {deleteScheduledActivity.isError && (
+                    <p className="text-sm text-[var(--color-destructive)] mt-3">Something went wrong. Please try again.</p>
+                  )}
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button onClick={() => setDeletingActivity(null)}
+                      className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)]">
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => deleteScheduledActivity.mutate(deletingActivity.id, { onSuccess: () => setDeletingActivity(null) })}
+                      disabled={deleteScheduledActivity.isPending}
+                      className="px-4 py-2 text-sm rounded-lg bg-[var(--color-destructive)] text-white hover:opacity-90 disabled:opacity-50">
+                      {deleteScheduledActivity.isPending ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}

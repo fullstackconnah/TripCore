@@ -78,7 +78,9 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
     setTimeError('')
 
     const data: any = {
-      activityId: sourceTab === 'library' && selectedActivityId ? selectedActivityId : null,
+      activityId: editingActivity
+        ? (editingActivity.activityId ?? null)
+        : (sourceTab === 'library' && selectedActivityId ? selectedActivityId : null),
       title,
       startTime: startTime || null,
       endTime: endTime || null,

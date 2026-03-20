@@ -45,6 +45,7 @@ export default function App() {
             <Route path="/participants" element={<ParticipantsPage />} />
             <Route path="/participants/new" element={<ParticipantCreatePage />} />
             <Route path="/participants/:id" element={<ParticipantDetailPage />} />
+            <Route path="/participants/:id/edit" element={<ParticipantCreatePage />} />
             <Route path="/accommodation" element={<AccommodationPage />} />
             <Route path="/accommodation/:id" element={<AccommodationDetailPage />} />
             <Route path="/vehicles" element={<VehiclesPage />} />

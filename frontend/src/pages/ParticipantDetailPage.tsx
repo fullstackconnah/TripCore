@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useParticipant, useParticipantBookings, useSupportProfile } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Shield, ClipboardList } from 'lucide-react'
+import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ParticipantDetailPage() {
@@ -27,6 +27,9 @@ export default function ParticipantDetailPage() {
           </div>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{p.region || 'No region'} · {p.planType} · Support Ratio: {p.supportRatio}</p>
         </div>
+        <Link to={`/participants/${id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+          <Pencil className="w-4 h-4" /> Edit
+        </Link>
       </div>
 
       <div className="flex gap-4 border-b border-[var(--color-border)]">

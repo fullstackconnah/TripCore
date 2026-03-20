@@ -1,9 +1,10 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCreateParticipant } from '@/api/hooks'
+import { useCreateParticipant, useUpdateParticipant, useParticipant } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
+import { useEffect } from 'react'
 
 const participantSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -37,9 +38,14 @@ const checkboxLabelClass = 'text-sm text-[var(--color-foreground)]'
 
 export default function ParticipantCreatePage() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const isEdit = !!id
   const createParticipant = useCreateParticipant()
+  const updateParticipant = useUpdateParticipant()
+  const { data: existing, isLoading: isLoadingExisting } = useParticipant(isEdit ? id : undefined)
+  const mutation = isEdit ? updateParticipant : createParticipant
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ParticipantFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ParticipantFormData>({
     resolver: zodResolver(participantSchema),
     defaultValues: {
       planType: 'SelfManaged',
@@ -52,33 +58,65 @@ export default function ParticipantCreatePage() {
     },
   })
 
+  useEffect(() => {
+    if (existing) {
+      reset({
+        firstName: existing.firstName ?? '',
+        lastName: existing.lastName ?? '',
+        preferredName: existing.preferredName ?? '',
+        dateOfBirth: existing.dateOfBirth ? existing.dateOfBirth.split('T')[0] : '',
+        ndisNumber: existing.ndisNumber ?? '',
+        planType: existing.planType ?? 'SelfManaged',
+        region: existing.region ?? '',
+        fundingOrganisation: existing.fundingOrganisation ?? '',
+        isRepeatClient: existing.isRepeatClient ?? false,
+        wheelchairRequired: existing.wheelchairRequired ?? false,
+        isHighSupport: existing.isHighSupport ?? false,
+        requiresOvernightSupport: existing.requiresOvernightSupport ?? false,
+        hasRestrictivePracticeFlag: existing.hasRestrictivePracticeFlag ?? false,
+        supportRatio: existing.supportRatio ?? 'SharedSupport',
+        mobilityNotes: existing.mobilityNotes ?? '',
+        equipmentRequirements: existing.equipmentRequirements ?? '',
+        transportRequirements: existing.transportRequirements ?? '',
+        medicalSummary: existing.medicalSummary ?? '',
+        behaviourRiskSummary: existing.behaviourRiskSummary ?? '',
+        notes: existing.notes ?? '',
+      })
+    }
+  }, [existing, reset])
+
   const onSubmit = async (data: ParticipantFormData) => {
     const payload: any = { ...data }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }
     try {
-      const res = await createParticipant.mutateAsync(payload)
-      if (res.success && res.data?.id) {
-        navigate(`/participants/${res.data.id}`)
+      if (isEdit) {
+        const res = await updateParticipant.mutateAsync({ id, data: { ...payload, isActive: existing?.isActive ?? true } })
+        if (res.success) navigate(`/participants/${id}`)
+      } else {
+        const res = await createParticipant.mutateAsync(payload)
+        if (res.success && res.data?.id) navigate(`/participants/${res.data.id}`)
       }
     } catch {
       // error handled by mutation state
     }
   }
 
+  if (isEdit && isLoadingExisting) return <div className="flex items-center justify-center h-64 text-[var(--color-muted-foreground)]">Loading...</div>
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
-        <Link to="/participants" className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
+        <Link to={isEdit ? `/participants/${id}` : '/participants'} className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold">Create New Participant</h1>
+        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Participant' : 'Create New Participant'}</h1>
       </div>
 
-      {createParticipant.isError && (
+      {mutation.isError && (
         <div className="p-3 rounded-lg bg-[var(--color-destructive)]/10 text-[var(--color-destructive)] text-sm border border-[var(--color-destructive)]/20">
-          Failed to create participant. Please check your input and try again.
+          Failed to {isEdit ? 'update' : 'create'} participant. Please check your input and try again.
         </div>
       )}
 
@@ -220,9 +258,9 @@ export default function ParticipantCreatePage() {
           <Link to="/participants" className="px-6 py-2.5 rounded-lg border border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] transition-colors">
             Cancel
           </Link>
-          <button type="submit" disabled={createParticipant.isPending}
+          <button type="submit" disabled={mutation.isPending}
             className="px-6 py-2.5 rounded-lg bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary)]/90 disabled:opacity-50 transition-all shadow-md shadow-blue-500/20">
-            {createParticipant.isPending ? 'Creating...' : 'Create Participant'}
+            {mutation.isPending ? (isEdit ? 'Saving...' : 'Creating...') : (isEdit ? 'Save Changes' : 'Create Participant')}
           </button>
         </div>
       </form>

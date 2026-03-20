@@ -457,6 +457,34 @@ export function useGenerateSchedule() {
   })
 }
 
+// ── Scheduled Activity CRUD hooks ──────────────────────────
+
+export function useCreateScheduledActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ tripDayId, data }: { tripDayId: string; data: any }) =>
+      apiClient.post(`/trip-days/${tripDayId}/activities`, data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+  })
+}
+
+export function useUpdateScheduledActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiClient.put(`/scheduled-activities/${id}`, data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+  })
+}
+
+export function useDeleteScheduledActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/scheduled-activities/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+  })
+}
+
 export function useScheduleOverview(params?: Record<string, string>) {
   return useQuery({
     queryKey: ['schedule-overview', params],

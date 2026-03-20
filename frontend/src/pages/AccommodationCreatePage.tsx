@@ -24,9 +24,9 @@ const accommodationSchema = z.object({
   isSemiModified: z.boolean().optional(),
   isWheelchairAccessible: z.boolean().optional(),
   accessibilityNotes: z.string().optional(),
-  bedroomCount: z.coerce.number().int().min(0).optional().or(z.literal('')),
-  bedCount: z.coerce.number().int().min(0).optional().or(z.literal('')),
-  maxCapacity: z.coerce.number().int().min(0).optional().or(z.literal('')),
+  bedroomCount: z.string().optional(),
+  bedCount: z.string().optional(),
+  maxCapacity: z.string().optional(),
   beddingConfiguration: z.string().optional(),
   hoistBathroomNotes: z.string().optional(),
   generalNotes: z.string().optional(),
@@ -89,6 +89,10 @@ export default function AccommodationCreatePage() {
 
   const onSubmit = async (data: AccommodationFormData) => {
     const payload: any = { ...data }
+    // Convert numeric string fields
+    for (const numField of ['bedroomCount', 'bedCount', 'maxCapacity']) {
+      payload[numField] = payload[numField] ? Number(payload[numField]) : null
+    }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }

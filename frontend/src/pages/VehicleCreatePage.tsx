@@ -10,8 +10,8 @@ const vehicleSchema = z.object({
   vehicleName: z.string().min(1, 'Vehicle name is required'),
   registration: z.string().optional(),
   vehicleType: z.string().min(1, 'Vehicle type is required'),
-  totalSeats: z.coerce.number().int().min(0),
-  wheelchairPositions: z.coerce.number().int().min(0),
+  totalSeats: z.string().min(1, 'Total seats is required'),
+  wheelchairPositions: z.string(),
   rampHoistDetails: z.string().optional(),
   driverRequirements: z.string().optional(),
   isInternal: z.boolean().optional(),
@@ -40,8 +40,8 @@ export default function VehicleCreatePage() {
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
       vehicleType: 'Van',
-      totalSeats: 0,
-      wheelchairPositions: 0,
+      totalSeats: '0',
+      wheelchairPositions: '0',
       isInternal: true,
     },
   })
@@ -52,8 +52,8 @@ export default function VehicleCreatePage() {
         vehicleName: existing.vehicleName ?? '',
         registration: existing.registration ?? '',
         vehicleType: existing.vehicleType ?? 'Van',
-        totalSeats: existing.totalSeats ?? 0,
-        wheelchairPositions: existing.wheelchairPositions ?? 0,
+        totalSeats: String(existing.totalSeats ?? 0),
+        wheelchairPositions: String(existing.wheelchairPositions ?? 0),
         rampHoistDetails: existing.rampHoistDetails ?? '',
         driverRequirements: existing.driverRequirements ?? '',
         isInternal: existing.isInternal ?? true,
@@ -66,6 +66,8 @@ export default function VehicleCreatePage() {
 
   const onSubmit = async (data: VehicleFormData) => {
     const payload: any = { ...data }
+    payload.totalSeats = Number(payload.totalSeats) || 0
+    payload.wheelchairPositions = Number(payload.wheelchairPositions) || 0
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }

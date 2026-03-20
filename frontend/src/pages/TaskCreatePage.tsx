@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateTask, useUpdateTask, useTrips, useStaff } from '@/api/hooks'
+import { apiClient } from '@/api/client'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 
@@ -51,7 +52,6 @@ export default function TaskCreatePage() {
       // Fetch tasks and find the one we need
       const fetchTask = async () => {
         try {
-          const { default: apiClient } = await import('@/api/client')
           const res = await apiClient.get(`/tasks?status=`)
           const tasks = res.data?.data ?? []
           const task = tasks.find((t: any) => t.id === id)

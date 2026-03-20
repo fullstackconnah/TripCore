@@ -1752,9 +1752,21 @@ export default function TripDetailPage() {
         {activeTab === 'activities' && (
           <div className="space-y-4">
             {schedule.length === 0 ? (
-              <p className="text-[var(--color-muted-foreground)]">
-                {generateSchedule.isPending ? 'Generating schedule...' : 'No schedule available. Check that the trip has dates configured.'}
-              </p>
+              <div className="text-[var(--color-muted-foreground)]">
+                {generateSchedule.isPending ? (
+                  <p>Generating schedule...</p>
+                ) : generateSchedule.isError ? (
+                  <div className="space-y-2">
+                    <p className="text-[var(--color-destructive)]">Failed to generate schedule. The server may need a database update.</p>
+                    <button onClick={() => { hasTriedGenerate.current = false; id && generateSchedule.mutate(id) }}
+                      className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90">
+                      Retry
+                    </button>
+                  </div>
+                ) : (
+                  <p>No schedule available. Check that the trip has dates configured.</p>
+                )}
+              </div>
             ) : schedule.map((day: any) => (
               <div key={day.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
                 <div className="flex items-center justify-between mb-3">

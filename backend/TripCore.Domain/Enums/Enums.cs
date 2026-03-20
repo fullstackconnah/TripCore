@@ -106,6 +106,15 @@ public enum AssignmentStatus
     Cancelled
 }
 
+public enum ScheduledActivityStatus
+{
+    Planned,
+    Booked,
+    Confirmed,
+    Completed,
+    Cancelled
+}
+
 public enum SleepoverType
 {
     None,

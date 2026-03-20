@@ -19,26 +19,47 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
 function StatusBadge({ status, role, clickable, onClick, onUnassign }: { status: string; role?: string; clickable?: boolean; onClick?: () => void; onUnassign?: () => void }) {
   const s = statusColors[status] || statusColors.Available
   const isUnassignable = !!(onUnassign && status === 'Assigned')
+  const [justUnassigned, setJustUnassigned] = useState(false)
+
   const clickClass = clickable
     ? 'cursor-pointer hover:ring-2 hover:ring-[var(--color-primary)]/50 hover:scale-105 transition-all'
     : isUnassignable
       ? 'cursor-pointer hover:ring-2 hover:ring-rose-500/50 hover:scale-105 transition-all group'
       : ''
+
+  const handleUnassign = () => {
+    setJustUnassigned(true)
+    setTimeout(() => {
+      onUnassign?.()
+      setJustUnassigned(false)
+    }, 1000)
+  }
+
+  if (justUnassigned) {
+    return (
+      <div className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs font-medium text-center leading-tight">
+        <span>Unassigned</span>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`${s.bg} ${s.text} px-2 py-1 rounded text-xs font-medium text-center leading-tight ${clickClass} ${isUnassignable ? 'hover:bg-rose-500/20' : ''} relative`}
-      onClick={clickable ? onClick : isUnassignable ? onUnassign : undefined}
+      onClick={clickable ? onClick : isUnassignable ? handleUnassign : undefined}
       title={clickable ? 'Click to assign' : isUnassignable ? 'Click to unassign' : undefined}
     >
       {clickable && <Plus className="w-3 h-3 inline-block mr-0.5 -mt-0.5" />}
       {isUnassignable ? (
         <>
-          <span className="group-hover:hidden">{s.label}</span>
-          <span className="hidden group-hover:inline text-rose-400">
-            <X className="w-3 h-3 inline-block mr-0.5 -mt-0.5" />
+          {/* Default content — always in DOM for sizing */}
+          <span className="group-hover:invisible">{s.label}</span>
+          {role && <div className="text-[10px] opacity-75 mt-0.5 group-hover:invisible">{role}</div>}
+          {/* Hover overlay — positioned on top, same size as parent */}
+          <span className="absolute inset-0 hidden group-hover:flex items-center justify-center text-rose-400">
+            <X className="w-3 h-3 mr-0.5 flex-shrink-0" />
             Unassign
           </span>
-          {role && <div className="text-[10px] opacity-75 mt-0.5 group-hover:hidden">{role}</div>}
         </>
       ) : (
         <>

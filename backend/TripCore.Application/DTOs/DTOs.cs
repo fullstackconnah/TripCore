@@ -587,6 +587,14 @@ public record ScheduledActivityDto
     public string? AccessibilityNotes { get; init; }
     public string? Notes { get; init; }
     public int SortOrder { get; init; }
+    public ScheduledActivityStatus Status { get; init; }
+    public string? BookingReference { get; init; }
+    public string? ProviderName { get; init; }
+    public string? ProviderPhone { get; init; }
+    public string? ProviderEmail { get; init; }
+    public string? ProviderWebsite { get; init; }
+    public decimal? EstimatedCost { get; init; }
+    public ActivityCategory? Category { get; init; }
 }
 
 public record CreateScheduledActivityDto
@@ -599,9 +607,33 @@ public record CreateScheduledActivityDto
     public string? AccessibilityNotes { get; init; }
     public string? Notes { get; init; }
     public int SortOrder { get; init; }
+    public ScheduledActivityStatus Status { get; init; } = ScheduledActivityStatus.Planned;
+    public string? BookingReference { get; init; }
+    public string? ProviderName { get; init; }
+    public string? ProviderPhone { get; init; }
+    public string? ProviderEmail { get; init; }
+    public string? ProviderWebsite { get; init; }
+    public decimal? EstimatedCost { get; init; }
 }
 
-public record UpdateScheduledActivityDto : CreateScheduledActivityDto { }
+public record UpdateScheduledActivityDto
+{
+    public Guid? ActivityId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public TimeOnly? StartTime { get; init; }
+    public TimeOnly? EndTime { get; init; }
+    public string? Location { get; init; }
+    public string? AccessibilityNotes { get; init; }
+    public string? Notes { get; init; }
+    public int SortOrder { get; init; }
+    public ScheduledActivityStatus Status { get; init; }
+    public string? BookingReference { get; init; }
+    public string? ProviderName { get; init; }
+    public string? ProviderPhone { get; init; }
+    public string? ProviderEmail { get; init; }
+    public string? ProviderWebsite { get; init; }
+    public decimal? EstimatedCost { get; init; }
+}
 
 // ══════════════════════════════════════════════════════════════
 // TASK DTOs

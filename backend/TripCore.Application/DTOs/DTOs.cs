@@ -750,6 +750,8 @@ public record DashboardSummaryDto
     public int TripsMissingAccommodation { get; init; }
     public int TripsMissingVehicles { get; init; }
     public int TripsMissingStaff { get; init; }
+    public int OpenIncidentCount { get; init; }
+    public int QscOverdueCount { get; init; }
     public List<TripListDto> UpcomingTrips { get; init; } = new();
     public List<TaskDto> OverdueTasks { get; init; } = new();
 }
@@ -849,4 +851,89 @@ public record ScheduleVehicleTripStatusDto
     /// Available, Assigned, Conflict
     public string Status { get; init; } = string.Empty;
     public VehicleAssignmentStatus? AssignmentStatus { get; init; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// INCIDENT REPORT DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record IncidentListDto
+{
+    public Guid Id { get; init; }
+    public Guid TripInstanceId { get; init; }
+    public string? TripName { get; init; }
+    public IncidentType IncidentType { get; init; }
+    public IncidentSeverity Severity { get; init; }
+    public IncidentStatus Status { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public DateTime IncidentDateTime { get; init; }
+    public string? Location { get; init; }
+    public string? ReportedByName { get; init; }
+    public string? InvolvedParticipantName { get; init; }
+    public QscReportingStatus QscReportingStatus { get; init; }
+    public bool IsOverdue24h { get; init; }
+    public DateTime CreatedAt { get; init; }
+}
+
+public record IncidentDetailDto : IncidentListDto
+{
+    public Guid? ParticipantBookingId { get; init; }
+    public Guid? InvolvedParticipantId { get; init; }
+    public Guid? InvolvedStaffId { get; init; }
+    public string? InvolvedStaffName { get; init; }
+    public Guid ReportedByStaffId { get; init; }
+    public string Description { get; init; } = string.Empty;
+    public string? ImmediateActionsTaken { get; init; }
+    public bool WereEmergencyServicesCalled { get; init; }
+    public string? EmergencyServicesDetails { get; init; }
+    public string? WitnessNames { get; init; }
+    public string? WitnessStatements { get; init; }
+    public DateTime? QscReportedAt { get; init; }
+    public string? QscReferenceNumber { get; init; }
+    public Guid? ReviewedByStaffId { get; init; }
+    public string? ReviewedByName { get; init; }
+    public DateTime? ReviewedAt { get; init; }
+    public string? ReviewNotes { get; init; }
+    public string? CorrectiveActions { get; init; }
+    public DateTime? ResolvedAt { get; init; }
+    public bool FamilyNotified { get; init; }
+    public DateTime? FamilyNotifiedAt { get; init; }
+    public bool SupportCoordinatorNotified { get; init; }
+    public DateTime? SupportCoordinatorNotifiedAt { get; init; }
+    public DateTime UpdatedAt { get; init; }
+}
+
+public record CreateIncidentDto
+{
+    public Guid TripInstanceId { get; init; }
+    public Guid? ParticipantBookingId { get; init; }
+    public Guid? InvolvedParticipantId { get; init; }
+    public Guid? InvolvedStaffId { get; init; }
+    public Guid ReportedByStaffId { get; init; }
+    public IncidentType IncidentType { get; init; }
+    public IncidentSeverity Severity { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public DateTime IncidentDateTime { get; init; }
+    public string? Location { get; init; }
+    public string? ImmediateActionsTaken { get; init; }
+    public bool WereEmergencyServicesCalled { get; init; }
+    public string? EmergencyServicesDetails { get; init; }
+    public string? WitnessNames { get; init; }
+    public string? WitnessStatements { get; init; }
+}
+
+public record UpdateIncidentDto : CreateIncidentDto
+{
+    public IncidentStatus Status { get; init; }
+    public QscReportingStatus QscReportingStatus { get; init; }
+    public DateTime? QscReportedAt { get; init; }
+    public string? QscReferenceNumber { get; init; }
+    public Guid? ReviewedByStaffId { get; init; }
+    public string? ReviewNotes { get; init; }
+    public string? CorrectiveActions { get; init; }
+    public bool FamilyNotified { get; init; }
+    public DateTime? FamilyNotifiedAt { get; init; }
+    public bool SupportCoordinatorNotified { get; init; }
+    public DateTime? SupportCoordinatorNotifiedAt { get; init; }
 }

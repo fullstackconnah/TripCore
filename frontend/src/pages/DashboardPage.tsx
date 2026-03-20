@@ -1,7 +1,7 @@
 import { useDashboard } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import { Map, Users, ListChecks, AlertTriangle, Building2, Truck, UserCog, ArrowRight } from 'lucide-react'
+import { Map, Users, ListChecks, AlertTriangle, Building2, Truck, UserCog, ArrowRight, ShieldAlert } from 'lucide-react'
 
 function StatCard({ icon: Icon, label, value, color = 'text-[var(--color-foreground)]', subValue }: { icon: any; label: string; value: number | string; color?: string; subValue?: string }) {
   return (
@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
   if (isLoading) return <div className="flex items-center justify-center h-64 text-[var(--color-muted-foreground)]">Loading dashboard...</div>
 
-  const d = data || { upcomingTripCount: 0, activeParticipantCount: 0, outstandingTaskCount: 0, overdueTaskCount: 0, conflictCount: 0, tripsMissingAccommodation: 0, tripsMissingVehicles: 0, tripsMissingStaff: 0, upcomingTrips: [], overdueTasks: [] }
+  const d = data || { upcomingTripCount: 0, activeParticipantCount: 0, outstandingTaskCount: 0, overdueTaskCount: 0, conflictCount: 0, tripsMissingAccommodation: 0, tripsMissingVehicles: 0, tripsMissingStaff: 0, openIncidentCount: 0, qscOverdueCount: 0, upcomingTrips: [], overdueTasks: [] }
 
   return (
     <div className="space-y-6">
@@ -39,6 +39,14 @@ export default function DashboardPage() {
         <StatCard icon={ListChecks} label="Outstanding Tasks" value={d.outstandingTaskCount} color={d.outstandingTaskCount > 0 ? 'text-[var(--color-warning)]' : ''} />
         <StatCard icon={AlertTriangle} label="Overdue Tasks" value={d.overdueTaskCount} color={d.overdueTaskCount > 0 ? 'text-[var(--color-destructive)]' : ''} />
       </div>
+
+      {/* Incident stats */}
+      {(d.openIncidentCount > 0 || d.qscOverdueCount > 0) && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {d.openIncidentCount > 0 && <StatCard icon={ShieldAlert} label="Open Incidents" value={d.openIncidentCount} color="text-[var(--color-warning)]" subValue="Require attention" />}
+          {d.qscOverdueCount > 0 && <StatCard icon={AlertTriangle} label="QSC Overdue" value={d.qscOverdueCount} color="text-[var(--color-destructive)]" subValue="24-hour deadline exceeded" />}
+        </div>
+      )}
 
       {/* Alerts row */}
       {(d.conflictCount > 0 || d.tripsMissingAccommodation > 0 || d.tripsMissingVehicles > 0 || d.tripsMissingStaff > 0) && (

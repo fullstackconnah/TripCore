@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   LayoutDashboard, Map, CalendarRange, Users, Building2, Truck, UserCog,
-  ListChecks, Settings, LogOut, Menu, X, ClipboardList
+  ListChecks, Settings, LogOut, Menu, X, ClipboardList, AlertTriangle
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/vehicles', icon: Truck, label: 'Vehicles' },
   { to: '/staff', icon: UserCog, label: 'Staff' },
   { to: '/tasks', icon: ListChecks, label: 'Tasks' },
+  { to: '/incidents', icon: AlertTriangle, label: 'Incidents' },
   { to: '/bookings', icon: ClipboardList, label: 'Bookings' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]

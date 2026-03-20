@@ -31,6 +31,7 @@ public class TripCoreDbContext : DbContext
     public DbSet<BookingTask> BookingTasks => Set<BookingTask>();
     public DbSet<TripDocument> TripDocuments => Set<TripDocument>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -395,6 +396,25 @@ public class TripCoreDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(e => e.DocumentType);
+        });
+
+        // ── IncidentReport ───────────────────────────────────────
+        modelBuilder.Entity<IncidentReport>(e =>
+        {
+            e.HasKey(i => i.Id);
+            e.Property(i => i.Title).HasMaxLength(300).IsRequired();
+
+            e.HasOne(i => i.TripInstance).WithMany(t => t.IncidentReports).HasForeignKey(i => i.TripInstanceId);
+            e.HasOne(i => i.InvolvedParticipant).WithMany().HasForeignKey(i => i.InvolvedParticipantId);
+            e.HasOne(i => i.InvolvedStaff).WithMany().HasForeignKey(i => i.InvolvedStaffId);
+            e.HasOne(i => i.ReportedByStaff).WithMany().HasForeignKey(i => i.ReportedByStaffId);
+            e.HasOne(i => i.ReviewedByStaff).WithMany().HasForeignKey(i => i.ReviewedByStaffId);
+            e.HasOne(i => i.ParticipantBooking).WithMany().HasForeignKey(i => i.ParticipantBookingId);
+
+            e.HasIndex(i => i.Status);
+            e.HasIndex(i => i.Severity);
+            e.HasIndex(i => i.QscReportingStatus);
+            e.HasIndex(i => i.IsActive);
         });
 
         // ── User ─────────────────────────────────────────────────

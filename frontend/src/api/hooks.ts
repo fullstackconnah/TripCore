@@ -497,3 +497,59 @@ export function useDeleteStaffAvailability() {
     },
   })
 }
+
+// ── Incident hooks ──────────────────────────────────────────
+
+export function useIncidents(params?: Record<string, string>) {
+  return useQuery({
+    queryKey: ['incidents', params],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>('/incidents', { params }).then(r => r.data.data ?? []),
+  })
+}
+
+export function useIncident(id: string | undefined) {
+  return useQuery({
+    queryKey: ['incident', id],
+    queryFn: () => apiClient.get<ApiResponse<any>>(`/incidents/${id}`).then(r => r.data.data),
+    enabled: !!id,
+  })
+}
+
+export function useTripIncidents(tripId: string | undefined) {
+  return useQuery({
+    queryKey: ['trip-incidents', tripId],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>(`/incidents/trip/${tripId}`).then(r => r.data.data ?? []),
+    enabled: !!tripId,
+  })
+}
+
+export function useOverdueQscIncidents() {
+  return useQuery({
+    queryKey: ['incidents-overdue-qsc'],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>('/incidents/overdue-qsc').then(r => r.data.data ?? []),
+  })
+}
+
+export function useCreateIncident() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.post('/incidents', data).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['incidents'] }); qc.invalidateQueries({ queryKey: ['dashboard'] }) },
+  })
+}
+
+export function useUpdateIncident() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/incidents/${id}`, data).then(r => r.data),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ['incidents'] }); qc.invalidateQueries({ queryKey: ['incident', vars.id] }); qc.invalidateQueries({ queryKey: ['dashboard'] }) },
+  })
+}
+
+export function useDeleteIncident() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/incidents/${id}`).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['incidents'] }); qc.invalidateQueries({ queryKey: ['dashboard'] }) },
+  })
+}

@@ -17,6 +17,8 @@ import StaffPage from './pages/StaffPage'
 import StaffCreatePage from './pages/StaffCreatePage'
 import TasksPage from './pages/TasksPage'
 import TaskCreatePage from './pages/TaskCreatePage'
+import IncidentsPage from './pages/IncidentsPage'
+import IncidentCreatePage from './pages/IncidentCreatePage'
 import BookingsPage from './pages/BookingsPage'
 import SchedulePage from './pages/SchedulePage'
 import SettingsPage from './pages/SettingsPage'
@@ -63,6 +65,9 @@ export default function App() {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/tasks/new" element={<TaskCreatePage />} />
             <Route path="/tasks/:id/edit" element={<TaskCreatePage />} />
+            <Route path="/incidents" element={<IncidentsPage />} />
+            <Route path="/incidents/new" element={<IncidentCreatePage />} />
+            <Route path="/incidents/:id/edit" element={<IncidentCreatePage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

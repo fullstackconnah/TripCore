@@ -41,4 +41,5 @@ public class TripInstance
     public ICollection<BookingTask> Tasks { get; set; } = new List<BookingTask>();
     public ICollection<TripDocument> Documents { get; set; } = new List<TripDocument>();
     public ICollection<TripDay> TripDays { get; set; } = new List<TripDay>();
+    public ICollection<IncidentReport> IncidentReports { get; set; } = new List<IncidentReport>();
 }

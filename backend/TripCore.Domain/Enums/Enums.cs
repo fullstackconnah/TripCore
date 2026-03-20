@@ -178,3 +178,45 @@ public enum UserRole
     SupportWorker,
     ReadOnly
 }
+
+public enum IncidentType
+{
+    Injury,
+    Illness,
+    MedicationError,
+    BehaviourOfConcern,
+    RestrictivePracticeUse,
+    PropertyDamage,
+    MissingPerson,
+    Abuse,
+    Neglect,
+    Death,
+    Other
+}
+
+public enum IncidentSeverity
+{
+    Low,
+    Medium,
+    High,
+    Critical
+}
+
+public enum IncidentStatus
+{
+    Draft,
+    Submitted,
+    UnderReview,
+    Escalated,
+    Resolved,
+    Closed
+}
+
+public enum QscReportingStatus
+{
+    NotRequired,
+    Required,
+    ReportedWithin24h,
+    ReportedLate,
+    Pending
+}

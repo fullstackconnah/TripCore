@@ -315,6 +315,14 @@ public class DashboardController : ControllerBase
             + await _db.VehicleAssignments.CountAsync(v => v.HasOverlapConflict, ct)
             + await _db.StaffAssignments.CountAsync(s => s.HasConflict, ct);
 
+        var openIncidentCount = await _db.IncidentReports.CountAsync(
+            i => i.IsActive && i.Status != IncidentStatus.Closed && i.Status != IncidentStatus.Resolved, ct);
+
+        var qscCutoff = DateTime.UtcNow.AddHours(-24);
+        var qscOverdueCount = await _db.IncidentReports.CountAsync(
+            i => i.IsActive && i.QscReportingStatus == QscReportingStatus.Required
+                && i.QscReportedAt == null && i.CreatedAt < qscCutoff, ct);
+
         return Ok(ApiResponse<DashboardSummaryDto>.Ok(new DashboardSummaryDto
         {
             UpcomingTripCount = upcomingTrips.Count,
@@ -325,6 +333,8 @@ public class DashboardController : ControllerBase
             TripsMissingAccommodation = upcomingTripIds.Count - tripsWithAccommodation.Count,
             TripsMissingVehicles = upcomingTripIds.Count - tripsWithVehicles.Count,
             TripsMissingStaff = upcomingTripIds.Count - tripsWithStaff.Count,
+            OpenIncidentCount = openIncidentCount,
+            QscOverdueCount = qscOverdueCount,
             UpcomingTrips = upcomingTrips,
             OverdueTasks = overdueTasks
         }));

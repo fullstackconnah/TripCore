@@ -224,25 +224,55 @@ public class TripDayScheduleController : ControllerBase
             Id = Guid.NewGuid(), TripDayId = id, ActivityId = dto.ActivityId,
             Title = dto.Title, StartTime = dto.StartTime, EndTime = dto.EndTime,
             Location = dto.Location, AccessibilityNotes = dto.AccessibilityNotes,
-            Notes = dto.Notes, SortOrder = dto.SortOrder
+            Notes = dto.Notes, SortOrder = dto.SortOrder,
+            Status = dto.Status, BookingReference = dto.BookingReference,
+            ProviderName = dto.ProviderName, ProviderPhone = dto.ProviderPhone,
+            ProviderEmail = dto.ProviderEmail, ProviderWebsite = dto.ProviderWebsite,
+            EstimatedCost = dto.EstimatedCost
         };
         _db.ScheduledActivities.Add(a);
         await _db.SaveChangesAsync(ct);
-        return Ok(ApiResponse<ScheduledActivityDto>.Ok(new ScheduledActivityDto { Id = a.Id, Title = a.Title }));
+        if (a.ActivityId.HasValue) await _db.Entry(a).Reference(e => e.Activity).LoadAsync(ct);
+        return Ok(ApiResponse<ScheduledActivityDto>.Ok(new ScheduledActivityDto
+        {
+            Id = a.Id, TripDayId = a.TripDayId, ActivityId = a.ActivityId,
+            Title = a.Title, StartTime = a.StartTime, EndTime = a.EndTime,
+            Location = a.Location, AccessibilityNotes = a.AccessibilityNotes,
+            Notes = a.Notes, SortOrder = a.SortOrder,
+            Status = a.Status, BookingReference = a.BookingReference,
+            ProviderName = a.ProviderName, ProviderPhone = a.ProviderPhone,
+            ProviderEmail = a.ProviderEmail, ProviderWebsite = a.ProviderWebsite,
+            EstimatedCost = a.EstimatedCost, Category = a.Activity?.Category
+        }));
     }
 
     [HttpPut("scheduled-activities/{id:guid}")]
     public async Task<ActionResult<ApiResponse<ScheduledActivityDto>>> UpdateActivity(Guid id, [FromBody] UpdateScheduledActivityDto dto, CancellationToken ct)
     {
-        var a = await _db.ScheduledActivities.FirstOrDefaultAsync(x => x.Id == id, ct);
+        var a = await _db.ScheduledActivities.Include(s => s.Activity).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (a == null) return NotFound(ApiResponse<ScheduledActivityDto>.Fail("Activity not found"));
 
         a.ActivityId = dto.ActivityId; a.Title = dto.Title; a.StartTime = dto.StartTime;
         a.EndTime = dto.EndTime; a.Location = dto.Location; a.AccessibilityNotes = dto.AccessibilityNotes;
         a.Notes = dto.Notes; a.SortOrder = dto.SortOrder; a.UpdatedAt = DateTime.UtcNow;
+        a.Status = dto.Status; a.BookingReference = dto.BookingReference;
+        a.ProviderName = dto.ProviderName; a.ProviderPhone = dto.ProviderPhone;
+        a.ProviderEmail = dto.ProviderEmail; a.ProviderWebsite = dto.ProviderWebsite;
+        a.EstimatedCost = dto.EstimatedCost;
 
         await _db.SaveChangesAsync(ct);
-        return Ok(ApiResponse<ScheduledActivityDto>.Ok(new ScheduledActivityDto { Id = a.Id, Title = a.Title }));
+        if (a.ActivityId.HasValue) await _db.Entry(a).Reference(e => e.Activity).LoadAsync(ct);
+        return Ok(ApiResponse<ScheduledActivityDto>.Ok(new ScheduledActivityDto
+        {
+            Id = a.Id, TripDayId = a.TripDayId, ActivityId = a.ActivityId,
+            Title = a.Title, StartTime = a.StartTime, EndTime = a.EndTime,
+            Location = a.Location, AccessibilityNotes = a.AccessibilityNotes,
+            Notes = a.Notes, SortOrder = a.SortOrder,
+            Status = a.Status, BookingReference = a.BookingReference,
+            ProviderName = a.ProviderName, ProviderPhone = a.ProviderPhone,
+            ProviderEmail = a.ProviderEmail, ProviderWebsite = a.ProviderWebsite,
+            EstimatedCost = a.EstimatedCost, Category = a.Activity?.Category
+        }));
     }
 
     [HttpDelete("scheduled-activities/{id:guid}")]

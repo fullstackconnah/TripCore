@@ -2,7 +2,7 @@ import { useTasks, useUpdateTask, useDeleteTask } from '@/api/hooks'
 import { Link } from 'react-router-dom'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { useState } from 'react'
-import { Filter, CheckCircle, Plus, Pencil, Trash2 } from 'lucide-react'
+import { Filter, CheckCircle, Plus, Pencil, Trash2, ArchiveRestore } from 'lucide-react'
 
 export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('')
@@ -20,6 +20,13 @@ export default function TasksPage() {
 
   const markComplete = async (task: any) => {
     await updateTask.mutateAsync({ id: task.id, data: { ...task, status: 'Completed', completedDate: new Date().toISOString().split('T')[0] } })
+  }
+
+  const handleRestore = (e: React.MouseEvent, t: any) => {
+    e.stopPropagation()
+    if (window.confirm(`Restore "${t.title}"?`)) {
+      updateTask.mutate({ id: t.id, data: { ...t, status: 'NotStarted' } })
+    }
   }
 
   const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
@@ -110,7 +117,12 @@ export default function TasksPage() {
                       <Link to={`/tasks/${t.id}/edit`} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      {!showArchived && (
+                      {showArchived ? (
+                        <button onClick={(e) => handleRestore(e, t)}
+                          className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+                          <ArchiveRestore className="w-4 h-4" />
+                        </button>
+                      ) : (
                         <button onClick={(e) => handleDelete(e, t.id, t.title)}
                           className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
                           <Trash2 className="w-4 h-4" />

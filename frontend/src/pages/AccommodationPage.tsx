@@ -1,6 +1,6 @@
-import { useAccommodation, useDeleteAccommodation } from '@/api/hooks'
+import { useAccommodation, useDeleteAccommodation, useUpdateAccommodation } from '@/api/hooks'
 import { Link } from 'react-router-dom'
-import { Search, Plus, Trash2 } from 'lucide-react'
+import { Search, Plus, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
 
 export default function AccommodationPage() {
@@ -9,6 +9,15 @@ export default function AccommodationPage() {
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
   const { data: properties = [], isLoading } = useAccommodation(params)
   const deleteAccommodation = useDeleteAccommodation()
+  const updateAccommodation = useUpdateAccommodation()
+
+  const handleRestore = (e: React.MouseEvent, a: any) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (window.confirm(`Restore "${a.propertyName}"?`)) {
+      updateAccommodation.mutate({ id: a.id, data: { ...a, isActive: true } })
+    }
+  }
 
   const filtered = search
     ? properties.filter((a: any) => a.propertyName.toLowerCase().includes(search.toLowerCase()) || a.location?.toLowerCase().includes(search.toLowerCase()))
@@ -64,7 +73,12 @@ export default function AccommodationPage() {
                 <h3 className="font-semibold">{a.propertyName}</h3>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{a.isActive ? 'Active' : 'Inactive'}</span>
-                  {!showArchived && (
+                  {showArchived ? (
+                    <button onClick={(e) => handleRestore(e, a)}
+                      className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+                      <ArchiveRestore className="w-4 h-4" />
+                    </button>
+                  ) : (
                     <button onClick={(e) => handleDelete(e, a.id, a.propertyName)}
                       className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
                       <Trash2 className="w-4 h-4" />

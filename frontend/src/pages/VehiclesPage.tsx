@@ -1,7 +1,7 @@
-import { useVehicles, useDeleteVehicle } from '@/api/hooks'
+import { useVehicles, useDeleteVehicle, useUpdateVehicle } from '@/api/hooks'
 import { Link } from 'react-router-dom'
 import { formatDateAu } from '@/lib/utils'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
 
 export default function VehiclesPage() {
@@ -9,6 +9,14 @@ export default function VehiclesPage() {
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
   const { data: vehicles = [], isLoading } = useVehicles(params)
   const deleteVehicle = useDeleteVehicle()
+  const updateVehicle = useUpdateVehicle()
+
+  const handleRestore = (e: React.MouseEvent, v: any) => {
+    e.stopPropagation()
+    if (window.confirm(`Restore "${v.vehicleName}"?`)) {
+      updateVehicle.mutate({ id: v.id, data: { ...v, isActive: true } })
+    }
+  }
 
   const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation()
@@ -56,7 +64,12 @@ export default function VehiclesPage() {
                   <Link to={`/vehicles/${v.id}/edit`} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors" title="Edit" onClick={e => e.stopPropagation()}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Link>
-                  {!showArchived && (
+                  {showArchived ? (
+                    <button onClick={(e) => handleRestore(e, v)}
+                      className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
                     <button onClick={(e) => handleDelete(e, v.id, v.vehicleName)}
                       className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
                       <Trash2 className="w-3.5 h-3.5" />

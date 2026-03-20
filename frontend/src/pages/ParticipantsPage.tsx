@@ -1,7 +1,7 @@
-import { useParticipants, useDeleteParticipant } from '@/api/hooks'
+import { useParticipants, useDeleteParticipant, useUpdateParticipant } from '@/api/hooks'
 import { maskNdisNumber } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import { Plus, Search, Trash2 } from 'lucide-react'
+import { Plus, Search, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ParticipantsPage() {
@@ -12,6 +12,14 @@ export default function ParticipantsPage() {
 
   const { data: participants = [], isLoading } = useParticipants(params)
   const deleteParticipant = useDeleteParticipant()
+  const updateParticipant = useUpdateParticipant()
+
+  const handleRestore = (e: React.MouseEvent, p: any) => {
+    e.stopPropagation()
+    if (window.confirm(`Restore "${p.fullName}"?`)) {
+      updateParticipant.mutate({ id: p.id, data: { ...p, isActive: true } })
+    }
+  }
 
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Archive "${name}"? This can be undone from the Archived view.`)) {
@@ -67,7 +75,7 @@ export default function ParticipantsPage() {
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Support Ratio</th>
                 <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Repeat</th>
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                {!showArchived && <th className="w-10 p-3"></th>}
+                <th className="w-10 p-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
@@ -84,14 +92,19 @@ export default function ParticipantsPage() {
                   <td className="p-3 text-[var(--color-muted-foreground)]">{p.supportRatio}</td>
                   <td className="p-3 text-center">{p.isRepeatClient ? '🔁' : ''}</td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
-                  {!showArchived && (
-                    <td className="p-3">
+                  <td className="p-3">
+                    {showArchived ? (
+                      <button onClick={(e) => handleRestore(e, p)}
+                        className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+                        <ArchiveRestore className="w-4 h-4" />
+                      </button>
+                    ) : (
                       <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id, p.fullName) }}
                         className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
                         <Trash2 className="w-4 h-4" />
                       </button>
-                    </td>
-                  )}
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

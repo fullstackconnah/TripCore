@@ -1,6 +1,6 @@
-import { useStaff, useDeleteStaff } from '@/api/hooks'
+import { useStaff, useDeleteStaff, useUpdateStaff } from '@/api/hooks'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
 
 export default function StaffPage() {
@@ -8,6 +8,14 @@ export default function StaffPage() {
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
   const { data: staff = [], isLoading } = useStaff(params)
   const deleteStaff = useDeleteStaff()
+  const updateStaff = useUpdateStaff()
+
+  const handleRestore = (e: React.MouseEvent, s: any) => {
+    e.stopPropagation()
+    if (window.confirm(`Restore "${s.fullName}"?`)) {
+      updateStaff.mutate({ id: s.id, data: { ...s, isActive: true } })
+    }
+  }
 
   const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation()
@@ -75,7 +83,12 @@ export default function StaffPage() {
                       <Link to={`/staff/${s.id}/edit`} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      {!showArchived && (
+                      {showArchived ? (
+                        <button onClick={(e) => handleRestore(e, s)}
+                          className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+                          <ArchiveRestore className="w-4 h-4" />
+                        </button>
+                      ) : (
                         <button onClick={(e) => handleDelete(e, s.id, s.fullName)}
                           className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
                           <Trash2 className="w-4 h-4" />

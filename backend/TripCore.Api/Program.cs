@@ -69,6 +69,18 @@ using (var scope = app.Services.CreateScope())
     // Add new columns that EnsureCreated won't add to existing tables
     await db.Database.ExecuteSqlRawAsync(
         """ALTER TABLE "TripInstances" ADD COLUMN IF NOT EXISTS "CalculatedStaffRequired" numeric NOT NULL DEFAULT 0""");
+    // ScheduledActivity tracking fields
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "Status" integer NOT NULL DEFAULT 0;
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "BookingReference" character varying(200);
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderName" character varying(200);
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderPhone" character varying(50);
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderEmail" character varying(200);
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderWebsite" character varying(500);
+        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "EstimatedCost" numeric(18,2);
+        CREATE INDEX IF NOT EXISTS "IX_ScheduledActivities_Status" ON "ScheduledActivities" ("Status");
+        """);
     await DbSeeder.SeedAsync(db);
 }
 

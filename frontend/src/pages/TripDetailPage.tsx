@@ -1,17 +1,22 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2 } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
+import AddActivityModal from '@/components/AddActivityModal'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'schedule'
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities'
 
 export default function TripDetailPage() {
   const { id } = useParams()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
+  const [showAddActivity, setShowAddActivity] = useState(false)
+  const [editingScheduledActivity, setEditingScheduledActivity] = useState<any>(null)
+  const [addActivityDayId, setAddActivityDayId] = useState('')
+  const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set())
   const [selectedParticipantId, setSelectedParticipantId] = useState('')
   const [bookingStatus, setBookingStatus] = useState('Enquiry')
   const [wheelchairRequired, setWheelchairRequired] = useState(false)
@@ -49,8 +54,40 @@ export default function TripDetailPage() {
     }
   }, [selectedParticipantId, participants])
 
+  // Auto-generate trip days when activities tab is opened
+  useEffect(() => {
+    if (activeTab === 'activities' && id && schedule.length === 0 && trip && !generateSchedule.isPending) {
+      generateSchedule.mutate(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, id, schedule.length, trip])
+
+  const toggleActivityExpanded = (activityId: string) => {
+    setExpandedActivities(prev => {
+      const next = new Set(prev)
+      if (next.has(activityId)) next.delete(activityId)
+      else next.add(activityId)
+      return next
+    })
+  }
+
+  const getActivityStatusColor = (status: string) => {
+    switch (status) {
+      case 'Planned': return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+      case 'Booked': return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+      case 'Confirmed': return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+      case 'Completed': return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+      case 'Cancelled': return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+      default: return 'bg-gray-100 text-gray-700'
+    }
+  }
+
+  const isReadOnly = trip?.status === 'Cancelled' || trip?.status === 'Archived'
+
   const deleteBooking = useDeleteBooking()
   const cancelBooking = useCancelBooking()
+  const generateSchedule = useGenerateSchedule()
+  const deleteScheduledActivity = useDeleteScheduledActivity()
   const [deletingBooking, setDeletingBooking] = useState<any>(null)
 
   const [editingBooking, setEditingBooking] = useState<any>(null)
@@ -342,7 +379,7 @@ export default function TripDetailPage() {
     { key: 'vehicles', label: 'Vehicles', icon: Truck, count: vehicles.length },
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
-    { key: 'schedule', label: 'Schedule', icon: Calendar, count: schedule.length },
+    { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
   ]
 
   return (
@@ -1709,32 +1746,101 @@ export default function TripDetailPage() {
           </div>
         )}
 
-        {activeTab === 'schedule' && (
+        {activeTab === 'activities' && (
           <div className="space-y-4">
             {schedule.length === 0 ? (
-              <p className="text-[var(--color-muted-foreground)]">No schedule generated yet</p>
+              <p className="text-[var(--color-muted-foreground)]">
+                {generateSchedule.isPending ? 'Generating schedule...' : 'No schedule available. Check that the trip has dates configured.'}
+              </p>
             ) : schedule.map((day: any) => (
               <div key={day.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-bold text-sm">D{day.dayNumber}</span>
-                  <div>
-                    <h4 className="font-semibold">{day.dayTitle || `Day ${day.dayNumber}`}</h4>
-                    <p className="text-xs text-[var(--color-muted-foreground)]">{formatDateAu(day.date)}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-bold text-sm">
+                      D{day.dayNumber}
+                    </span>
+                    <div>
+                      <h4 className="font-semibold">{day.dayTitle || `Day ${day.dayNumber}`}</h4>
+                      <p className="text-xs text-[var(--color-muted-foreground)]">{formatDateAu(day.date)}</p>
+                    </div>
                   </div>
+                  {!isReadOnly && (
+                    <button onClick={() => { setAddActivityDayId(day.id); setShowAddActivity(true) }}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90">
+                      <Plus className="w-3.5 h-3.5" /> Add
+                    </button>
+                  )}
                 </div>
-                {day.dayNotes && <p className="text-sm text-[var(--color-muted-foreground)] mb-3">{day.dayNotes}</p>}
-                {day.scheduledActivities?.length > 0 && (
-                  <div className="space-y-2 pl-4 border-l-2 border-[var(--color-primary)]/20">
-                    {day.scheduledActivities.map((a: any) => (
-                      <div key={a.id} className="text-sm">
-                        <span className="font-medium">{a.startTime && `${a.startTime} `}{a.title}</span>
-                        {a.location && <span className="text-[var(--color-muted-foreground)]"> — {a.location}</span>}
-                      </div>
-                    ))}
+
+                {day.scheduledActivities?.length > 0 ? (
+                  <div className="space-y-2">
+                    {day.scheduledActivities.map((a: any) => {
+                      const isExpanded = expandedActivities.has(a.id)
+                      return (
+                        <div key={a.id} className="border border-[var(--color-border)] rounded-lg">
+                          <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={() => toggleActivityExpanded(a.id)}>
+                            {isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--color-muted-foreground)] shrink-0" /> : <ChevronRight className="w-4 h-4 text-[var(--color-muted-foreground)] shrink-0" />}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">{a.title}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getActivityStatusColor(a.status)}`}>{a.status}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                                {a.startTime && <span>{a.startTime}{a.endTime && ` – ${a.endTime}`}</span>}
+                                {a.location && <span>{a.location}</span>}
+                                {a.bookingReference && <span>Ref: {a.bookingReference}</span>}
+                              </div>
+                            </div>
+                            {!isReadOnly && (
+                              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                                <button onClick={() => { setEditingScheduledActivity(a); setAddActivityDayId(a.tripDayId); setShowAddActivity(true) }}
+                                  className="p-1.5 hover:bg-[var(--color-accent)] rounded-lg" title="Edit">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => { if (confirm('Are you sure you want to delete this activity?')) deleteScheduledActivity.mutate(a.id) }}
+                                  className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {isExpanded && (
+                            <div className="px-3 pb-3 pt-0 border-t border-[var(--color-border)] ml-7 space-y-2 text-sm">
+                              {a.category && <div><span className="text-[var(--color-muted-foreground)]">Category:</span> {a.category}</div>}
+                              {a.estimatedCost != null && <div><span className="text-[var(--color-muted-foreground)]">Est. Cost:</span> ${Number(a.estimatedCost).toFixed(2)}</div>}
+                              {a.providerName && <div><span className="text-[var(--color-muted-foreground)]">Provider:</span> {a.providerName}</div>}
+                              {a.providerPhone && <div><span className="text-[var(--color-muted-foreground)]">Phone:</span> {a.providerPhone}</div>}
+                              {a.providerEmail && <div><span className="text-[var(--color-muted-foreground)]">Email:</span> {a.providerEmail}</div>}
+                              {a.providerWebsite && (
+                                <div><span className="text-[var(--color-muted-foreground)]">Website:</span>{' '}
+                                  <a href={a.providerWebsite} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline inline-flex items-center gap-1">
+                                    {a.providerWebsite} <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              )}
+                              {a.accessibilityNotes && <div><span className="text-[var(--color-muted-foreground)]">Accessibility:</span> {a.accessibilityNotes}</div>}
+                              {a.notes && <div><span className="text-[var(--color-muted-foreground)]">Notes:</span> {a.notes}</div>}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
+                ) : (
+                  <p className="text-sm text-[var(--color-muted-foreground)] italic">No activities scheduled</p>
                 )}
               </div>
             ))}
+
+            {showAddActivity && (
+              <AddActivityModal
+                tripDayId={addActivityDayId}
+                editingActivity={editingScheduledActivity}
+                eventTemplateId={trip?.eventTemplateId}
+                onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
+              />
+            )}
           </div>
         )}
       </div>

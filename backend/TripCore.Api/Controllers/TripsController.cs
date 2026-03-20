@@ -16,7 +16,12 @@ namespace TripCore.Api.Controllers;
 public class TripsController : ControllerBase
 {
     private readonly TripCoreDbContext _db;
-    public TripsController(TripCoreDbContext db) => _db = db;
+    private readonly ILogger<TripsController> _logger;
+    public TripsController(TripCoreDbContext db, ILogger<TripsController> logger)
+    {
+        _db = db;
+        _logger = logger;
+    }
 
     /// <summary>List trips with optional filters.</summary>
     [HttpGet]
@@ -234,7 +239,12 @@ public class TripsController : ControllerBase
                         Id = sa.Id, TripDayId = sa.TripDayId, ActivityId = sa.ActivityId,
                         Title = sa.Title, StartTime = sa.StartTime, EndTime = sa.EndTime,
                         Location = sa.Location, AccessibilityNotes = sa.AccessibilityNotes,
-                        Notes = sa.Notes, SortOrder = sa.SortOrder
+                        Notes = sa.Notes, SortOrder = sa.SortOrder,
+                        Status = sa.Status, BookingReference = sa.BookingReference,
+                        ProviderName = sa.ProviderName, ProviderPhone = sa.ProviderPhone,
+                        ProviderEmail = sa.ProviderEmail, ProviderWebsite = sa.ProviderWebsite,
+                        EstimatedCost = sa.EstimatedCost,
+                        Category = sa.Activity != null ? sa.Activity.Category : null
                     }).ToList()
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<TripDayDto>>.Ok(days));
@@ -254,27 +264,80 @@ public class TripsController : ControllerBase
         return Ok(ApiResponse<List<TripDocumentDto>>.Ok(items));
     }
 
-    /// <summary>Auto-generate empty TripDay records from trip dates.</summary>
+    /// <summary>Ensure TripDay records exist for a trip, reconciling with DurationDays.</summary>
     [HttpPost("{id:guid}/schedule/generate")]
     public async Task<ActionResult<ApiResponse<List<TripDayDto>>>> GenerateSchedule(Guid id, CancellationToken ct)
     {
         var trip = await _db.TripInstances.FirstOrDefaultAsync(t => t.Id == id, ct);
         if (trip == null) return NotFound(ApiResponse<List<TripDayDto>>.Fail("Trip not found"));
+        if (trip.DurationDays <= 0) return BadRequest(ApiResponse<List<TripDayDto>>.Fail("Trip has no days configured"));
 
-        var existingDays = await _db.TripDays.Where(d => d.TripInstanceId == id).CountAsync(ct);
-        if (existingDays > 0) return BadRequest(ApiResponse<List<TripDayDto>>.Fail("Schedule days already exist"));
+        var existingDays = await _db.TripDays
+            .Include(d => d.ScheduledActivities)
+            .Where(d => d.TripInstanceId == id)
+            .OrderBy(d => d.DayNumber)
+            .ToListAsync(ct);
 
-        var days = new List<TripDay>();
-        for (int i = 0; i < trip.DurationDays; i++)
+        if (existingDays.Count == 0)
         {
-            days.Add(new TripDay
+            for (int i = 0; i < trip.DurationDays; i++)
             {
-                Id = Guid.NewGuid(), TripInstanceId = id, DayNumber = i + 1,
-                Date = trip.StartDate.AddDays(i), DayTitle = i == 0 ? "Arrival Day" : i == trip.DurationDays - 1 ? "Departure Day" : $"Day {i + 1}"
-            });
+                _db.TripDays.Add(new TripDay
+                {
+                    Id = Guid.NewGuid(), TripInstanceId = id, DayNumber = i + 1,
+                    Date = trip.StartDate.AddDays(i),
+                    DayTitle = i == 0 ? "Arrival Day" : i == trip.DurationDays - 1 ? "Departure Day" : $"Day {i + 1}"
+                });
+            }
         }
-        _db.TripDays.AddRange(days);
+        else if (existingDays.Count < trip.DurationDays)
+        {
+            for (int i = existingDays.Count; i < trip.DurationDays; i++)
+            {
+                _db.TripDays.Add(new TripDay
+                {
+                    Id = Guid.NewGuid(), TripInstanceId = id, DayNumber = i + 1,
+                    Date = trip.StartDate.AddDays(i), DayTitle = $"Day {i + 1}"
+                });
+            }
+        }
+        else if (existingDays.Count > trip.DurationDays)
+        {
+            var trailingDays = existingDays.Where(d => d.DayNumber > trip.DurationDays).ToList();
+            var daysToRemove = trailingDays.Where(d => d.ScheduledActivities.Count == 0).ToList();
+            var protectedDays = trailingDays.Where(d => d.ScheduledActivities.Count > 0).ToList();
+            foreach (var pd in protectedDays)
+                _logger.LogWarning("TripDay {DayId} (Day {DayNumber}) for trip {TripId} exceeds DurationDays but has {Count} activities — keeping it",
+                    pd.Id, pd.DayNumber, id, pd.ScheduledActivities.Count);
+            _db.TripDays.RemoveRange(daysToRemove);
+        }
+
         await _db.SaveChangesAsync(ct);
-        return Ok(ApiResponse<List<TripDayDto>>.Ok(days.Select(d => new TripDayDto { Id = d.Id, TripInstanceId = d.TripInstanceId, DayNumber = d.DayNumber, Date = d.Date, DayTitle = d.DayTitle }).ToList()));
+
+        // Re-fetch with activities for response
+        var days = await _db.TripDays
+            .Include(d => d.ScheduledActivities).ThenInclude(sa => sa.Activity)
+            .Where(d => d.TripInstanceId == id)
+            .OrderBy(d => d.DayNumber)
+            .Select(d => new TripDayDto
+            {
+                Id = d.Id, TripInstanceId = d.TripInstanceId, DayNumber = d.DayNumber,
+                Date = d.Date, DayTitle = d.DayTitle, DayNotes = d.DayNotes,
+                ScheduledActivities = d.ScheduledActivities.OrderBy(sa => sa.SortOrder)
+                    .Select(sa => new ScheduledActivityDto
+                    {
+                        Id = sa.Id, TripDayId = sa.TripDayId, ActivityId = sa.ActivityId,
+                        Title = sa.Title, StartTime = sa.StartTime, EndTime = sa.EndTime,
+                        Location = sa.Location, AccessibilityNotes = sa.AccessibilityNotes,
+                        Notes = sa.Notes, SortOrder = sa.SortOrder,
+                        Status = sa.Status, BookingReference = sa.BookingReference,
+                        ProviderName = sa.ProviderName, ProviderPhone = sa.ProviderPhone,
+                        ProviderEmail = sa.ProviderEmail, ProviderWebsite = sa.ProviderWebsite,
+                        EstimatedCost = sa.EstimatedCost,
+                        Category = sa.Activity != null ? sa.Activity.Category : null
+                    }).ToList()
+            }).ToListAsync(ct);
+
+        return Ok(ApiResponse<List<TripDayDto>>.Ok(days));
     }
 }

@@ -1,15 +1,26 @@
-import { useAccommodation } from '@/api/hooks'
+import { useAccommodation, useDeleteAccommodation } from '@/api/hooks'
 import { Link } from 'react-router-dom'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 export default function AccommodationPage() {
   const [search, setSearch] = useState('')
-  const { data: properties = [], isLoading } = useAccommodation()
+  const [showArchived, setShowArchived] = useState(false)
+  const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
+  const { data: properties = [], isLoading } = useAccommodation(params)
+  const deleteAccommodation = useDeleteAccommodation()
 
   const filtered = search
     ? properties.filter((a: any) => a.propertyName.toLowerCase().includes(search.toLowerCase()) || a.location?.toLowerCase().includes(search.toLowerCase()))
     : properties
+
+  const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (window.confirm(`Archive "${name}"? This can be undone from the Archived view.`)) {
+      deleteAccommodation.mutate(id)
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -18,15 +29,29 @@ export default function AccommodationPage() {
           <h1 className="text-2xl font-bold">Accommodation</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{filtered.length} properties</p>
         </div>
-        <Link to="/accommodation/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
-          <Plus className="w-4 h-4" /> New Accommodation
-        </Link>
+        {!showArchived && (
+          <Link to="/accommodation/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+            <Plus className="w-4 h-4" /> New Accommodation
+          </Link>
+        )}
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search properties..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]" />
+      <div className="flex items-center gap-4">
+        <div className="flex gap-2">
+          <button onClick={() => setShowArchived(false)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
+            Active
+          </button>
+          <button onClick={() => setShowArchived(true)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
+            Archived
+          </button>
+        </div>
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search properties..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]" />
+        </div>
       </div>
 
       {isLoading ? (
@@ -37,7 +62,15 @@ export default function AccommodationPage() {
             <Link key={a.id} to={`/accommodation/${a.id}`} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)]/30 transition-colors block">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-semibold">{a.propertyName}</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{a.isActive ? 'Active' : 'Inactive'}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{a.isActive ? 'Active' : 'Inactive'}</span>
+                  {!showArchived && (
+                    <button onClick={(e) => handleDelete(e, a.id, a.propertyName)}
+                      className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2 text-sm text-[var(--color-muted-foreground)]">
                 <p>📍 {a.location || '—'} {a.region ? `· ${a.region}` : ''}</p>

@@ -144,10 +144,10 @@ export function useAccommodationDetail(id: string | undefined) {
   })
 }
 
-export function useVehicles() {
+export function useVehicles(params?: Record<string, string>) {
   return useQuery({
-    queryKey: ['vehicles'],
-    queryFn: () => apiClient.get<ApiResponse<any[]>>('/vehicles').then(r => r.data.data ?? []),
+    queryKey: ['vehicles', params],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>('/vehicles', { params }).then(r => r.data.data ?? []),
   })
 }
 
@@ -159,10 +159,10 @@ export function useVehicleDetail(id: string | undefined) {
   })
 }
 
-export function useStaff() {
+export function useStaff(params?: Record<string, string>) {
   return useQuery({
-    queryKey: ['staff'],
-    queryFn: () => apiClient.get<ApiResponse<any[]>>('/staff').then(r => r.data.data ?? []),
+    queryKey: ['staff', params],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>('/staff', { params }).then(r => r.data.data ?? []),
   })
 }
 
@@ -400,6 +400,46 @@ export function useUpdateTask() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/tasks/${id}`, data).then(r => r.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); qc.invalidateQueries({ queryKey: ['trip-tasks'] }); qc.invalidateQueries({ queryKey: ['dashboard'] }) },
+  })
+}
+
+export function useDeleteParticipant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/participants/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['participants'] }),
+  })
+}
+
+export function useDeleteAccommodation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/accommodation/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['accommodation'] }),
+  })
+}
+
+export function useDeleteVehicle() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/vehicles/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vehicles'] }),
+  })
+}
+
+export function useDeleteStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/staff/${id}`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff'] }),
+  })
+}
+
+export function useDeleteTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/tasks/${id}`).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); qc.invalidateQueries({ queryKey: ['trip-tasks'] }) },
   })
 }
 

@@ -16,9 +16,13 @@ public class VehiclesController : ControllerBase
     public VehiclesController(TripCoreDbContext db) => _db = db;
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<VehicleListDto>>>> GetAll(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<List<VehicleListDto>>>> GetAll(
+        [FromQuery] bool? isActive, CancellationToken ct)
     {
-        var items = await _db.Vehicles.OrderBy(v => v.VehicleName)
+        var query = _db.Vehicles.OrderBy(v => v.VehicleName).AsQueryable();
+        if (isActive.HasValue) query = query.Where(v => v.IsActive == isActive.Value);
+
+        var items = await query
             .Select(v => new VehicleListDto
             {
                 Id = v.Id, VehicleName = v.VehicleName, Registration = v.Registration,
@@ -77,6 +81,17 @@ public class VehiclesController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<VehicleDetailDto>.Ok(new VehicleDetailDto { Id = v.Id, VehicleName = v.VehicleName }));
+    }
+
+    /// <summary>Archive (soft-delete) a vehicle.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
+    {
+        var v = await _db.Vehicles.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (v == null) return NotFound(ApiResponse<bool>.Fail("Vehicle not found"));
+        v.IsActive = false; v.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true, "Vehicle archived"));
     }
 
     [HttpGet("{id:guid}/assignments")]
@@ -165,9 +180,13 @@ public class StaffController : ControllerBase
     public StaffController(TripCoreDbContext db) => _db = db;
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<StaffListDto>>>> GetAll(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<List<StaffListDto>>>> GetAll(
+        [FromQuery] bool? isActive, CancellationToken ct)
     {
-        var items = await _db.Staff.OrderBy(s => s.LastName)
+        var query = _db.Staff.OrderBy(s => s.LastName).AsQueryable();
+        if (isActive.HasValue) query = query.Where(s => s.IsActive == isActive.Value);
+
+        var items = await query
             .Select(s => new StaffListDto
             {
                 Id = s.Id, FirstName = s.FirstName, LastName = s.LastName,
@@ -228,6 +247,17 @@ public class StaffController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<StaffDetailDto>.Ok(new StaffDetailDto { Id = s.Id }));
+    }
+
+    /// <summary>Archive (soft-delete) a staff member.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
+    {
+        var s = await _db.Staff.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (s == null) return NotFound(ApiResponse<bool>.Fail("Staff not found"));
+        s.IsActive = false; s.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true, "Staff member archived"));
     }
 
     [HttpGet("{id:guid}/availability")]

@@ -163,4 +163,15 @@ public class ParticipantsController : ControllerBase
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<SupportProfileDto>.Ok(new SupportProfileDto { Id = sp.Id, ParticipantId = sp.ParticipantId }));
     }
+
+    /// <summary>Archive (soft-delete) a participant.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
+    {
+        var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (p == null) return NotFound(ApiResponse<bool>.Fail("Participant not found"));
+        p.IsActive = false; p.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true, "Participant archived"));
+    }
 }

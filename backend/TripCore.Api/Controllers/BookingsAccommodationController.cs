@@ -145,12 +145,14 @@ public class AccommodationController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<AccommodationListDto>>>> GetAll(
-        [FromQuery] string? region, [FromQuery] bool? wheelchair, [FromQuery] int? minCapacity, CancellationToken ct)
+        [FromQuery] string? region, [FromQuery] bool? wheelchair, [FromQuery] int? minCapacity,
+        [FromQuery] bool? isActive, CancellationToken ct)
     {
         var query = _db.AccommodationProperties.AsQueryable();
         if (!string.IsNullOrWhiteSpace(region)) query = query.Where(a => a.Region == region);
         if (wheelchair.HasValue) query = query.Where(a => a.IsWheelchairAccessible == wheelchair.Value);
         if (minCapacity.HasValue) query = query.Where(a => a.MaxCapacity >= minCapacity.Value);
+        if (isActive.HasValue) query = query.Where(a => a.IsActive == isActive.Value);
 
         var items = await query.OrderBy(a => a.PropertyName)
             .Select(a => new AccommodationListDto
@@ -223,6 +225,17 @@ public class AccommodationController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<AccommodationDetailDto>.Ok(new AccommodationDetailDto { Id = a.Id, PropertyName = a.PropertyName }));
+    }
+
+    /// <summary>Archive (soft-delete) an accommodation property.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
+    {
+        var a = await _db.AccommodationProperties.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (a == null) return NotFound(ApiResponse<bool>.Fail("Accommodation not found"));
+        a.IsActive = false; a.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true, "Accommodation archived"));
     }
 
     [HttpGet("{id:guid}/reservations")]

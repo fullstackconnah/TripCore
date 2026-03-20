@@ -18,24 +18,33 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
 
 function StatusBadge({ status, role, clickable, onClick, onUnassign }: { status: string; role?: string; clickable?: boolean; onClick?: () => void; onUnassign?: () => void }) {
   const s = statusColors[status] || statusColors.Available
-  const clickClass = clickable ? 'cursor-pointer hover:ring-2 hover:ring-[var(--color-primary)]/50 hover:scale-105 transition-all' : ''
+  const isUnassignable = !!(onUnassign && status === 'Assigned')
+  const clickClass = clickable
+    ? 'cursor-pointer hover:ring-2 hover:ring-[var(--color-primary)]/50 hover:scale-105 transition-all'
+    : isUnassignable
+      ? 'cursor-pointer hover:ring-2 hover:ring-rose-500/50 hover:scale-105 transition-all group'
+      : ''
   return (
     <div
-      className={`${s.bg} ${s.text} px-2 py-1 rounded text-xs font-medium text-center leading-tight ${clickClass} relative`}
-      onClick={clickable ? onClick : undefined}
-      title={clickable ? 'Click to assign' : undefined}
+      className={`${s.bg} ${s.text} px-2 py-1 rounded text-xs font-medium text-center leading-tight ${clickClass} ${isUnassignable ? 'hover:bg-rose-500/20' : ''} relative`}
+      onClick={clickable ? onClick : isUnassignable ? onUnassign : undefined}
+      title={clickable ? 'Click to assign' : isUnassignable ? 'Click to unassign' : undefined}
     >
       {clickable && <Plus className="w-3 h-3 inline-block mr-0.5 -mt-0.5" />}
-      <span>{s.label}</span>
-      {role && <div className="text-[10px] opacity-75 mt-0.5">{role}</div>}
-      {onUnassign && status === 'Assigned' && (
-        <button
-          onClick={e => { e.stopPropagation(); onUnassign() }}
-          title="Unassign"
-          className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-white/20 transition-colors"
-        >
-          <X className="w-2.5 h-2.5" />
-        </button>
+      {isUnassignable ? (
+        <>
+          <span className="group-hover:hidden">{s.label}</span>
+          <span className="hidden group-hover:inline text-rose-400">
+            <X className="w-3 h-3 inline-block mr-0.5 -mt-0.5" />
+            Unassign
+          </span>
+          {role && <div className="text-[10px] opacity-75 mt-0.5 group-hover:hidden">{role}</div>}
+        </>
+      ) : (
+        <>
+          <span>{s.label}</span>
+          {role && <div className="text-[10px] opacity-75 mt-0.5">{role}</div>}
+        </>
       )}
     </div>
   )

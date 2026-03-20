@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TripCore.Domain.Entities;
+using TripCore.Domain.Enums;
 
 namespace TripCore.Infrastructure.Data;
 
@@ -318,6 +319,14 @@ public class TripCoreDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(e => e.SortOrder);
+            entity.Property(e => e.Status).HasDefaultValue(ScheduledActivityStatus.Planned);
+            entity.Property(e => e.BookingReference).HasMaxLength(200);
+            entity.Property(e => e.ProviderName).HasMaxLength(200);
+            entity.Property(e => e.ProviderPhone).HasMaxLength(50);
+            entity.Property(e => e.ProviderEmail).HasMaxLength(200);
+            entity.Property(e => e.ProviderWebsite).HasMaxLength(500);
+            entity.Property(e => e.EstimatedCost).HasPrecision(18, 2);
+            entity.HasIndex(e => e.Status);
         });
 
         // ── Activity ─────────────────────────────────────────────

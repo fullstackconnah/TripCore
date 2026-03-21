@@ -153,6 +153,8 @@ public record TripDetailDto : TripListDto
     public int OvernightSupportCount { get; init; }
     public int StaffAssignedCount { get; init; }
     public int OutstandingTaskCount { get; init; }
+    public int InsuranceConfirmedCount { get; init; }
+    public int InsuranceOutstandingCount { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -199,6 +201,7 @@ public record BookingListDto
     public bool HasRestrictivePracticeFlag { get; init; }
     public SupportRatio? SupportRatioOverride { get; init; }
     public bool ActionRequired { get; init; }
+    public InsuranceStatus InsuranceStatus { get; init; }
 }
 
 public record BookingDetailDto : BookingListDto
@@ -214,6 +217,11 @@ public record BookingDetailDto : BookingListDto
     public string? CancellationReason { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
+    public string? InsuranceProvider { get; init; }
+    public string? InsurancePolicyNumber { get; init; }
+    public DateOnly? InsuranceCoverageStart { get; init; }
+    public DateOnly? InsuranceCoverageEnd { get; init; }
+    public bool IsInsuranceValid { get; init; }
 }
 
 public record CreateBookingDto
@@ -234,6 +242,11 @@ public record CreateBookingDto
     public string? EquipmentNotes { get; init; }
     public string? RiskSupportNotes { get; init; }
     public string? BookingNotes { get; init; }
+    public string? InsuranceProvider { get; init; }
+    public string? InsurancePolicyNumber { get; init; }
+    public DateOnly? InsuranceCoverageStart { get; init; }
+    public DateOnly? InsuranceCoverageEnd { get; init; }
+    public InsuranceStatus InsuranceStatus { get; init; } = InsuranceStatus.None;
 }
 
 public record UpdateBookingDto : CreateBookingDto

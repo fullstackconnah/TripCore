@@ -340,4 +340,182 @@ public class TripsController : ControllerBase
 
         return Ok(ApiResponse<List<TripDayDto>>.Ok(days));
     }
+
+    /// <summary>Get full itinerary (composite read-only view) for a trip.</summary>
+    [HttpGet("{id:guid}/itinerary")]
+    public async Task<ActionResult<ApiResponse<ItineraryDto>>> GetItinerary(Guid id, CancellationToken ct)
+    {
+        var trip = await _db.TripInstances
+            .Include(t => t.EventTemplate)
+            .Include(t => t.LeadCoordinator)
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
+        if (trip == null) return NotFound(ApiResponse<ItineraryDto>.Fail("Trip not found"));
+
+        // Fetch all related data in parallel
+        var daysTask = _db.TripDays
+            .Include(d => d.ScheduledActivities).ThenInclude(sa => sa.Activity)
+            .Where(d => d.TripInstanceId == id)
+            .OrderBy(d => d.DayNumber)
+            .ToListAsync(ct);
+
+        var bookingsTask = _db.ParticipantBookings
+            .Include(b => b.Participant)
+            .Where(b => b.TripInstanceId == id && b.BookingStatus != BookingStatus.Cancelled && b.BookingStatus != BookingStatus.NoLongerAttending)
+            .ToListAsync(ct);
+
+        var reservationsTask = _db.AccommodationReservations
+            .Include(r => r.AccommodationProperty)
+            .Where(r => r.TripInstanceId == id && r.ReservationStatus != ReservationStatus.Cancelled)
+            .OrderBy(r => r.CheckInDate)
+            .ToListAsync(ct);
+
+        var vehiclesTask = _db.VehicleAssignments
+            .Include(v => v.Vehicle)
+            .Include(v => v.DriverStaff)
+            .Where(v => v.TripInstanceId == id && v.Status != VehicleAssignmentStatus.Cancelled)
+            .ToListAsync(ct);
+
+        var staffTask = _db.StaffAssignments
+            .Include(s => s.Staff)
+            .Where(s => s.TripInstanceId == id && s.Status != AssignmentStatus.Cancelled)
+            .OrderBy(s => s.AssignmentStart)
+            .ToListAsync(ct);
+
+        await Task.WhenAll(daysTask, bookingsTask, reservationsTask, vehiclesTask, staffTask);
+
+        var days = daysTask.Result;
+        var bookings = bookingsTask.Result;
+        var reservations = reservationsTask.Result;
+        var vehicleAssignments = vehiclesTask.Result;
+        var staffAssignments = staffTask.Result;
+
+        // Build accommodation events indexed by date
+        var accommodationEvents = new List<(DateOnly Date, ItineraryDayAccommodationEventDto Event)>();
+        foreach (var r in reservations)
+        {
+            var addr = string.Join(", ", new[] { r.AccommodationProperty.Address, r.AccommodationProperty.Suburb, r.AccommodationProperty.State }.Where(s => !string.IsNullOrEmpty(s)));
+            accommodationEvents.Add((r.CheckInDate, new ItineraryDayAccommodationEventDto
+            {
+                EventType = "Check-in",
+                PropertyName = r.AccommodationProperty.PropertyName,
+                Address = string.IsNullOrEmpty(addr) ? null : addr,
+                ConfirmationReference = r.ConfirmationReference
+            }));
+            accommodationEvents.Add((r.CheckOutDate, new ItineraryDayAccommodationEventDto
+            {
+                EventType = "Check-out",
+                PropertyName = r.AccommodationProperty.PropertyName,
+                Address = string.IsNullOrEmpty(addr) ? null : addr,
+                ConfirmationReference = r.ConfirmationReference
+            }));
+        }
+
+        // Total estimated cost
+        var activityCost = days.SelectMany(d => d.ScheduledActivities)
+            .Where(sa => sa.EstimatedCost.HasValue)
+            .Sum(sa => sa.EstimatedCost!.Value);
+        var accommodationCost = reservations
+            .Where(r => r.Cost.HasValue)
+            .Sum(r => r.Cost!.Value);
+
+        var itinerary = new ItineraryDto
+        {
+            TripId = trip.Id,
+            TripName = trip.TripName,
+            TripCode = trip.TripCode,
+            Destination = trip.Destination,
+            Region = trip.Region,
+            StartDate = trip.StartDate,
+            EndDate = trip.EndDate,
+            DurationDays = trip.DurationDays,
+            Status = trip.Status,
+            LeadCoordinatorName = trip.LeadCoordinator != null ? $"{trip.LeadCoordinator.FirstName} {trip.LeadCoordinator.LastName}" : null,
+            Notes = trip.Notes,
+            ParticipantCount = bookings.Count,
+            StaffCount = staffAssignments.Count,
+            TotalEstimatedCost = activityCost + accommodationCost,
+            Participants = bookings.Select(b => new ItineraryParticipantDto
+            {
+                Id = b.ParticipantId,
+                Name = b.Participant.PreferredName ?? $"{b.Participant.FirstName} {b.Participant.LastName}",
+                WheelchairRequired = b.WheelchairRequired,
+                HighSupportRequired = b.HighSupportRequired,
+                NightSupportRequired = b.NightSupportRequired,
+                SupportRatio = b.SupportRatioOverride ?? b.Participant.SupportRatio,
+                MobilityNotes = b.Participant.MobilityNotes,
+                MedicalSummary = b.Participant.MedicalSummary
+            }).ToList(),
+            Accommodation = reservations.Select(r => new ItineraryAccommodationDto
+            {
+                PropertyName = r.AccommodationProperty.PropertyName,
+                Address = r.AccommodationProperty.Address,
+                Suburb = r.AccommodationProperty.Suburb,
+                State = r.AccommodationProperty.State,
+                Phone = r.AccommodationProperty.Phone,
+                CheckInDate = r.CheckInDate,
+                CheckOutDate = r.CheckOutDate,
+                BedroomsReserved = r.BedroomsReserved,
+                BedsReserved = r.BedsReserved,
+                ConfirmationReference = r.ConfirmationReference,
+                ReservationStatus = r.ReservationStatus,
+                Cost = r.Cost,
+                Comments = r.Comments
+            }).ToList(),
+            Vehicles = vehicleAssignments.Select(v => new ItineraryVehicleDto
+            {
+                VehicleName = v.Vehicle.VehicleName,
+                Registration = v.Vehicle.Registration,
+                VehicleType = v.Vehicle.VehicleType,
+                TotalSeats = v.Vehicle.TotalSeats,
+                WheelchairPositions = v.Vehicle.WheelchairPositions,
+                DriverName = v.DriverStaff != null ? $"{v.DriverStaff.FirstName} {v.DriverStaff.LastName}" : null,
+                Status = v.Status,
+                PickupTravelNotes = v.PickupTravelNotes
+            }).ToList(),
+            Staff = staffAssignments.Select(s => new ItineraryStaffDto
+            {
+                Name = $"{s.Staff.FirstName} {s.Staff.LastName}",
+                Role = s.AssignmentRole ?? s.Staff.Role.ToString(),
+                Email = s.Staff.Email,
+                Mobile = s.Staff.Mobile,
+                AssignmentStart = s.AssignmentStart,
+                AssignmentEnd = s.AssignmentEnd,
+                IsDriver = s.IsDriver,
+                SleepoverType = s.SleepoverType,
+                Status = s.Status
+            }).ToList(),
+            Days = days.Select(d => new ItineraryDayDto
+            {
+                DayNumber = d.DayNumber,
+                Date = d.Date,
+                DayTitle = d.DayTitle,
+                DayNotes = d.DayNotes,
+                Activities = d.ScheduledActivities.OrderBy(sa => sa.SortOrder).Select(sa => new ItineraryActivityDto
+                {
+                    Title = sa.Title,
+                    StartTime = sa.StartTime,
+                    EndTime = sa.EndTime,
+                    Location = sa.Location,
+                    Category = sa.Activity?.Category,
+                    Status = sa.Status,
+                    AccessibilityNotes = sa.AccessibilityNotes,
+                    Notes = sa.Notes,
+                    BookingReference = sa.BookingReference,
+                    ProviderName = sa.ProviderName,
+                    ProviderPhone = sa.ProviderPhone,
+                    EstimatedCost = sa.EstimatedCost
+                }).ToList(),
+                AccommodationEvents = accommodationEvents
+                    .Where(e => e.Date == d.Date)
+                    .Select(e => e.Event)
+                    .ToList(),
+                StaffOnDuty = staffAssignments
+                    .Where(s => s.AssignmentStart <= d.Date && s.AssignmentEnd >= d.Date)
+                    .Select(s => $"{s.Staff.FirstName} {s.Staff.LastName}")
+                    .ToList()
+            }).ToList()
+        };
+
+        return Ok(ApiResponse<ItineraryDto>.Ok(itinerary));
+    }
 }

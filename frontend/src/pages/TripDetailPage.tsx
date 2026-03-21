@@ -1,12 +1,13 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
+import ItineraryTab from '@/components/ItineraryTab'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities'
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'itinerary'
 
 export default function TripDetailPage() {
   const { id } = useParams()
@@ -383,6 +384,7 @@ export default function TripDetailPage() {
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
     { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
+    { key: 'itinerary', label: 'Itinerary', icon: ClipboardList },
   ]
 
   return (
@@ -1888,6 +1890,10 @@ export default function TripDetailPage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'itinerary' && id && (
+          <ItineraryTab tripId={id} />
         )}
       </div>
     </div>

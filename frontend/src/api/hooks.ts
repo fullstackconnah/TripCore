@@ -82,6 +82,14 @@ export function useTripDocuments(tripId: string | undefined) {
   })
 }
 
+export function useTripItinerary(tripId: string | undefined) {
+  return useQuery({
+    queryKey: ['trip-itinerary', tripId],
+    queryFn: () => apiClient.get<ApiResponse<any>>(`/trips/${tripId}/itinerary`).then(r => r.data.data),
+    enabled: !!tripId,
+  })
+}
+
 export function useParticipants(params?: Record<string, string>) {
   return useQuery({
     queryKey: ['participants', params],
@@ -247,7 +255,7 @@ export function useCreateBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/bookings', data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -255,7 +263,7 @@ export function useUpdateBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/bookings/${id}`, data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -263,7 +271,7 @@ export function useDeleteBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/bookings/${id}`).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -295,7 +303,7 @@ export function useCreateReservation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/reservations', data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-accommodation'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-accommodation'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -303,7 +311,7 @@ export function useUpdateReservation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/reservations/${id}`, data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-accommodation'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-accommodation'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -311,7 +319,7 @@ export function useDeleteReservation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/reservations/${id}`).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-accommodation'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-accommodation'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -327,7 +335,7 @@ export function useCreateStaffAssignment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/staff-assignments', data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -335,7 +343,7 @@ export function useUpdateStaffAssignment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/staff-assignments/${id}`, data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -343,7 +351,7 @@ export function useDeleteStaffAssignment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/staff-assignments/${id}`).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-staff'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -351,7 +359,7 @@ export function useCreateVehicleAssignment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/vehicle-assignments', data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-vehicles'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-vehicles'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -464,7 +472,7 @@ export function useCreateScheduledActivity() {
   return useMutation({
     mutationFn: ({ tripDayId, data }: { tripDayId: string; data: any }) =>
       apiClient.post(`/trip-days/${tripDayId}/activities`, data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-schedule'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -473,7 +481,7 @@ export function useUpdateScheduledActivity() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
       apiClient.put(`/scheduled-activities/${id}`, data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-schedule'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -481,7 +489,7 @@ export function useDeleteScheduledActivity() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/scheduled-activities/${id}`).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-schedule'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-schedule'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 

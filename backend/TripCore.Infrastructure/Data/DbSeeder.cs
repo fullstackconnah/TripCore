@@ -239,19 +239,56 @@ public static class DbSeeder
 
             if (i == 0)
             {
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[15].Id, Title = "Arrival & Settling In", StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(14, 0), SortOrder = 1 });
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[2].Id, Title = "Broadwater Parklands Picnic", StartTime = new TimeOnly(15, 0), EndTime = new TimeOnly(17, 0), SortOrder = 2 });
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[13].Id, Title = "Group Dinner Out", StartTime = new TimeOnly(18, 0), EndTime = new TimeOnly(20, 0), SortOrder = 3 });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[15].Id, Title = "Arrival & Settling In", StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(14, 0), SortOrder = 1,
+                    Status = ScheduledActivityStatus.Confirmed, Notes = "Meet at accommodation. Unpack, room allocation, house orientation." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[2].Id, Title = "Broadwater Parklands Picnic", StartTime = new TimeOnly(15, 0), EndTime = new TimeOnly(17, 0), SortOrder = 2,
+                    Status = ScheduledActivityStatus.Booked, BookingReference = "BPK-2026-0503", ProviderName = "Gold Coast City Council Parks", ProviderPhone = "1300 465 326", ProviderWebsite = "https://www.goldcoast.qld.gov.au/parks", EstimatedCost = 0m,
+                    Location = "Broadwater Parklands, Southport", AccessibilityNotes = "Paved paths, accessible picnic shelters available" });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[13].Id, Title = "Group Dinner Out", StartTime = new TimeOnly(18, 0), EndTime = new TimeOnly(20, 0), SortOrder = 3,
+                    Status = ScheduledActivityStatus.Booked, BookingReference = "RES-88412", ProviderName = "The Fish House", ProviderPhone = "07 5527 1122", ProviderEmail = "bookings@thefishhouse.com.au", ProviderWebsite = "https://www.thefishhouse.com.au", EstimatedCost = 320.00m,
+                    Location = "The Fish House, Burleigh Heads", Notes = "Group booking for 9 (6 participants + 3 staff). Dietary requirements sent." });
             }
             else if (i == 1)
             {
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[0].Id, Title = "Beach Morning — Surfers Paradise", StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(12, 0), SortOrder = 1 });
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[17].Id, Title = "Free Time / Rest", StartTime = new TimeOnly(12, 30), EndTime = new TimeOnly(14, 0), SortOrder = 2 });
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[14].Id, Title = "Movie Night In", StartTime = new TimeOnly(19, 0), EndTime = new TimeOnly(21, 0), SortOrder = 3 });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[0].Id, Title = "Beach Morning — Surfers Paradise", StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(12, 0), SortOrder = 1,
+                    Status = ScheduledActivityStatus.Confirmed, ProviderName = "Surfers Paradise Lifeguard Service", EstimatedCost = 0m,
+                    Location = "Surfers Paradise Beach", AccessibilityNotes = "Beach wheelchair available — book 24hrs ahead via lifeguard station", Notes = "Bring reef-safe sunscreen, rashies, and plenty of water." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[17].Id, Title = "Free Time / Rest", StartTime = new TimeOnly(12, 30), EndTime = new TimeOnly(14, 0), SortOrder = 2,
+                    Status = ScheduledActivityStatus.Planned, Notes = "Participants choose: pool, games room, or rest in rooms." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[14].Id, Title = "Movie Night In", StartTime = new TimeOnly(19, 0), EndTime = new TimeOnly(21, 0), SortOrder = 3,
+                    Status = ScheduledActivityStatus.Planned, EstimatedCost = 45.00m, Notes = "Projector and screen at accommodation. Snacks budget $45." });
+            }
+            else if (i == 2)
+            {
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[1].Id, Title = "Currumbin Wildlife Sanctuary", StartTime = new TimeOnly(9, 30), EndTime = new TimeOnly(13, 0), SortOrder = 1,
+                    Status = ScheduledActivityStatus.Booked, BookingReference = "CWS-GRP-4821", ProviderName = "Currumbin Wildlife Sanctuary", ProviderPhone = "07 5534 1266", ProviderEmail = "groups@currumbinsanctuary.com.au", ProviderWebsite = "https://www.currumbinsanctuary.com.au", EstimatedCost = 270.00m,
+                    Location = "28 Tomewin St, Currumbin", AccessibilityNotes = "Fully wheelchair accessible. Sensory map available at entry.", Notes = "Group rate applied. Morning session avoids crowds." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[17].Id, Title = "Lunch & Rest", StartTime = new TimeOnly(13, 0), EndTime = new TimeOnly(14, 30), SortOrder = 2,
+                    Status = ScheduledActivityStatus.Planned, EstimatedCost = 90.00m, Notes = "Packed lunches from accommodation or buy at sanctuary café." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[3].Id, Title = "Pacific Fair Shopping", StartTime = new TimeOnly(15, 0), EndTime = new TimeOnly(17, 30), SortOrder = 3,
+                    Status = ScheduledActivityStatus.Confirmed, ProviderName = "Pacific Fair Shopping Centre", ProviderWebsite = "https://www.pacificfair.com.au", EstimatedCost = 50.00m,
+                    Location = "Hooker Blvd, Broadbeach", AccessibilityNotes = "Fully accessible. Quiet room near Myer.", Notes = "Spending money for participants. Staff to supervise in pairs." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[13].Id, Title = "Pizza Night", StartTime = new TimeOnly(18, 30), EndTime = new TimeOnly(20, 0), SortOrder = 4,
+                    Status = ScheduledActivityStatus.Planned, EstimatedCost = 120.00m, Location = "Accommodation", Notes = "Order from local pizzeria. Dietary list in trip docs." });
+            }
+            else if (i == 3)
+            {
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[4].Id, Title = "Gold Coast Aquatic Centre", StartTime = new TimeOnly(9, 30), EndTime = new TimeOnly(12, 0), SortOrder = 1,
+                    Status = ScheduledActivityStatus.Booked, BookingReference = "GCAC-20260506-AM", ProviderName = "Gold Coast Aquatic Centre", ProviderPhone = "07 5581 7946", ProviderEmail = "info@gcaquatic.com.au", ProviderWebsite = "https://www.goldcoast.qld.gov.au/aquatic-centre", EstimatedCost = 72.00m,
+                    Location = "Marine Pde, Southport", AccessibilityNotes = "Pool hoist available. Accessible change rooms. Book hoist 48hrs ahead.", Notes = "Group booking lane 3. Bring towels and swim gear." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[17].Id, Title = "Free Time / Rest", StartTime = new TimeOnly(13, 0), EndTime = new TimeOnly(15, 0), SortOrder = 2,
+                    Status = ScheduledActivityStatus.Planned, Notes = "Pool time at accommodation or rest in rooms." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[18].Id, Title = "Bowling", StartTime = new TimeOnly(15, 30), EndTime = new TimeOnly(17, 30), SortOrder = 3,
+                    Status = ScheduledActivityStatus.Confirmed, BookingReference = "INF-BK-7743", ProviderName = "Infinity Bowling Gold Coast", ProviderPhone = "07 5504 6222", ProviderWebsite = "https://www.infinitybowling.com.au", EstimatedCost = 108.00m,
+                    Location = "Infinity Shopping Village, Broadbeach", AccessibilityNotes = "Ramps available. Lightweight balls and bumper lanes on request.", Notes = "2 lanes booked, 90 mins. Socks required." });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[19].Id, Title = "Farewell Dinner — Local Café", StartTime = new TimeOnly(18, 30), EndTime = new TimeOnly(20, 30), SortOrder = 4,
+                    Status = ScheduledActivityStatus.Booked, BookingReference = "TBG-0506-EVE", ProviderName = "The Banana Grind Café", ProviderPhone = "07 5538 0090", ProviderEmail = "hello@bananagrind.com.au", EstimatedCost = 280.00m,
+                    Location = "2186 Gold Coast Hwy, Miami", Notes = "Farewell dinner. Group table reserved. Pre-order dietary meals by May 4." });
             }
             else if (i == trips[0].DurationDays - 1)
             {
-                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[16].Id, Title = "Departure & Travel Home", StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(14, 0), SortOrder = 1 });
+                scheduledActivities.Add(new() { Id = Guid.NewGuid(), TripDayId = day.Id, ActivityId = activities[16].Id, Title = "Departure & Travel Home", StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(14, 0), SortOrder = 1,
+                    Status = ScheduledActivityStatus.Planned, Notes = "Pack up by 10am. Checkout 10:30am. Estimated arrival back 2pm." });
             }
         }
         context.TripDays.AddRange(tripDays);

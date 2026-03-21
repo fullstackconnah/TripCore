@@ -351,43 +351,35 @@ public class TripsController : ControllerBase
             .FirstOrDefaultAsync(t => t.Id == id, ct);
         if (trip == null) return NotFound(ApiResponse<ItineraryDto>.Fail("Trip not found"));
 
-        // Fetch all related data in parallel
-        var daysTask = _db.TripDays
+        // Fetch all related data sequentially (DbContext is not thread-safe)
+        var days = await _db.TripDays
             .Include(d => d.ScheduledActivities).ThenInclude(sa => sa.Activity)
             .Where(d => d.TripInstanceId == id)
             .OrderBy(d => d.DayNumber)
             .ToListAsync(ct);
 
-        var bookingsTask = _db.ParticipantBookings
+        var bookings = await _db.ParticipantBookings
             .Include(b => b.Participant)
             .Where(b => b.TripInstanceId == id && b.BookingStatus != BookingStatus.Cancelled && b.BookingStatus != BookingStatus.NoLongerAttending)
             .ToListAsync(ct);
 
-        var reservationsTask = _db.AccommodationReservations
+        var reservations = await _db.AccommodationReservations
             .Include(r => r.AccommodationProperty)
             .Where(r => r.TripInstanceId == id && r.ReservationStatus != ReservationStatus.Cancelled)
             .OrderBy(r => r.CheckInDate)
             .ToListAsync(ct);
 
-        var vehiclesTask = _db.VehicleAssignments
+        var vehicleAssignments = await _db.VehicleAssignments
             .Include(v => v.Vehicle)
             .Include(v => v.DriverStaff)
             .Where(v => v.TripInstanceId == id && v.Status != VehicleAssignmentStatus.Cancelled)
             .ToListAsync(ct);
 
-        var staffTask = _db.StaffAssignments
+        var staffAssignments = await _db.StaffAssignments
             .Include(s => s.Staff)
             .Where(s => s.TripInstanceId == id && s.Status != AssignmentStatus.Cancelled)
             .OrderBy(s => s.AssignmentStart)
             .ToListAsync(ct);
-
-        await Task.WhenAll(daysTask, bookingsTask, reservationsTask, vehiclesTask, staffTask);
-
-        var days = daysTask.Result;
-        var bookings = bookingsTask.Result;
-        var reservations = reservationsTask.Result;
-        var vehicleAssignments = vehiclesTask.Result;
-        var staffAssignments = staffTask.Result;
 
         // Build accommodation events indexed by date
         var accommodationEvents = new List<(DateOnly Date, ItineraryDayAccommodationEventDto Event)>();

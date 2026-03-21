@@ -30,7 +30,8 @@ public class BookingsController : ControllerBase
                 BookingStatus = b.BookingStatus, BookingDate = b.BookingDate,
                 WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
                 NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
-                SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired
+                SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired,
+                InsuranceStatus = b.InsuranceStatus
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<BookingListDto>>.Ok(items));
     }
@@ -54,7 +55,15 @@ public class BookingsController : ControllerBase
             RoomPreference = b.RoomPreference, TransportNotes = b.TransportNotes,
             EquipmentNotes = b.EquipmentNotes, RiskSupportNotes = b.RiskSupportNotes,
             OopPaymentStatus = b.OopPaymentStatus, BookingNotes = b.BookingNotes,
-            CancellationReason = b.CancellationReason, CreatedAt = b.CreatedAt, UpdatedAt = b.UpdatedAt
+            CancellationReason = b.CancellationReason,
+            InsuranceProvider = b.InsuranceProvider, InsurancePolicyNumber = b.InsurancePolicyNumber,
+            InsuranceCoverageStart = b.InsuranceCoverageStart, InsuranceCoverageEnd = b.InsuranceCoverageEnd,
+            InsuranceStatus = b.InsuranceStatus,
+            IsInsuranceValid = b.InsuranceStatus == InsuranceStatus.Confirmed
+                && b.InsuranceCoverageStart.HasValue && b.InsuranceCoverageEnd.HasValue
+                && b.InsuranceCoverageStart.Value <= b.TripInstance.EndDate
+                && b.InsuranceCoverageEnd.Value >= b.TripInstance.StartDate,
+            CreatedAt = b.CreatedAt, UpdatedAt = b.UpdatedAt
         }));
     }
 
@@ -93,9 +102,34 @@ public class BookingsController : ControllerBase
             HasRestrictivePracticeFlag = dto.HasRestrictivePracticeFlag, PlanTypeOverride = dto.PlanTypeOverride,
             FundingNotes = dto.FundingNotes, RoomPreference = dto.RoomPreference,
             TransportNotes = dto.TransportNotes, EquipmentNotes = dto.EquipmentNotes,
-            RiskSupportNotes = dto.RiskSupportNotes, BookingNotes = dto.BookingNotes
+            RiskSupportNotes = dto.RiskSupportNotes, BookingNotes = dto.BookingNotes,
+            InsuranceProvider = dto.InsuranceProvider, InsurancePolicyNumber = dto.InsurancePolicyNumber,
+            InsuranceCoverageStart = dto.InsuranceCoverageStart, InsuranceCoverageEnd = dto.InsuranceCoverageEnd,
+            InsuranceStatus = dto.InsuranceStatus,
         };
         _db.ParticipantBookings.Add(booking);
+
+        // Auto-create insurance confirmation task
+        var participant = await _db.Participants.FindAsync(new object[] { dto.ParticipantId }, ct);
+        var trip = await _db.TripInstances.FindAsync(new object[] { dto.TripInstanceId }, ct);
+        if (participant != null && trip != null)
+        {
+            _db.BookingTasks.Add(new BookingTask
+            {
+                Id = Guid.NewGuid(),
+                TripInstanceId = dto.TripInstanceId,
+                ParticipantBookingId = booking.Id,
+                TaskType = TaskType.InsuranceConfirmation,
+                Title = $"Confirm travel insurance for {participant.FirstName} {participant.LastName}",
+                Priority = TaskPriority.Medium,
+                Status = dto.InsuranceStatus == InsuranceStatus.Confirmed
+                    ? TaskItemStatus.Completed : TaskItemStatus.NotStarted,
+                DueDate = trip.StartDate.AddDays(-14),
+                CompletedDate = dto.InsuranceStatus == InsuranceStatus.Confirmed
+                    ? DateOnly.FromDateTime(DateTime.UtcNow) : null,
+            });
+        }
+
         await RecalculateStaffRequired(dto.TripInstanceId, ct);
         await _db.SaveChangesAsync(ct);
         return CreatedAtAction(nameof(GetById), new { id = booking.Id },
@@ -116,7 +150,25 @@ public class BookingsController : ControllerBase
         b.EquipmentNotes = dto.EquipmentNotes; b.RiskSupportNotes = dto.RiskSupportNotes;
         b.OopPaymentStatus = dto.OopPaymentStatus; b.ActionRequired = dto.ActionRequired;
         b.BookingNotes = dto.BookingNotes; b.CancellationReason = dto.CancellationReason;
+        b.InsuranceProvider = dto.InsuranceProvider; b.InsurancePolicyNumber = dto.InsurancePolicyNumber;
+        b.InsuranceCoverageStart = dto.InsuranceCoverageStart; b.InsuranceCoverageEnd = dto.InsuranceCoverageEnd;
+        b.InsuranceStatus = dto.InsuranceStatus;
         b.UpdatedAt = DateTime.UtcNow;
+
+        // Auto-complete insurance task when status changes to Confirmed
+        if (dto.InsuranceStatus == InsuranceStatus.Confirmed)
+        {
+            var insuranceTask = await _db.BookingTasks
+                .FirstOrDefaultAsync(t => t.ParticipantBookingId == id
+                    && t.TaskType == TaskType.InsuranceConfirmation
+                    && t.Status != TaskItemStatus.Completed
+                    && t.Status != TaskItemStatus.Cancelled, ct);
+            if (insuranceTask != null)
+            {
+                insuranceTask.Status = TaskItemStatus.Completed;
+                insuranceTask.CompletedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            }
+        }
 
         await RecalculateStaffRequired(b.TripInstanceId, ct);
         await _db.SaveChangesAsync(ct);

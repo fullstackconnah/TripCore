@@ -81,6 +81,14 @@ public class TripsController : ControllerBase
             OvernightSupportCount = t.Bookings.Count(b => b.NightSupportRequired && b.BookingStatus == BookingStatus.Confirmed),
             StaffAssignedCount = t.StaffAssignments.Count(s => s.Status != AssignmentStatus.Cancelled),
             OutstandingTaskCount = t.Tasks.Count(tk => tk.Status != TaskItemStatus.Completed && tk.Status != TaskItemStatus.Cancelled),
+            InsuranceConfirmedCount = t.Bookings.Count(b =>
+                b.InsuranceStatus == InsuranceStatus.Confirmed
+                && b.BookingStatus != BookingStatus.Cancelled
+                && b.BookingStatus != BookingStatus.NoLongerAttending),
+            InsuranceOutstandingCount = t.Bookings.Count(b =>
+                b.InsuranceStatus != InsuranceStatus.Confirmed
+                && b.BookingStatus != BookingStatus.Cancelled
+                && b.BookingStatus != BookingStatus.NoLongerAttending),
             CreatedAt = t.CreatedAt, UpdatedAt = t.UpdatedAt
         }));
     }

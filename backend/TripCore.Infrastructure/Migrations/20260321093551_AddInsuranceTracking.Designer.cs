@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TripCore.Infrastructure.Data;
@@ -11,9 +12,11 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Infrastructure.Migrations
 {
     [DbContext(typeof(TripCoreDbContext))]
-    partial class TripCoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260321093551_AddInsuranceTracking")]
+    partial class AddInsuranceTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

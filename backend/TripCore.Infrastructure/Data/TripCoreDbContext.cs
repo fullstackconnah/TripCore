@@ -161,6 +161,7 @@ public class TripCoreDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => e.BookingStatus);
+            entity.HasIndex(e => e.InsuranceStatus);
             entity.HasIndex(e => new { e.TripInstanceId, e.ParticipantId }).IsUnique();
         });
 

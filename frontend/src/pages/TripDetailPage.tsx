@@ -27,6 +27,11 @@ export default function TripDetailPage() {
   const [hasRestrictivePracticeFlag, setHasRestrictivePracticeFlag] = useState(false)
   const [supportRatioOverride, setSupportRatioOverride] = useState('')
   const [bookingNotes, setBookingNotes] = useState('')
+  const [insuranceProvider, setInsuranceProvider] = useState('')
+  const [insurancePolicyNumber, setInsurancePolicyNumber] = useState('')
+  const [insuranceCoverageStart, setInsuranceCoverageStart] = useState('')
+  const [insuranceCoverageEnd, setInsuranceCoverageEnd] = useState('')
+  const [insuranceStatus, setInsuranceStatus] = useState('None')
 
   const { data: trip, isLoading } = useTrip(id)
   const { data: bookings = [] } = useTripBookings(id)
@@ -329,6 +334,11 @@ export default function TripDetailPage() {
       hasRestrictivePracticeFlag: booking.hasRestrictivePracticeFlag ?? false,
       supportRatioOverride: booking.supportRatioOverride ?? '',
       bookingNotes: booking.bookingNotes ?? '',
+      insuranceProvider: booking.insuranceProvider || '',
+      insurancePolicyNumber: booking.insurancePolicyNumber || '',
+      insuranceCoverageStart: booking.insuranceCoverageStart || '',
+      insuranceCoverageEnd: booking.insuranceCoverageEnd || '',
+      insuranceStatus: booking.insuranceStatus || 'None',
     })
   }
 
@@ -337,6 +347,11 @@ export default function TripDetailPage() {
     updateBooking.mutate({ id: editingBooking.id, data: {
       ...editForm,
       supportRatioOverride: editForm.supportRatioOverride || null,
+      insuranceStatus: editForm.insuranceStatus,
+      insuranceProvider: editForm.insuranceProvider || null,
+      insurancePolicyNumber: editForm.insurancePolicyNumber || null,
+      insuranceCoverageStart: editForm.insuranceCoverageStart || null,
+      insuranceCoverageEnd: editForm.insuranceCoverageEnd || null,
     }}, {
       onSuccess: () => setEditingBooking(null),
     })
@@ -351,6 +366,11 @@ export default function TripDetailPage() {
     setHasRestrictivePracticeFlag(false)
     setSupportRatioOverride('')
     setBookingNotes('')
+    setInsuranceProvider('')
+    setInsurancePolicyNumber('')
+    setInsuranceCoverageStart('')
+    setInsuranceCoverageEnd('')
+    setInsuranceStatus('None')
   }
 
   const handleCreateBooking = () => {
@@ -365,6 +385,11 @@ export default function TripDetailPage() {
       hasRestrictivePracticeFlag,
       ...(supportRatioOverride ? { supportRatioOverride } : {}),
       ...(bookingNotes ? { bookingNotes } : {}),
+      insuranceStatus,
+      ...(insuranceProvider ? { insuranceProvider } : {}),
+      ...(insurancePolicyNumber ? { insurancePolicyNumber } : {}),
+      ...(insuranceCoverageStart ? { insuranceCoverageStart } : {}),
+      ...(insuranceCoverageEnd ? { insuranceCoverageEnd } : {}),
     }, {
       onSuccess: () => {
         setShowAddBooking(false)
@@ -406,7 +431,7 @@ export default function TripDetailPage() {
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {[
           { label: 'Participants', value: `${trip.currentParticipantCount}/${trip.maxParticipants || '—'}`, warn: trip.maxParticipants && trip.currentParticipantCount >= trip.maxParticipants },
           { label: 'Waitlist', value: trip.waitlistCount, warn: trip.waitlistCount > 0 },
@@ -415,6 +440,7 @@ export default function TripDetailPage() {
           { label: 'Staff', value: trip.staffAssignedCount, warn: trip.minStaffRequired && trip.staffAssignedCount < trip.minStaffRequired },
           { label: 'Overnight', value: trip.overnightSupportCount },
           { label: 'Tasks', value: trip.outstandingTaskCount, warn: trip.outstandingTaskCount > 0 },
+          { label: 'Insurance', value: `${trip.insuranceConfirmedCount ?? 0}/${(trip.insuranceConfirmedCount ?? 0) + (trip.insuranceOutstandingCount ?? 0)}`, warn: (trip.insuranceOutstandingCount ?? 0) > 0 },
         ].map(s => (
           <div key={s.label} className="bg-[var(--color-card)] rounded-lg p-3 border border-[var(--color-border)] text-center">
             <p className="text-xs text-[var(--color-muted-foreground)]">{s.label}</p>
@@ -542,6 +568,52 @@ export default function TripDetailPage() {
                         placeholder="Optional notes..." />
                     </div>
 
+                    {/* Insurance */}
+                    <div className="border-t border-[var(--color-border)] pt-4 mt-2">
+                      <label className="block text-sm font-medium mb-3">Travel Insurance</label>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Status</label>
+                          <select value={insuranceStatus} onChange={e => setInsuranceStatus(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm">
+                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {insuranceStatus !== 'None' && (
+                          <>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Provider</label>
+                                <input type="text" value={insuranceProvider} onChange={e => setInsuranceProvider(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                                  placeholder="e.g. Allianz" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Policy Number</label>
+                                <input type="text" value={insurancePolicyNumber} onChange={e => setInsurancePolicyNumber(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                                  placeholder="e.g. POL-12345" />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Coverage Start</label>
+                                <input type="date" value={insuranceCoverageStart} onChange={e => setInsuranceCoverageStart(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Coverage End</label>
+                                <input type="date" value={insuranceCoverageEnd} onChange={e => setInsuranceCoverageEnd(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm" />
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Error */}
                     {createBooking.isError && (
                       <p className="text-sm text-[var(--color-destructive)]">Failed to create booking. Please try again.</p>
@@ -574,6 +646,7 @@ export default function TripDetailPage() {
                     <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">🦽</th>
                     <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">High</th>
                     <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Night</th>
+                    <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Insurance</th>
                     <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]"></th>
                   </tr>
                 </thead>
@@ -587,6 +660,14 @@ export default function TripDetailPage() {
                       <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
+                      <td className="p-3 text-center">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          b.insuranceStatus === 'Confirmed' ? 'bg-[var(--color-success,#22c55e)]/15 text-[var(--color-success,#22c55e)]' :
+                          b.insuranceStatus === 'Pending' ? 'bg-[var(--color-warning)]/15 text-[var(--color-warning)]' :
+                          b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]' :
+                          'bg-[var(--color-muted)]/15 text-[var(--color-muted-foreground)]'
+                        }`}>{b.insuranceStatus || 'None'}</span>
+                      </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />}
@@ -604,7 +685,7 @@ export default function TripDetailPage() {
                     </tr>
                   ))}
                   {bookings.length === 0 && (
-                    <tr><td colSpan={8} className="p-6 text-center text-[var(--color-muted-foreground)]">No bookings yet</td></tr>
+                    <tr><td colSpan={9} className="p-6 text-center text-[var(--color-muted-foreground)]">No bookings yet</td></tr>
                   )}
                 </tbody>
               </table>
@@ -726,6 +807,52 @@ export default function TripDetailPage() {
                       <textarea value={editForm.bookingNotes} onChange={e => setEditForm({ ...editForm, bookingNotes: e.target.value })} rows={3}
                         className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm resize-none"
                         placeholder="Optional notes..." />
+                    </div>
+
+                    {/* Insurance */}
+                    <div className="border-t border-[var(--color-border)] pt-4 mt-2">
+                      <label className="block text-sm font-medium mb-3">Travel Insurance</label>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Status</label>
+                          <select value={editForm.insuranceStatus} onChange={e => setEditForm({ ...editForm, insuranceStatus: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm">
+                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {editForm.insuranceStatus !== 'None' && (
+                          <>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Provider</label>
+                                <input type="text" value={editForm.insuranceProvider} onChange={e => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                                  placeholder="e.g. Allianz" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Policy Number</label>
+                                <input type="text" value={editForm.insurancePolicyNumber} onChange={e => setEditForm({ ...editForm, insurancePolicyNumber: e.target.value })}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                                  placeholder="e.g. POL-12345" />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Coverage Start</label>
+                                <input type="date" value={editForm.insuranceCoverageStart} onChange={e => setEditForm({ ...editForm, insuranceCoverageStart: e.target.value })}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm" />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Coverage End</label>
+                                <input type="date" value={editForm.insuranceCoverageEnd} onChange={e => setEditForm({ ...editForm, insuranceCoverageEnd: e.target.value })}
+                                  className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-sm" />
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Error */}

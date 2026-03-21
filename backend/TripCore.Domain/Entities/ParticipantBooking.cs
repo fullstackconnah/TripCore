@@ -26,6 +26,14 @@ public class ParticipantBooking
     public string? EquipmentNotes { get; set; }
     public string? RiskSupportNotes { get; set; }
     public string? OopPaymentStatus { get; set; }
+
+    // Insurance tracking
+    public string? InsuranceProvider { get; set; }
+    public string? InsurancePolicyNumber { get; set; }
+    public DateOnly? InsuranceCoverageStart { get; set; }
+    public DateOnly? InsuranceCoverageEnd { get; set; }
+    public InsuranceStatus InsuranceStatus { get; set; } = InsuranceStatus.None;
+
     public bool ActionRequired { get; set; }
     public string? BookingNotes { get; set; }
     public string? CancellationReason { get; set; }

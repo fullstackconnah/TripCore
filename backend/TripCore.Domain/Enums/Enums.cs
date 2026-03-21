@@ -149,6 +149,7 @@ public enum TaskType
     MedicationCheck,
     PreDeparture,
     PostTrip,
+    InsuranceConfirmation,
     Other
 }
 
@@ -228,4 +229,13 @@ public enum QscReportingStatus
     ReportedWithin24h,
     ReportedLate,
     Pending
+}
+
+public enum InsuranceStatus
+{
+    None,
+    Pending,
+    Confirmed,
+    Expired,
+    Cancelled
 }

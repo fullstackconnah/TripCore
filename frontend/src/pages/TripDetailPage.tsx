@@ -7,11 +7,11 @@ import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'itinerary'
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities'
 
 export default function TripDetailPage() {
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [activeTab, setActiveTab] = useState<Tab>('overview')  // 'overview' now renders ItineraryTab
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [showAddActivity, setShowAddActivity] = useState(false)
@@ -377,14 +377,13 @@ export default function TripDetailPage() {
   if (!trip) return <div className="text-center py-12">Trip not found</div>
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
-    { key: 'overview', label: 'Overview', icon: Calendar },
+    { key: 'overview', label: 'Overview', icon: ClipboardList },
     { key: 'bookings', label: 'Bookings', icon: Users, count: bookings.length },
     { key: 'accommodation', label: 'Accommodation', icon: Building2, count: accommodation.length },
     { key: 'vehicles', label: 'Vehicles', icon: Truck, count: vehicles.length },
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
     { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
-    { key: 'itinerary', label: 'Itinerary', icon: ClipboardList },
   ]
 
   return (
@@ -442,35 +441,8 @@ export default function TripDetailPage() {
 
       {/* Tab content */}
       <div className="animate-fade-in">
-        {activeTab === 'overview' && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
-              <h3 className="font-semibold">Trip Details</h3>
-              <div className="grid grid-cols-2 gap-y-3 text-sm">
-                <span className="text-[var(--color-muted-foreground)]">Event Template</span><span>{trip.eventTemplateName || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">Region</span><span>{trip.region || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">OOP Due Date</span><span>{formatDateAu(trip.oopDueDate)}</span>
-                <span className="text-[var(--color-muted-foreground)]">Booking Cutoff</span><span>{formatDateAu(trip.bookingCutoffDate)}</span>
-                <span className="text-[var(--color-muted-foreground)]">Lead Coordinator</span><span>{trip.leadCoordinatorName || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">Min Participants</span><span>{trip.minParticipants || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">Min Staff</span><span>{trip.minStaffRequired || '—'}</span>
-              </div>
-            </div>
-            <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
-              <h3 className="font-semibold">Requirements</h3>
-              <div className="grid grid-cols-2 gap-y-3 text-sm">
-                <span className="text-[var(--color-muted-foreground)]">Wheelchair Capacity</span><span>{trip.requiredWheelchairCapacity || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">Required Beds</span><span>{trip.requiredBeds || '—'}</span>
-                <span className="text-[var(--color-muted-foreground)]">Required Bedrooms</span><span>{trip.requiredBedrooms || '—'}</span>
-              </div>
-              {trip.notes && (
-                <div>
-                  <p className="text-[var(--color-muted-foreground)] text-sm font-medium mb-1">Notes</p>
-                  <p className="text-sm whitespace-pre-line">{trip.notes}</p>
-                </div>
-              )}
-            </div>
-          </div>
+        {activeTab === 'overview' && id && (
+          <ItineraryTab tripId={id} trip={trip} />
         )}
 
         {activeTab === 'bookings' && (
@@ -1892,9 +1864,6 @@ export default function TripDetailPage() {
           </div>
         )}
 
-        {activeTab === 'itinerary' && id && (
-          <ItineraryTab tripId={id} />
-        )}
       </div>
     </div>
   )

@@ -4,8 +4,20 @@ import { MapPin, Clock, Users, Car, Building2, UserCog, DollarSign, FileDown, Ca
 import { useState } from 'react'
 import { generateItineraryPdf } from './ItineraryPdf'
 
+interface TripAdminData {
+  eventTemplateName?: string
+  oopDueDate?: string
+  bookingCutoffDate?: string
+  minParticipants?: number
+  minStaffRequired?: number
+  requiredWheelchairCapacity?: number
+  requiredBeds?: number
+  requiredBedrooms?: number
+}
+
 interface ItineraryTabProps {
   tripId: string
+  trip?: TripAdminData
 }
 
 const categoryConfig: Record<string, { icon: typeof Star; color: string; bg: string }> = {
@@ -53,7 +65,7 @@ const activityStatusStyle: Record<string, string> = {
   Cancelled: 'bg-[#991b1b] text-[#fecaca]',
 }
 
-export default function ItineraryTab({ tripId }: ItineraryTabProps) {
+export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
   const { data: itinerary, isLoading, isError } = useTripItinerary(tripId)
   const [exporting, setExporting] = useState(false)
 
@@ -97,7 +109,7 @@ export default function ItineraryTab({ tripId }: ItineraryTabProps) {
         <div className="relative">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wider text-[var(--color-primary)] font-semibold mb-1">Itinerary</p>
+              <p className="text-xs uppercase tracking-wider text-[var(--color-primary)] font-semibold mb-1">Trip Overview</p>
               <h2 className="text-2xl font-bold">{itinerary.tripName}</h2>
               <div className="flex items-center gap-2 mt-2 text-[var(--color-muted-foreground)]">
                 <MapPin className="w-4 h-4" />
@@ -134,6 +146,32 @@ export default function ItineraryTab({ tripId }: ItineraryTabProps) {
           )}
         </div>
       </div>
+
+      {/* Admin details (from trip data) */}
+      {trip && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
+            <h3 className="font-semibold">Trip Details</h3>
+            <div className="grid grid-cols-2 gap-y-3 text-sm">
+              <span className="text-[var(--color-muted-foreground)]">Event Template</span><span>{trip.eventTemplateName || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Region</span><span>{itinerary.region || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">OOP Due Date</span><span>{trip.oopDueDate ? formatDateAu(trip.oopDueDate) : '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Booking Cutoff</span><span>{trip.bookingCutoffDate ? formatDateAu(trip.bookingCutoffDate) : '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Lead Coordinator</span><span>{itinerary.leadCoordinatorName || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Min Participants</span><span>{trip.minParticipants || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Min Staff</span><span>{trip.minStaffRequired || '—'}</span>
+            </div>
+          </div>
+          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
+            <h3 className="font-semibold">Requirements</h3>
+            <div className="grid grid-cols-2 gap-y-3 text-sm">
+              <span className="text-[var(--color-muted-foreground)]">Wheelchair Capacity</span><span>{trip.requiredWheelchairCapacity || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Required Beds</span><span>{trip.requiredBeds || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Required Bedrooms</span><span>{trip.requiredBedrooms || '—'}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Info panels row */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">

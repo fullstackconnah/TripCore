@@ -7,7 +7,6 @@ import { useState } from 'react'
 type Tab = 'active' | 'completed'
 
 const activeStatuses = ['Draft', 'Planning', 'OpenForBookings', 'Confirmed', 'InProgress']
-const completedStatuses = ['Completed']
 
 export default function TripsPage() {
   const [tab, setTab] = useState<Tab>('active')

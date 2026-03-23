@@ -443,14 +443,6 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          {!isReadOnly && (
-            <button
-              onClick={() => setShowAddBooking(true)}
-              className="px-5 py-2.5 bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:scale-[0.98] transition-all flex items-center gap-2 text-sm">
-              <Plus className="w-4 h-4" />
-              Add Participant
-            </button>
-          )}
         </div>
       </section>
 
@@ -685,21 +677,6 @@ export default function TripDetailPage() {
                 </div>
               )}
 
-              {/* Emergency Protocol */}
-              <button
-                onClick={() => setActiveTab('tasks')}
-                className="block w-full bg-[#ffdad6] p-5 rounded-2xl hover:bg-[#ffb4ab]/40 transition-all group text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[#ba1a1a] text-3xl">emergency_share</span>
-                    <div>
-                      <p className="font-bold text-[#93000a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Emergency Protocols</p>
-                      <p className="text-xs text-[#93000a] opacity-80">View outstanding tasks & contact tree</p>
-                    </div>
-                  </div>
-                  <ArrowLeft className="w-4 h-4 text-[#ba1a1a] rotate-180 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
             </div>
           </div>
         )}

@@ -290,6 +290,8 @@ export async function generateItineraryPdf(data: any, version: ExportVersion) {
   const safeName = data.tripName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')
   a.href = url
   a.download = `${safeName}-itinerary-${version}.pdf`
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }

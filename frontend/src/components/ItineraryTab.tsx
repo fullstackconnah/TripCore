@@ -68,14 +68,19 @@ const activityStatusStyle: Record<string, string> = {
 export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
   const { data: itinerary, isLoading, isError } = useTripItinerary(tripId)
   const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   if (isLoading) return <div className="flex items-center justify-center h-64 text-[#43493a]">Loading itinerary...</div>
   if (isError || !itinerary) return <div className="text-center py-12 text-[#43493a]">Unable to load itinerary. Make sure the trip has dates and a generated schedule.</div>
 
   const handleExport = async (version: 'staff' | 'participant') => {
     setExporting(true)
+    setExportError(null)
     try {
       await generateItineraryPdf(itinerary, version)
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      setExportError(err instanceof Error ? err.message : 'Export failed — check browser console for details.')
     } finally {
       setExporting(false)
     }
@@ -84,6 +89,9 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Export buttons */}
+      {exportError && (
+        <div className="text-sm text-[#ba1a1a] bg-[#ffdad6]/60 rounded-2xl px-4 py-2">{exportError}</div>
+      )}
       <div className="flex items-center justify-end gap-2">
         <button
           onClick={() => handleExport('staff')}

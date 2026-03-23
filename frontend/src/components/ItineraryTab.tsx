@@ -1,7 +1,7 @@
 import { useTripItinerary } from '@/api/hooks'
 import { formatDateAu } from '@/lib/utils'
-import { MapPin, Clock, Users, Building2, UserCog, DollarSign, FileDown, Calendar, Utensils, Camera, Bus, Compass, Palette, Dumbbell, Star } from 'lucide-react'
-import { useState } from 'react'
+import { MapPin, Clock, Users, Building2, UserCog, DollarSign, FileDown, Calendar, Utensils, Camera, Bus, Compass, Palette, Dumbbell, Star, ChevronDown } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 import { generateItineraryPdf } from './ItineraryPdf'
 
 interface TripAdminData {
@@ -69,6 +69,17 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
   const { data: itinerary, isLoading, isError } = useTripItinerary(tripId)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showExportMenu) return
+    const handler = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) setShowExportMenu(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showExportMenu])
 
   if (isLoading) return <div className="flex items-center justify-center h-64 text-[#43493a]">Loading itinerary...</div>
   if (isError || !itinerary) return <div className="text-center py-12 text-[#43493a]">Unable to load itinerary. Make sure the trip has dates and a generated schedule.</div>
@@ -92,23 +103,43 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
       {exportError && (
         <div className="text-sm text-[#ba1a1a] bg-[#ffdad6]/60 rounded-2xl px-4 py-2">{exportError}</div>
       )}
-      <div className="flex items-center justify-end gap-2">
-        <button
-          onClick={() => handleExport('staff')}
-          disabled={exporting}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
-        >
-          <FileDown className="w-4 h-4" />
-          Export Staff Version
-        </button>
-        <button
-          onClick={() => handleExport('participant')}
-          disabled={exporting}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm bg-[#d5e3fc] text-[#0d1c2e] rounded-full font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
-        >
-          <FileDown className="w-4 h-4" />
-          Export Participant Version
-        </button>
+      <div className="flex items-center justify-end">
+        <div className="relative" ref={exportMenuRef}>
+          <button
+            onClick={() => setShowExportMenu(v => !v)}
+            disabled={exporting}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 disabled:opacity-50 transition-all"
+          >
+            <FileDown className="w-4 h-4" />
+            {exporting ? 'Exporting…' : 'Export Trip Package'}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showExportMenu ? 'rotate-180' : ''}`} />
+          </button>
+          {showExportMenu && (
+            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] overflow-hidden z-50">
+              <button
+                onClick={() => { handleExport('participant'); setShowExportMenu(false) }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors text-left"
+              >
+                <Users className="w-4 h-4 text-[#396200] shrink-0" />
+                <div>
+                  <p className="font-semibold">Participant Version</p>
+                  <p className="text-[11px] text-[#43493a]">Without staff details</p>
+                </div>
+              </button>
+              <div className="h-px bg-[rgba(195,201,181,0.25)] mx-4" />
+              <button
+                onClick={() => { handleExport('staff'); setShowExportMenu(false) }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors text-left"
+              >
+                <UserCog className="w-4 h-4 text-[#515f74] shrink-0" />
+                <div>
+                  <p className="font-semibold">Staff Version</p>
+                  <p className="text-[11px] text-[#43493a]">Includes operational details</p>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Overview Hero Card */}

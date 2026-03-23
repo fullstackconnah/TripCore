@@ -71,9 +71,8 @@ function StatusBadge({ status, role, clickable, onClick, onUnassign }: {
       >
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] group-hover:bg-rose-500 flex-shrink-0 transition-colors" />
         <span className="text-xs font-medium group-hover:hidden">{s.label}</span>
-        {role && <span className="text-[10px] opacity-75 group-hover:hidden">· {role}</span>}
+        {role && <span className="text-[10px] opacity-75 group-hover:opacity-0">{role}</span>}
         <span className="hidden group-hover:inline text-xs font-medium">Unassign</span>
-        <X className="w-3 h-3 hidden group-hover:inline flex-shrink-0" />
       </div>
     )
   }
@@ -605,14 +604,14 @@ export default function SchedulePage() {
     : 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* ── Page Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display font-extrabold text-4xl text-[var(--color-primary)] tracking-tight leading-none mb-2">
+          <h1 className="font-display font-extrabold text-3xl text-[var(--color-primary)] tracking-tight leading-none mb-1">
             Schedule Overview
           </h1>
-          <p className="text-[var(--color-muted-foreground)] font-medium">
+          <p className="text-sm text-[var(--color-muted-foreground)] font-medium">
             Staff and vehicle assignment across active trips · Click{' '}
             <span className="font-semibold text-[var(--color-primary)]">Available</span> to assign
           </p>
@@ -636,17 +635,17 @@ export default function SchedulePage() {
       </div>
 
       {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-4">
         {/* Active Trips count */}
-        <div className="col-span-12 md:col-span-4 bg-[var(--color-primary-container)] p-7 rounded-[2rem] text-white flex flex-col justify-between relative overflow-hidden group">
+        <div className="col-span-12 md:col-span-4 bg-[var(--color-primary-container)] p-5 rounded-[1.5rem] text-white flex flex-col justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <h3 className="text-xs font-bold uppercase tracking-widest opacity-75 mb-5">Active Trips</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest opacity-75 mb-2">Active Trips</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-6xl font-display font-extrabold leading-none">{tripCount}</span>
-              <span className="text-lg opacity-70">Trips</span>
+              <span className="text-4xl font-display font-extrabold leading-none">{tripCount}</span>
+              <span className="text-base opacity-70">Trips</span>
             </div>
           </div>
-          <div className="mt-6 flex gap-2 flex-wrap relative z-10">
+          <div className="mt-3 flex gap-2 flex-wrap relative z-10">
             <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">{staff?.length || 0} Staff</span>
             <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">{vehicles?.length || 0} Vehicles</span>
           </div>
@@ -654,35 +653,35 @@ export default function SchedulePage() {
         </div>
 
         {/* Resource Health */}
-        <div className="col-span-12 md:col-span-8 bg-[var(--color-surface-container-low)] p-7 rounded-[2rem] flex flex-col justify-between">
+        <div className="col-span-12 md:col-span-8 bg-[var(--color-surface-container-low)] p-5 rounded-[1.5rem] flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <h3 className="text-lg font-display font-bold text-[var(--color-secondary)]">Resource Health</h3>
+            <h3 className="text-base font-display font-bold text-[var(--color-secondary)]">Resource Health</h3>
             <span className="text-[var(--color-primary)] font-bold text-sm">{utilization}% Utilization</span>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-5">
-            <div className="bg-white p-4 rounded-[1rem]">
-              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-2 tracking-wide">Staff</p>
+          <div className="grid grid-cols-3 gap-3 mt-3">
+            <div className="bg-white p-3 rounded-[0.75rem]">
+              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-1 tracking-wide">Staff</p>
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-[var(--color-foreground)]">{staffAssigned}/{staff?.length || 0}</span>
-                <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
+                <span className="text-xl font-bold text-[var(--color-foreground)]">{staffAssigned}/{staff?.length || 0}</span>
+                <CheckCircle className="w-4 h-4 text-[var(--color-primary)]" />
               </div>
             </div>
-            <div className="bg-white p-4 rounded-[1rem]">
-              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-2 tracking-wide">Vehicles</p>
+            <div className="bg-white p-3 rounded-[0.75rem]">
+              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-1 tracking-wide">Vehicles</p>
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-[var(--color-foreground)]">{vehiclesAssigned}/{vehicles?.length || 0}</span>
-                <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
+                <span className="text-xl font-bold text-[var(--color-foreground)]">{vehiclesAssigned}/{vehicles?.length || 0}</span>
+                <CheckCircle className="w-4 h-4 text-[var(--color-primary)]" />
               </div>
             </div>
-            <div className="bg-white p-4 rounded-[1rem]">
-              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-2 tracking-wide">Conflicts</p>
+            <div className="bg-white p-3 rounded-[0.75rem]">
+              <p className="text-xs text-[var(--color-muted-foreground)] font-bold uppercase mb-1 tracking-wide">Conflicts</p>
               <div className="flex justify-between items-center">
-                <span className={`text-2xl font-bold ${conflictsCount > 0 ? 'text-[#ba1a1a]' : 'text-[var(--color-foreground)]'}`}>
+                <span className={`text-xl font-bold ${conflictsCount > 0 ? 'text-[#ba1a1a]' : 'text-[var(--color-foreground)]'}`}>
                   {String(conflictsCount).padStart(2, '0')}
                 </span>
                 {conflictsCount > 0
-                  ? <AlertTriangle className="w-5 h-5 text-[#ba1a1a]" />
-                  : <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
+                  ? <AlertTriangle className="w-4 h-4 text-[#ba1a1a]" />
+                  : <CheckCircle className="w-4 h-4 text-[var(--color-primary)]" />
                 }
               </div>
             </div>
@@ -705,13 +704,13 @@ export default function SchedulePage() {
               {/* Trip column headers */}
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-surface-container)' }}>
-                  <th className="sticky left-0 z-20 bg-white text-left px-6 py-5 min-w-[220px]">
+                  <th className="sticky left-0 z-20 bg-white text-left px-4 py-3 min-w-[200px]">
                     <span className="text-[10px] font-bold text-[var(--color-muted-foreground)] uppercase tracking-widest">Resources</span>
                   </th>
                   {trips.map((trip: any, idx: number) => (
-                    <th key={trip.id} className="px-6 py-5 text-left min-w-[160px]">
-                      <div className="space-y-1.5">
-                        <div className={`text-base font-display font-bold ${tripAccentText[idx % tripAccentText.length]}`}>
+                    <th key={trip.id} className="px-4 py-3 text-left min-w-[150px]">
+                      <div className="space-y-1">
+                        <div className={`text-sm font-display font-bold ${tripAccentText[idx % tripAccentText.length]}`}>
                           {trip.tripName}
                         </div>
                         <div className="text-xs font-medium text-[var(--color-muted-foreground)]">
@@ -756,13 +755,13 @@ export default function SchedulePage() {
                       className="hover:bg-[var(--color-surface-container-low)]/60 transition-colors"
                       style={{ borderBottom: '1px solid var(--color-surface-container)' }}
                     >
-                      <td className="sticky left-0 z-10 bg-white px-6 py-4 min-w-[220px]">
+                      <td className="sticky left-0 z-10 bg-white px-4 py-2.5 min-w-[200px]">
                         <div
-                          className="flex items-center gap-3 cursor-pointer"
+                          className="flex items-center gap-2 cursor-pointer"
                           onClick={() => toggleStaff(s.id)}
                         >
-                          <div className="w-8 h-8 rounded-full bg-[var(--color-secondary-container)]/60 flex items-center justify-center flex-shrink-0">
-                            <Users className="w-4 h-4 text-[var(--color-secondary)]" />
+                          <div className="w-7 h-7 rounded-full bg-[var(--color-secondary-container)]/60 flex items-center justify-center flex-shrink-0">
+                            <Users className="w-3.5 h-3.5 text-[var(--color-secondary)]" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1">
@@ -770,14 +769,14 @@ export default function SchedulePage() {
                                 ? <ChevronDown className="w-3 h-3 text-[var(--color-muted-foreground)] flex-shrink-0" />
                                 : <ChevronRight className="w-3 h-3 text-[var(--color-muted-foreground)] flex-shrink-0" />
                               }
-                              <span className="text-sm font-bold truncate">{s.fullName}</span>
+                              <span className="text-xs font-bold truncate">{s.fullName}</span>
                             </div>
                             <div className="text-[10px] text-[var(--color-muted-foreground)] pl-4">
                               {s.role?.replace(/([A-Z])/g, ' $1').trim()}{s.region ? ` · ${s.region}` : ''}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 pl-11">
+                        <div className="flex items-center gap-1 mt-1 pl-9">
                           <QualBadge active={s.isDriverEligible} icon={Car} title="Driver Eligible" />
                           <QualBadge active={s.isFirstAidQualified} icon={Shield} title="First Aid" />
                           <QualBadge active={s.isMedicationCompetent} icon={Pill} title="Medication" />
@@ -789,7 +788,7 @@ export default function SchedulePage() {
                         const trip = trips[idx]
                         const isAvailable = ts.status === 'Available'
                         return (
-                          <td key={ts.tripId} className="px-4 py-4">
+                          <td key={ts.tripId} className="px-3 py-2.5">
                             <StatusBadge
                               status={ts.status}
                               role={ts.assignmentRole}
@@ -845,13 +844,13 @@ export default function SchedulePage() {
                     className="hover:bg-[var(--color-surface-container-low)]/60 transition-colors last:border-b-0"
                     style={{ borderBottom: '1px solid var(--color-surface-container)' }}
                   >
-                    <td className="sticky left-0 z-10 bg-white px-6 py-4 min-w-[220px]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-secondary-container)]/40 flex items-center justify-center flex-shrink-0">
-                          <Truck className="w-4 h-4 text-[var(--color-secondary)]" />
+                    <td className="sticky left-0 z-10 bg-white px-4 py-2.5 min-w-[200px]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-[var(--color-secondary-container)]/40 flex items-center justify-center flex-shrink-0">
+                          <Truck className="w-3.5 h-3.5 text-[var(--color-secondary)]" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-sm font-bold truncate">{v.vehicleName}</div>
+                          <div className="text-xs font-bold truncate">{v.vehicleName}</div>
                           <div className="text-[10px] text-[var(--color-muted-foreground)]">
                             {v.registration || '—'} · {v.vehicleType?.replace(/([A-Z])/g, ' $1').trim()} · {v.totalSeats} seats
                             {v.wheelchairPositions > 0 && ` · ${v.wheelchairPositions} ♿`}
@@ -863,7 +862,7 @@ export default function SchedulePage() {
                       const trip = trips[idx]
                       const isAvailable = ts.status === 'Available'
                       return (
-                        <td key={ts.tripId} className="px-4 py-4">
+                        <td key={ts.tripId} className="px-3 py-2.5">
                           <StatusBadge
                             status={ts.status}
                             clickable={isAvailable}

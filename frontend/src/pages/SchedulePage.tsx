@@ -66,13 +66,13 @@ function StatusBadge({ status, role, clickable, onClick, onUnassign }: {
     return (
       <div
         onClick={handleUnassign}
-        className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-all bg-[var(--color-primary-fixed)]/25 text-[var(--color-primary)] hover:bg-rose-100 hover:text-rose-600"
+        className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-all bg-[var(--color-primary-fixed)]/25 text-[var(--color-primary)] hover:bg-rose-100 hover:text-rose-600"
         title="Click to unassign"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] group-hover:bg-rose-500 flex-shrink-0 transition-colors" />
-        <span className="text-xs font-medium group-hover:hidden">{s.label}</span>
-        {role && <span className="text-[10px] opacity-75 group-hover:hidden">{role}</span>}
-        <span className="hidden group-hover:inline text-xs font-medium">Unassign</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] group-hover:invisible flex-shrink-0 transition-colors" />
+        <span className="text-xs font-medium group-hover:invisible">{s.label}</span>
+        {role && <span className="text-[10px] opacity-75 group-hover:invisible">{role}</span>}
+        <span className="absolute inset-0 hidden group-hover:flex items-center justify-center text-xs font-medium text-rose-600">Unassign</span>
       </div>
     )
   }

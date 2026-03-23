@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using TripCore.Application.Common;
 using TripCore.Application.DTOs;
+using Microsoft.AspNetCore.RateLimiting;
 using TripCore.Infrastructure.Data;
 
 namespace TripCore.Api.Controllers;
@@ -19,24 +20,30 @@ public class AuthController : ControllerBase
 {
     private readonly TripCoreDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(TripCoreDbContext db, IConfiguration config)
+    public AuthController(TripCoreDbContext db, IConfiguration config, ILogger<AuthController> logger)
     {
         _db = db;
         _config = config;
+        _logger = logger;
     }
 
     /// <summary>
     /// Authenticate and receive a JWT token.
     /// </summary>
     [HttpPost("login")]
+    [EnableRateLimiting("login")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto, CancellationToken ct)
     {
         var user = await _db.Users.Include(u => u.Staff)
             .FirstOrDefaultAsync(u => u.Username == dto.Username && u.IsActive, ct);
 
         if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
+        {
+            _logger.LogWarning("Failed login attempt for username: {Username}", dto.Username);
             return Unauthorized(ApiResponse<AuthResponseDto>.Fail("Invalid username or password"));
+        }
 
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
@@ -67,7 +74,10 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Domain.Entities.User user)
     {
-        var secret = _config["Jwt:Secret"] ?? Environment.GetEnvironmentVariable("JWT_SECRET") ?? "TripCore-Dev-Secret-Key-Minimum-32-Characters!";
+        var secret = _config["Jwt:Secret"] ?? Environment.GetEnvironmentVariable("JWT_SECRET");
+        if (string.IsNullOrEmpty(secret) || secret.Length < 32)
+            throw new InvalidOperationException("JWT_SECRET must be configured and at least 32 characters long.");
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -93,8 +103,6 @@ public class AuthController : ControllerBase
 
     private static bool VerifyPassword(string password, string hash)
     {
-        using var sha = System.Security.Cryptography.SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(bytes) == hash;
+        return BCrypt.Net.BCrypt.Verify(password, hash);
     }
 }

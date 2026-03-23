@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -9,6 +10,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/bookings")]
 public class BookingsController : ControllerBase
 {
@@ -186,6 +188,7 @@ public class BookingsController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/accommodation")]
 public class AccommodationController : ControllerBase
 {
@@ -305,6 +308,7 @@ public class AccommodationController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/reservations")]
 public class ReservationsController : ControllerBase
 {

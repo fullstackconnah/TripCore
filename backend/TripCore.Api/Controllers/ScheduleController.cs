@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -8,6 +9,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/schedule")]
 public class ScheduleController : ControllerBase
 {

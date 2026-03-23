@@ -76,7 +76,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-xs text-[var(--color-muted-foreground)] mt-6 text-center">
-            Demo: <span className="text-[var(--color-foreground)]">admin</span> / <span className="text-[var(--color-foreground)]">Admin123!</span>
+            Contact your administrator for login credentials.
           </p>
         </form>
       </div>

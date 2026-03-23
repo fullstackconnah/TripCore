@@ -71,7 +71,7 @@ function StatusBadge({ status, role, clickable, onClick, onUnassign }: {
       >
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] group-hover:bg-rose-500 flex-shrink-0 transition-colors" />
         <span className="text-xs font-medium group-hover:hidden">{s.label}</span>
-        {role && <span className="text-[10px] opacity-75 group-hover:opacity-0">{role}</span>}
+        {role && <span className="text-[10px] opacity-75 group-hover:hidden">{role}</span>}
         <span className="hidden group-hover:inline text-xs font-medium">Unassign</span>
       </div>
     )

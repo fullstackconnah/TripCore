@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -12,6 +13,7 @@ namespace TripCore.Api.Controllers;
 /// CRUD and sub-resource operations for trip instances.
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/v1/trips")]
 public class TripsController : ControllerBase
 {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -9,6 +10,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/vehicles")]
 public class VehiclesController : ControllerBase
 {
@@ -111,6 +113,7 @@ public class VehiclesController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/vehicle-assignments")]
 public class VehicleAssignmentsController : ControllerBase
 {
@@ -173,6 +176,7 @@ public class VehicleAssignmentsController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/staff")]
 public class StaffController : ControllerBase
 {
@@ -318,6 +322,7 @@ public class StaffController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/staff-availability")]
 public class StaffAvailabilityController : ControllerBase
 {
@@ -364,6 +369,7 @@ public class StaffAvailabilityController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/staff-assignments")]
 public class StaffAssignmentsController : ControllerBase
 {

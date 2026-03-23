@@ -6,6 +6,7 @@ namespace TripCore.Api.Middleware;
 
 /// <summary>
 /// Global exception handling middleware returning consistent ApiResponse error shapes.
+/// Does not leak internal exception details to clients.
 /// </summary>
 public class ExceptionHandlingMiddleware
 {
@@ -34,15 +35,20 @@ public class ExceptionHandlingMiddleware
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = exception switch
+
+        // Map exception types to status codes and safe client messages
+        var (statusCode, clientMessage) = exception switch
         {
-            ArgumentException => (int)HttpStatusCode.BadRequest,
-            KeyNotFoundException => (int)HttpStatusCode.NotFound,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-            _ => (int)HttpStatusCode.InternalServerError
+            ArgumentException => ((int)HttpStatusCode.BadRequest, "The request was invalid. Please check your input."),
+            KeyNotFoundException => ((int)HttpStatusCode.NotFound, "The requested resource was not found."),
+            UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "You are not authorized to perform this action."),
+            InvalidOperationException => ((int)HttpStatusCode.BadRequest, "The operation could not be completed."),
+            _ => ((int)HttpStatusCode.InternalServerError, "An unexpected error occurred. Please try again later.")
         };
 
-        var response = ApiResponse<object>.Fail(exception.Message);
+        context.Response.StatusCode = statusCode;
+
+        var response = ApiResponse<object>.Fail(clientMessage);
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         await context.Response.WriteAsync(json);
     }

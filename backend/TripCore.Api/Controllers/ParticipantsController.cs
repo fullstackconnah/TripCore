@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -11,6 +12,7 @@ namespace TripCore.Api.Controllers;
 /// CRUD operations for NDIS participants.
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/v1/participants")]
 public class ParticipantsController : ControllerBase
 {

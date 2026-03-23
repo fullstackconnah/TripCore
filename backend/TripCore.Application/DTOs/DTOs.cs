@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using TripCore.Domain.Enums;
 
 namespace TripCore.Application.DTOs;
@@ -42,13 +43,19 @@ public record ParticipantDetailDto : ParticipantListDto
 
 public record CreateParticipantDto
 {
+    [Required, StringLength(100, MinimumLength = 1)]
     public string FirstName { get; init; } = string.Empty;
+    [Required, StringLength(100, MinimumLength = 1)]
     public string LastName { get; init; } = string.Empty;
+    [StringLength(100)]
     public string? PreferredName { get; init; }
     public DateOnly? DateOfBirth { get; init; }
+    [StringLength(20)]
     public string? NdisNumber { get; init; }
     public PlanType PlanType { get; init; }
+    [StringLength(100)]
     public string? Region { get; init; }
+    [StringLength(200)]
     public string? FundingOrganisation { get; init; }
     public bool IsRepeatClient { get; init; }
     public bool WheelchairRequired { get; init; }
@@ -56,11 +63,17 @@ public record CreateParticipantDto
     public bool RequiresOvernightSupport { get; init; }
     public bool HasRestrictivePracticeFlag { get; init; }
     public SupportRatio SupportRatio { get; init; }
+    [StringLength(2000)]
     public string? MobilityNotes { get; init; }
+    [StringLength(2000)]
     public string? EquipmentRequirements { get; init; }
+    [StringLength(2000)]
     public string? TransportRequirements { get; init; }
+    [StringLength(4000)]
     public string? MedicalSummary { get; init; }
+    [StringLength(4000)]
     public string? BehaviourRiskSummary { get; init; }
+    [StringLength(4000)]
     public string? Notes { get; init; }
 }
 
@@ -161,22 +174,34 @@ public record TripDetailDto : TripListDto
 
 public record CreateTripDto
 {
+    [Required, StringLength(200, MinimumLength = 1)]
     public string TripName { get; init; } = string.Empty;
+    [StringLength(50)]
     public string? TripCode { get; init; }
     public Guid? EventTemplateId { get; init; }
+    [StringLength(200)]
     public string? Destination { get; init; }
+    [StringLength(100)]
     public string? Region { get; init; }
     public DateOnly StartDate { get; init; }
+    [Range(1, 365)]
     public int DurationDays { get; init; }
     public DateOnly? BookingCutoffDate { get; init; }
     public TripStatus Status { get; init; } = TripStatus.Draft;
     public Guid? LeadCoordinatorId { get; init; }
+    [Range(0, 1000)]
     public int? MinParticipants { get; init; }
+    [Range(0, 1000)]
     public int? MaxParticipants { get; init; }
+    [Range(0, 100)]
     public int? RequiredWheelchairCapacity { get; init; }
+    [Range(0, 1000)]
     public int? RequiredBeds { get; init; }
+    [Range(0, 1000)]
     public int? RequiredBedrooms { get; init; }
+    [Range(0, 100)]
     public int? MinStaffRequired { get; init; }
+    [StringLength(4000)]
     public string? Notes { get; init; }
 }
 
@@ -226,7 +251,9 @@ public record BookingDetailDto : BookingListDto
 
 public record CreateBookingDto
 {
+    [Required]
     public Guid TripInstanceId { get; init; }
+    [Required]
     public Guid ParticipantId { get; init; }
     public BookingStatus BookingStatus { get; init; } = BookingStatus.Enquiry;
     public DateOnly? BookingDate { get; init; }
@@ -236,13 +263,21 @@ public record CreateBookingDto
     public bool HighSupportRequired { get; init; }
     public bool HasRestrictivePracticeFlag { get; init; }
     public PlanType? PlanTypeOverride { get; init; }
+    [StringLength(2000)]
     public string? FundingNotes { get; init; }
+    [StringLength(500)]
     public string? RoomPreference { get; init; }
+    [StringLength(2000)]
     public string? TransportNotes { get; init; }
+    [StringLength(2000)]
     public string? EquipmentNotes { get; init; }
+    [StringLength(4000)]
     public string? RiskSupportNotes { get; init; }
+    [StringLength(4000)]
     public string? BookingNotes { get; init; }
+    [StringLength(200)]
     public string? InsuranceProvider { get; init; }
+    [StringLength(100)]
     public string? InsurancePolicyNumber { get; init; }
     public DateOnly? InsuranceCoverageStart { get; init; }
     public DateOnly? InsuranceCoverageEnd { get; init; }
@@ -295,18 +330,31 @@ public record AccommodationDetailDto : AccommodationListDto
 
 public record CreateAccommodationDto
 {
+    [Required, StringLength(200, MinimumLength = 1)]
     public string PropertyName { get; init; } = string.Empty;
+    [StringLength(200)]
     public string? ProviderOwner { get; init; }
+    [StringLength(200)]
     public string? Location { get; init; }
+    [StringLength(100)]
     public string? Region { get; init; }
+    [StringLength(500)]
     public string? Address { get; init; }
+    [StringLength(100)]
     public string? Suburb { get; init; }
+    [StringLength(50)]
     public string? State { get; init; }
+    [StringLength(10)]
     public string? Postcode { get; init; }
+    [StringLength(200)]
     public string? ContactPerson { get; init; }
+    [StringLength(200), EmailAddress]
     public string? Email { get; init; }
+    [StringLength(50)]
     public string? Phone { get; init; }
+    [StringLength(50)]
     public string? Mobile { get; init; }
+    [StringLength(500)]
     public string? Website { get; init; }
     public bool IsFullyModified { get; init; }
     public bool IsSemiModified { get; init; }
@@ -398,12 +446,18 @@ public record VehicleDetailDto : VehicleListDto
 
 public record CreateVehicleDto
 {
+    [Required, StringLength(200, MinimumLength = 1)]
     public string VehicleName { get; init; } = string.Empty;
+    [StringLength(20)]
     public string? Registration { get; init; }
     public VehicleType VehicleType { get; init; }
+    [Range(0, 100)]
     public int TotalSeats { get; init; }
+    [Range(0, 20)]
     public int WheelchairPositions { get; init; }
+    [StringLength(1000)]
     public string? RampHoistDetails { get; init; }
+    [StringLength(1000)]
     public string? DriverRequirements { get; init; }
     public bool IsInternal { get; init; } = true;
     public bool IsActive { get; init; } = true;
@@ -483,11 +537,16 @@ public record StaffDetailDto : StaffListDto
 
 public record CreateStaffDto
 {
+    [Required, StringLength(100, MinimumLength = 1)]
     public string FirstName { get; init; } = string.Empty;
+    [Required, StringLength(100, MinimumLength = 1)]
     public string LastName { get; init; } = string.Empty;
     public StaffRole Role { get; init; }
+    [StringLength(200), EmailAddress]
     public string? Email { get; init; }
+    [StringLength(50)]
     public string? Mobile { get; init; }
+    [StringLength(100)]
     public string? Region { get; init; }
     public bool IsDriverEligible { get; init; }
     public bool IsFirstAidQualified { get; init; }
@@ -613,19 +672,30 @@ public record ScheduledActivityDto
 public record CreateScheduledActivityDto
 {
     public Guid? ActivityId { get; init; }
+    [Required, StringLength(300, MinimumLength = 1)]
     public string Title { get; init; } = string.Empty;
     public TimeOnly? StartTime { get; init; }
     public TimeOnly? EndTime { get; init; }
+    [StringLength(300)]
     public string? Location { get; init; }
+    [StringLength(2000)]
     public string? AccessibilityNotes { get; init; }
+    [StringLength(4000)]
     public string? Notes { get; init; }
+    [Range(0, 1000)]
     public int SortOrder { get; init; }
     public ScheduledActivityStatus Status { get; init; } = ScheduledActivityStatus.Planned;
+    [StringLength(200)]
     public string? BookingReference { get; init; }
+    [StringLength(200)]
     public string? ProviderName { get; init; }
+    [StringLength(50)]
     public string? ProviderPhone { get; init; }
+    [StringLength(200), EmailAddress]
     public string? ProviderEmail { get; init; }
+    [StringLength(500), Url]
     public string? ProviderWebsite { get; init; }
+    [Range(0, 999999.99)]
     public decimal? EstimatedCost { get; init; }
 }
 
@@ -674,16 +744,19 @@ public record TaskDto
 
 public record CreateTaskDto
 {
+    [Required]
     public Guid TripInstanceId { get; init; }
     public Guid? ParticipantBookingId { get; init; }
     public Guid? AccommodationReservationId { get; init; }
     public Guid? VehicleAssignmentId { get; init; }
     public Guid? StaffAssignmentId { get; init; }
     public TaskType TaskType { get; init; }
+    [Required, StringLength(300, MinimumLength = 1)]
     public string Title { get; init; } = string.Empty;
     public Guid? OwnerId { get; init; }
     public TaskPriority Priority { get; init; } = TaskPriority.Medium;
     public DateOnly? DueDate { get; init; }
+    [StringLength(4000)]
     public string? Notes { get; init; }
 }
 
@@ -807,7 +880,9 @@ public record DashboardSummaryDto
 
 public record LoginDto
 {
+    [Required, StringLength(100, MinimumLength = 1)]
     public string Username { get; init; } = string.Empty;
+    [Required, StringLength(200, MinimumLength = 1)]
     public string Password { get; init; } = string.Empty;
 }
 
@@ -1066,21 +1141,30 @@ public record IncidentDetailDto : IncidentListDto
 
 public record CreateIncidentDto
 {
+    [Required]
     public Guid TripInstanceId { get; init; }
     public Guid? ParticipantBookingId { get; init; }
     public Guid? InvolvedParticipantId { get; init; }
     public Guid? InvolvedStaffId { get; init; }
+    [Required]
     public Guid ReportedByStaffId { get; init; }
     public IncidentType IncidentType { get; init; }
     public IncidentSeverity Severity { get; init; }
+    [Required, StringLength(300, MinimumLength = 1)]
     public string Title { get; init; } = string.Empty;
+    [Required, StringLength(10000, MinimumLength = 1)]
     public string Description { get; init; } = string.Empty;
     public DateTime IncidentDateTime { get; init; }
+    [StringLength(300)]
     public string? Location { get; init; }
+    [StringLength(4000)]
     public string? ImmediateActionsTaken { get; init; }
     public bool WereEmergencyServicesCalled { get; init; }
+    [StringLength(2000)]
     public string? EmergencyServicesDetails { get; init; }
+    [StringLength(1000)]
     public string? WitnessNames { get; init; }
+    [StringLength(4000)]
     public string? WitnessStatements { get; init; }
 }
 

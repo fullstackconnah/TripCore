@@ -314,13 +314,10 @@ public static class DbSeeder
     }
 
     /// <summary>
-    /// Simple BCrypt-compatible hash for seed passwords.
-    /// Uses SHA256 as a placeholder — replace with BCrypt in production service.
+    /// Hash passwords using BCrypt with work factor 12 for secure storage.
     /// </summary>
     private static string BCryptHash(string password)
     {
-        using var sha = System.Security.Cryptography.SHA256.Create();
-        var bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(bytes);
+        return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
     }
 }

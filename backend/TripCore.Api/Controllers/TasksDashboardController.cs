@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
@@ -9,6 +10,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/tasks")]
 public class TasksController : ControllerBase
 {
@@ -87,6 +89,7 @@ public class TasksController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/activities")]
 public class ActivitiesController : ControllerBase
 {
@@ -137,6 +140,7 @@ public class ActivitiesController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/event-templates")]
 public class EventTemplatesController : ControllerBase
 {
@@ -200,6 +204,7 @@ public class EventTemplatesController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1")]
 public class TripDayScheduleController : ControllerBase
 {
@@ -287,6 +292,7 @@ public class TripDayScheduleController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/dashboard")]
 public class DashboardController : ControllerBase
 {
@@ -372,6 +378,7 @@ public class DashboardController : ControllerBase
 }
 
 [ApiController]
+[Authorize]
 [Route("api/v1/conflicts")]
 public class ConflictsController : ControllerBase
 {

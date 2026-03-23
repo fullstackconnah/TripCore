@@ -413,54 +413,131 @@ export default function TripDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <Link to="/trips" className="mt-1 p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="flex-1">
+      {/* Hero Header */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold">{trip.tripName}</h1>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(trip.status)}`}>{trip.status}</span>
-            {trip.tripCode && <span className="text-sm font-mono text-[var(--color-muted-foreground)]">{trip.tripCode}</span>}
+            <span className={`px-3 py-1 text-xs font-bold rounded-full tracking-wider uppercase ${getStatusColor(trip.status)}`}>
+              {trip.status}
+            </span>
+            {trip.destination && (
+              <span className="text-[#43493a] text-sm flex items-center gap-1">
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
+                {trip.destination}
+              </span>
+            )}
+            {trip.tripCode && (
+              <span className="text-xs font-mono text-[#515f74] bg-[#efeeea] px-2 py-0.5 rounded-full">{trip.tripCode}</span>
+            )}
           </div>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
-            {trip.destination || 'TBD'} · {formatDateAu(trip.startDate)} — {formatDateAu(trip.endDate)} · {trip.durationDays} days
+          <h1 className="text-4xl lg:text-5xl font-extrabold text-[#1b1c1a] leading-tight tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {trip.tripName}
+          </h1>
+          <p className="text-[#43493a] font-medium flex items-center gap-2">
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
+            {formatDateAu(trip.startDate)} — {formatDateAu(trip.endDate)} ({trip.durationDays} days)
           </p>
         </div>
-      </div>
+        <div className="flex gap-3 flex-shrink-0">
+          <Link to="/trips" className="px-5 py-2.5 bg-[#efeeea] text-[#1b1c1a] rounded-full font-bold hover:opacity-90 transition-all flex items-center gap-2 text-sm">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+          {!isReadOnly && (
+            <button
+              onClick={() => setShowAddBooking(true)}
+              className="px-5 py-2.5 bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:scale-[0.98] transition-all flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" />
+              Add Participant
+            </button>
+          )}
+        </div>
+      </section>
 
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        {[
-          { label: 'Participants', value: `${trip.currentParticipantCount}/${trip.maxParticipants || '—'}`, warn: trip.maxParticipants && trip.currentParticipantCount >= trip.maxParticipants },
-          { label: 'Waitlist', value: trip.waitlistCount, warn: trip.waitlistCount > 0 },
-          { label: 'High Support', value: trip.highSupportCount, warn: trip.highSupportCount > 0 },
-          { label: 'Wheelchair', value: trip.wheelchairCount },
-          { label: 'Staff', value: trip.staffAssignedCount, warn: trip.minStaffRequired && trip.staffAssignedCount < trip.minStaffRequired },
-          { label: 'Overnight', value: trip.overnightSupportCount },
-          { label: 'Tasks', value: trip.outstandingTaskCount, warn: trip.outstandingTaskCount > 0 },
-          { label: 'Insurance', value: `${trip.insuranceConfirmedCount ?? 0}/${(trip.insuranceConfirmedCount ?? 0) + (trip.insuranceOutstandingCount ?? 0)}`, warn: (trip.insuranceOutstandingCount ?? 0) > 0 },
-        ].map(s => (
-          <div key={s.label} className="bg-[var(--color-card)] rounded-lg p-3 border border-[var(--color-border)] text-center">
-            <p className="text-xs text-[var(--color-muted-foreground)]">{s.label}</p>
-            <p className={`text-xl font-bold mt-1 ${s.warn ? 'text-[var(--color-warning)]' : ''}`}>{s.value}</p>
+      {/* Quick Metrics Bento */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Participants */}
+        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+          <div className="flex justify-between items-start">
+            <span className="material-symbols-outlined text-[#396200] text-4xl">groups</span>
+            {(trip.waitlistCount ?? 0) > 0
+              ? <span className="text-xs font-bold text-[#92400e] px-2 py-1 bg-[#fef3c7] rounded-full">Waitlist</span>
+              : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">Active</span>
+            }
           </div>
-        ))}
-      </div>
+          <div>
+            <p className="text-sm text-[#43493a] font-medium">Participants / Staff</p>
+            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {trip.currentParticipantCount} / {trip.staffAssignedCount}
+            </h4>
+          </div>
+        </div>
+
+        {/* Tasks / Outstanding */}
+        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+          <div className="flex justify-between items-start">
+            <span className="material-symbols-outlined text-[#515f74] text-4xl">checklist</span>
+            {(trip.outstandingTaskCount ?? 0) > 0
+              ? <span className="text-xs font-bold text-[#ba1a1a] px-2 py-1 bg-[#ffdad6] rounded-full">Action Needed</span>
+              : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">On Track</span>
+            }
+          </div>
+          <div>
+            <p className="text-sm text-[#43493a] font-medium">Outstanding Tasks</p>
+            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {trip.outstandingTaskCount ?? 0}
+            </h4>
+          </div>
+        </div>
+
+        {/* Support needs */}
+        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+          <div className="flex justify-between items-start">
+            <span className="material-symbols-outlined text-[#515f74] text-4xl">accessible</span>
+            <span className="text-xs font-bold text-[#43493a] px-2 py-1 bg-[#e4e2de] rounded-full">{trip.wheelchairCount ?? 0} WC</span>
+          </div>
+          <div>
+            <p className="text-sm text-[#43493a] font-medium">High Support / Overnight</p>
+            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {trip.highSupportCount ?? 0} / {trip.overnightSupportCount ?? 0}
+            </h4>
+          </div>
+        </div>
+
+        {/* Insurance */}
+        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+          <div className="flex justify-between items-start">
+            <span className="material-symbols-outlined text-[#ba1a1a] text-4xl">health_and_safety</span>
+            {(trip.insuranceOutstandingCount ?? 0) > 0
+              ? <span className="text-xs font-bold text-[#ba1a1a] px-2 py-1 bg-[#ffdad6] rounded-full">Outstanding</span>
+              : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">Covered</span>
+            }
+          </div>
+          <div>
+            <p className="text-sm text-[#43493a] font-medium">Insurance Status</p>
+            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {trip.insuranceConfirmedCount ?? 0}/{(trip.insuranceConfirmedCount ?? 0) + (trip.insuranceOutstandingCount ?? 0)}
+            </h4>
+          </div>
+        </div>
+      </section>
 
       {/* Tabs */}
-      <div className="border-b border-[var(--color-border)] flex gap-1 overflow-x-auto">
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.key
-                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
+                ? 'bg-[#396200] text-white shadow-md shadow-[#396200]/20'
+                : 'text-[#43493a] hover:bg-[#efeeea]'
             }`}>
             <tab.icon className="w-4 h-4" />
             {tab.label}
-            {tab.count !== undefined && <span className="ml-1 text-xs bg-[var(--color-accent)] px-1.5 py-0.5 rounded-full">{tab.count}</span>}
+            {tab.count !== undefined && tab.count > 0 && (
+              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-[#efeeea] text-[#43493a]'}`}>
+                {tab.count}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -468,7 +545,161 @@ export default function TripDetailPage() {
       {/* Tab content */}
       <div className="animate-fade-in">
         {activeTab === 'overview' && id && (
-          <ItineraryTab tripId={id} trip={trip} />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+            {/* Left: Itinerary Timeline 7/12 */}
+            <div className="lg:col-span-7">
+              <ItineraryTab tripId={id} trip={trip} />
+            </div>
+
+            {/* Right: Coordination Cards 5/12 */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Accommodation Card */}
+              {accommodation.length > 0 && (
+                <div className="bg-white rounded-2xl overflow-hidden border border-[#c3c9b5]/20 shadow-sm">
+                  <div className="p-5 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '20px' }}>home_work</span>
+                          <h3 className="text-lg font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Accommodation</h3>
+                        </div>
+                        <p className="text-sm text-[#43493a]">{accommodation[0]?.propertyName}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '20px' }}>verified</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {accommodation[0]?.bedroomsReserved && (
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[#515f74]" style={{ fontSize: '16px' }}>king_bed</span>
+                          <span className="text-xs font-medium text-[#1b1c1a]">{accommodation[0].bedroomsReserved} Bedrooms</span>
+                        </div>
+                      )}
+                      {accommodation[0]?.reservationStatus && (
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[#515f74]" style={{ fontSize: '16px' }}>event_available</span>
+                          <span className="text-xs font-medium text-[#1b1c1a]">{accommodation[0].reservationStatus}</span>
+                        </div>
+                      )}
+                    </div>
+                    {accommodation.length > 1 && (
+                      <p className="text-xs text-[#43493a] italic">+{accommodation.length - 1} more property reserved</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* The Team */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>The Team</h3>
+                  <button className="text-[#396200] text-sm font-bold hover:opacity-70 transition-opacity" onClick={() => setActiveTab('bookings')}>
+                    Manage All
+                  </button>
+                </div>
+
+                {/* Participants */}
+                {bookings.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Participants</p>
+                    <div className="bg-white rounded-2xl border border-[#c3c9b5]/20 shadow-sm overflow-hidden">
+                      {bookings.slice(0, 4).map((b: any, i: number) => (
+                        <div key={b.id} className={`p-4 flex items-center gap-3 ${i < Math.min(bookings.length, 4) - 1 ? 'border-b border-[#c3c9b5]/10' : ''}`}>
+                          <div className="w-10 h-10 rounded-full bg-[#efeeea] flex items-center justify-center font-bold text-sm text-[#396200]">
+                            {(b.participantName || 'P').charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-[#1b1c1a] truncate">{b.participantName}</p>
+                            <p className="text-[10px] text-[#43493a]">
+                              {[b.highSupportRequired && 'High Support', b.wheelchairRequired && 'Wheelchair', b.nightSupportRequired && 'Night Support'].filter(Boolean).join(' · ') || b.bookingStatus}
+                            </p>
+                          </div>
+                          {b.highSupportRequired && (
+                            <span className="material-symbols-outlined text-[#8e337b]" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>medical_services</span>
+                          )}
+                        </div>
+                      ))}
+                      {bookings.length > 4 && (
+                        <div className="px-4 py-3 text-xs text-[#43493a] italic border-t border-[#c3c9b5]/10 cursor-pointer hover:bg-[#f5f3ef]" onClick={() => setActiveTab('bookings')}>
+                          +{bookings.length - 4} more participants
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Staff */}
+                {staff.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Staff Roster</p>
+                    <div className="space-y-2">
+                      {staff.slice(0, 3).map((s: any, i: number) => (
+                        <div key={s.id} className={`bg-[#f5f3ef] p-4 rounded-xl flex items-center justify-between ${i === 0 ? 'border-l-4 border-[#396200]' : ''}`}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#396200]/10 flex items-center justify-center text-[#396200] font-bold text-xs">
+                              {(s.staffName || 'S').split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-[#1b1c1a]">{s.staffName}</p>
+                              <p className="text-[10px] text-[#43493a]">{s.assignmentRole || (s.isDriver ? 'Driver' : 'Support Worker')}</p>
+                            </div>
+                          </div>
+                          <button className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                            <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '16px' }}>call</span>
+                          </button>
+                        </div>
+                      ))}
+                      {staff.length > 3 && (
+                        <p className="text-xs text-[#43493a] italic text-center cursor-pointer hover:opacity-70" onClick={() => setActiveTab('staff')}>
+                          +{staff.length - 3} more staff assigned
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fleet */}
+              {vehicles.length > 0 && (
+                <div className="bg-[#eae8e4] p-5 rounded-2xl space-y-4">
+                  <h3 className="font-bold text-lg flex items-center gap-2 text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="material-symbols-outlined text-[#515f74]" style={{ fontSize: '20px' }}>local_shipping</span>
+                    Fleet Manifest
+                  </h3>
+                  <div className="space-y-3">
+                    {vehicles.map((v: any) => (
+                      <div key={v.id} className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm">
+                        <div className="w-12 h-12 rounded-lg bg-[#e4e2de] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '20px' }}>airport_shuttle</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1b1c1a] truncate">{v.vehicleName || `${v.make} ${v.model}`}</p>
+                          <p className="text-[10px] text-[#43493a]">
+                            {[v.wheelchairCapacity && `${v.wheelchairCapacity} WC`, v.capacity && `${v.capacity} seats`].filter(Boolean).join(' · ') || 'Vehicle'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Emergency Protocol */}
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className="block w-full bg-[#ffdad6] p-5 rounded-2xl border-2 border-dashed border-[#ba1a1a]/20 hover:border-[#ba1a1a]/50 transition-all group text-left">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="material-symbols-outlined text-[#ba1a1a] text-3xl">emergency_share</span>
+                    <div>
+                      <p className="font-bold text-[#93000a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Emergency Protocols</p>
+                      <p className="text-xs text-[#93000a] opacity-80">View outstanding tasks & contact tree</p>
+                    </div>
+                  </div>
+                  <ArrowLeft className="w-4 h-4 text-[#ba1a1a] rotate-180 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+            </div>
+          </div>
         )}
 
         {activeTab === 'bookings' && (

@@ -18,10 +18,10 @@ export function formatDateAu(date: string | null | undefined): string {
 
 export function getStatusColor(status: string): string {
   const s = status.toLowerCase()
-  if (['confirmed', 'completed', 'available'].includes(s)) return 'badge-confirmed'
-  if (['draft', 'proposed'].includes(s)) return 'badge-draft'
-  if (['cancelled', 'unavailable', 'nolongerattending'].includes(s)) return 'badge-cancelled'
-  if (['overdue'].includes(s)) return 'badge-overdue'
-  if (['conflict'].includes(s)) return 'badge-conflict'
-  return 'badge-pending'
+  if (['confirmed', 'completed', 'available'].includes(s)) return 'bg-[#bbf37c] text-[#0f2000]'
+  if (['draft', 'proposed'].includes(s)) return 'bg-[#e4e2de] text-[#43493a]'
+  if (['cancelled', 'unavailable', 'nolongerattending'].includes(s)) return 'bg-[#ffdad6] text-[#93000a]'
+  if (['overdue'].includes(s)) return 'bg-[#ffdad6] text-[#93000a]'
+  if (['conflict'].includes(s)) return 'bg-[#ffdad6] text-[#93000a]'
+  return 'bg-[#fef3c7] text-[#92400e]'
 }

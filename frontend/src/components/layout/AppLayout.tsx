@@ -1,22 +1,22 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, Link } from 'react-router-dom'
 import {
   LayoutDashboard, Map, CalendarRange, Users, Building2, Truck, UserCog,
-  ListChecks, Settings, LogOut, Menu, X, ClipboardList, AlertTriangle
+  ListChecks, Settings, LogOut, Menu, X, ClipboardList, AlertTriangle, Plus
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/trips', icon: Map, label: 'Trips' },
-  { to: '/schedule', icon: CalendarRange, label: 'Schedule' },
-  { to: '/participants', icon: Users, label: 'Participants' },
-  { to: '/accommodation', icon: Building2, label: 'Accommodation' },
-  { to: '/vehicles', icon: Truck, label: 'Vehicles' },
-  { to: '/staff', icon: UserCog, label: 'Staff' },
-  { to: '/tasks', icon: ListChecks, label: 'Tasks' },
-  { to: '/incidents', icon: AlertTriangle, label: 'Incidents' },
-  { to: '/bookings', icon: ClipboardList, label: 'Bookings' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard' },
+  { to: '/trips', icon: Map, label: 'Trips', msIcon: 'map' },
+  { to: '/schedule', icon: CalendarRange, label: 'Schedule', msIcon: 'calendar_month' },
+  { to: '/participants', icon: Users, label: 'Participants', msIcon: 'group' },
+  { to: '/accommodation', icon: Building2, label: 'Accommodation', msIcon: 'home_work' },
+  { to: '/vehicles', icon: Truck, label: 'Vehicles', msIcon: 'directions_car' },
+  { to: '/staff', icon: UserCog, label: 'Staff', msIcon: 'manage_accounts' },
+  { to: '/tasks', icon: ListChecks, label: 'Tasks', msIcon: 'checklist' },
+  { to: '/incidents', icon: AlertTriangle, label: 'Incidents', msIcon: 'emergency' },
+  { to: '/bookings', icon: ClipboardList, label: 'Bookings', msIcon: 'description' },
+  { to: '/settings', icon: Settings, label: 'Settings', msIcon: 'settings' },
 ]
 
 export default function AppLayout() {
@@ -29,73 +29,125 @@ export default function AppLayout() {
     window.location.href = '/login'
   }
 
+  const initial = (user.fullName || 'A').charAt(0).toUpperCase()
+
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex min-h-screen bg-[#fbf9f5]">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[var(--color-sidebar)] border-r border-[var(--color-border)] flex flex-col transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-[var(--color-border)]">
-          <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-            <Map className="w-4 h-4 text-white" />
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-[#f5f3ef] pt-20 pb-6 px-4 transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Brand */}
+        <div className="absolute top-4 left-4 right-4">
+          <div className="flex items-center gap-3 px-4 py-2">
+            <div className="w-9 h-9 rounded-xl bg-[#396200] flex items-center justify-center shadow-lg shadow-[#396200]/20">
+              <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>map</span>
+            </div>
+            <div>
+              <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trip Planner</span>
+              <p className="text-[10px] text-[#43493a] opacity-70 leading-none mt-0.5">NDIS Management</p>
+            </div>
           </div>
-          <span className="text-lg font-bold tracking-tight">TripCore</span>
         </div>
 
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, icon: Icon, label }) => (
+        {/* Nav */}
+        <nav className="flex-1 space-y-0.5 overflow-y-auto">
+          {navItems.map(({ to, label, msIcon }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-sm'
-                    : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-foreground)]'
+                    ? 'text-[#396200] font-bold border-r-4 border-[#396200] bg-white/50'
+                    : 'text-[#515f74] hover:text-[#396200] hover:bg-white/40'
                 }`
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{msIcon}</span>
               {label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-3 border-t border-[var(--color-border)]">
+        {/* New Trip CTA */}
+        <Link to="/trips/new"
+          className="mx-4 mt-4 py-3 px-4 flex items-center justify-center gap-2 bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:scale-[0.98] transition-all text-sm">
+          <Plus className="w-4 h-4" />
+          New Trip
+        </Link>
+
+        {/* Bottom */}
+        <div className="mt-4 border-t border-[#c3c9b5]/30 pt-4 space-y-1">
           <button onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--color-muted-foreground)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-foreground)] w-full transition-colors">
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#515f74] hover:bg-white/40 w-full transition-colors">
             <LogOut className="w-5 h-5" />
             Sign Out
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main area */}
+      <div className="flex-1 lg:ml-72 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="h-16 border-b border-[var(--color-border)] bg-[var(--color-card)] flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
-          <button className="lg:hidden p-2 rounded-lg hover:bg-[var(--color-accent)]" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          <div className="flex-1" />
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium">{user.fullName || 'Admin'}</p>
-              <p className="text-xs text-[var(--color-muted-foreground)]">{user.role || 'Administrator'}</p>
+        <header className="sticky top-0 z-30 bg-[#fbf9f5]/80 backdrop-blur-xl border-b border-[#c3c9b5]/20 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <button className="lg:hidden p-2 rounded-xl hover:bg-[#efeeea] transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              <div className="hidden md:flex items-center bg-[#f5f3ef] rounded-full px-4 py-2 gap-3 min-w-[280px]">
+                <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '18px' }}>search</span>
+                <input
+                  className="bg-transparent border-none outline-none text-sm w-full placeholder:text-[#43493a]/60 text-[#1b1c1a]"
+                  placeholder="Search trips, participants..."
+                  type="text"
+                />
+              </div>
             </div>
-            <div className="w-9 h-9 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center text-sm font-bold text-[var(--color-primary)]">
-              {(user.fullName || 'A').charAt(0)}
+            <div className="flex items-center gap-3">
+              <button className="p-2 rounded-full hover:bg-[#efeeea] transition-colors">
+                <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '22px' }}>notifications</span>
+              </button>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] flex items-center justify-center text-white font-bold text-sm shadow-md">
+                {initial}
+              </div>
             </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#fbf9f5]/90 backdrop-blur-xl border-t border-[#c3c9b5]/20 px-6 py-3 flex justify-around items-center z-50">
+        <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? 'text-[#396200]' : 'text-[#515f74]'}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>dashboard</span>
+          <span className="text-[10px] font-medium">Dashboard</span>
+        </NavLink>
+        <NavLink to="/trips" className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? 'text-[#396200]' : 'text-[#515f74]'}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>map</span>
+          <span className="text-[10px] font-medium">Trips</span>
+        </NavLink>
+        <Link to="/trips/new" className="relative -top-5">
+          <div className="w-14 h-14 bg-[#396200] text-white rounded-full shadow-2xl shadow-[#396200]/40 flex items-center justify-center">
+            <Plus className="w-6 h-6" />
+          </div>
+        </Link>
+        <NavLink to="/participants" className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? 'text-[#396200]' : 'text-[#515f74]'}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span>
+          <span className="text-[10px] font-medium">People</span>
+        </NavLink>
+        <NavLink to="/settings" className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? 'text-[#396200]' : 'text-[#515f74]'}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>settings</span>
+          <span className="text-[10px] font-medium">Settings</span>
+        </NavLink>
+      </nav>
     </div>
   )
 }

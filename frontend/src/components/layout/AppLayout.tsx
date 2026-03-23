@@ -60,7 +60,7 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? 'text-[#396200] font-bold border-r-4 border-[#396200] bg-white/50'
+                    ? 'text-[#396200] font-bold bg-white/60'
                     : 'text-[#515f74] hover:text-[#396200] hover:bg-white/40'
                 }`
               }
@@ -80,7 +80,7 @@ export default function AppLayout() {
         </Link>
 
         {/* Bottom */}
-        <div className="mt-4 border-t border-[#c3c9b5]/30 pt-4 space-y-1">
+        <div className="mt-4 pt-4 space-y-1">
           <button onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#515f74] hover:bg-white/40 w-full transition-colors">
             <LogOut className="w-5 h-5" />
@@ -92,7 +92,7 @@ export default function AppLayout() {
       {/* Main area */}
       <div className="flex-1 lg:ml-72 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-[#fbf9f5]/80 backdrop-blur-xl border-b border-[#c3c9b5]/20 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
+        <header className="sticky top-0 z-30 bg-[#fbf9f5]/80 backdrop-blur-xl shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <button className="lg:hidden p-2 rounded-xl hover:bg-[#efeeea] transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -125,7 +125,7 @@ export default function AppLayout() {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#fbf9f5]/90 backdrop-blur-xl border-t border-[#c3c9b5]/20 px-6 py-3 flex justify-around items-center z-50">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#fbf9f5]/90 backdrop-blur-xl shadow-[0_-8px_24px_-4px_rgba(27,28,26,0.04)] px-6 py-3 flex justify-around items-center z-50">
         <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? 'text-[#396200]' : 'text-[#515f74]'}`}>
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>dashboard</span>
           <span className="text-[10px] font-medium">Dashboard</span>

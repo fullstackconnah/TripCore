@@ -96,7 +96,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
         <button
           onClick={() => handleExport('participant')}
           disabled={exporting}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm bg-[#efeeea] text-[#1b1c1a] rounded-full font-bold hover:opacity-80 disabled:opacity-50 transition-opacity border border-[#c3c9b5]/40"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm bg-[#d5e3fc] text-[#0d1c2e] rounded-full font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
         >
           <FileDown className="w-4 h-4" />
           Export Participant Version
@@ -104,7 +104,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
       </div>
 
       {/* Overview Hero Card */}
-      <div className="bg-white rounded-2xl border border-[#c3c9b5]/20 p-6 relative overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl p-6 relative overflow-hidden shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#396200]/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
           <div className="flex items-start justify-between flex-wrap gap-4">
@@ -133,7 +133,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
               { icon: UserCog, label: 'Staff', value: itinerary.staffCount },
               { icon: DollarSign, label: 'Est. Cost', value: `$${Number(itinerary.totalEstimatedCost).toLocaleString('en-AU', { minimumFractionDigits: 2 })}` },
             ].map(s => (
-              <div key={s.label} className="bg-[#efeeea] rounded-xl p-3 text-center">
+              <div key={s.label} className="bg-[#efeeea] rounded-2xl p-3 text-center">
                 <s.icon className="w-4 h-4 mx-auto text-[#396200] mb-1" />
                 <p className="text-lg font-bold text-[#1b1c1a]">{s.value}</p>
                 <p className="text-xs text-[#43493a]">{s.label}</p>
@@ -142,7 +142,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
           </div>
 
           {itinerary.notes && (
-            <p className="text-sm text-[#43493a] mt-4 border-t border-[#c3c9b5]/30 pt-4">{itinerary.notes}</p>
+            <p className="text-sm text-[#43493a] mt-4 pt-4">{itinerary.notes}</p>
           )}
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
       {/* Admin details (from trip data) */}
       {trip && (
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 space-y-3 shadow-sm">
+          <div className="bg-[#f5f3ef] rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-[#1b1c1a]">Trip Details</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <span className="text-[#43493a]">Event Template</span><span className="text-[#1b1c1a]">{trip.eventTemplateName || '—'}</span>
@@ -162,7 +162,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
               <span className="text-[#43493a]">Min Staff</span><span className="text-[#1b1c1a]">{trip.minStaffRequired || '—'}</span>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 space-y-3 shadow-sm">
+          <div className="bg-[#f5f3ef] rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-[#1b1c1a]">Requirements</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <span className="text-[#43493a]">Wheelchair Capacity</span><span className="text-[#1b1c1a]">{trip.requiredWheelchairCapacity || '—'}</span>
@@ -177,14 +177,14 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         {/* Accommodation */}
         {itinerary.accommodation.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
             <div className="flex items-center gap-2 mb-3">
               <Building2 className="w-5 h-5 text-[#396200]" />
               <h3 className="font-semibold text-[#1b1c1a]">Accommodation</h3>
             </div>
             <div className="space-y-3">
               {itinerary.accommodation.map((a: any, i: number) => (
-                <div key={i} className="border border-[#c3c9b5]/20 rounded-lg p-3 space-y-1">
+                <div key={i} className="bg-[#f5f3ef] rounded-2xl p-3 space-y-1">
                   <p className="font-medium text-sm text-[#1b1c1a]">{a.propertyName}</p>
                   {(a.address || a.suburb) && (
                     <p className="text-xs text-[#43493a]">
@@ -211,14 +211,14 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
 
         {/* Vehicles */}
         {itinerary.vehicles.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
             <div className="flex items-center gap-2 mb-3">
               <Car className="w-5 h-5 text-[#396200]" />
               <h3 className="font-semibold text-[#1b1c1a]">Vehicles</h3>
             </div>
             <div className="space-y-3">
               {itinerary.vehicles.map((v: any, i: number) => (
-                <div key={i} className="border border-[#c3c9b5]/20 rounded-lg p-3 space-y-1">
+                <div key={i} className="bg-[#f5f3ef] rounded-2xl p-3 space-y-1">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-sm text-[#1b1c1a]">{v.vehicleName}</p>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-[#efeeea] text-[#43493a]">{v.vehicleType}</span>
@@ -240,14 +240,14 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
 
         {/* Staff */}
         {itinerary.staff.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
             <div className="flex items-center gap-2 mb-3">
               <UserCog className="w-5 h-5 text-[#396200]" />
               <h3 className="font-semibold text-[#1b1c1a]">Staff Roster</h3>
             </div>
             <div className="space-y-2">
               {itinerary.staff.map((s: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 border border-[#c3c9b5]/20 rounded-lg p-3">
+                <div key={i} className="flex items-center gap-3 bg-[#f5f3ef] rounded-2xl p-3">
                   <div className="w-9 h-9 rounded-full bg-[#396200]/10 flex items-center justify-center text-[#396200] font-bold text-xs shrink-0">
                     {s.name.split(' ').map((n: string) => n[0]).join('')}
                   </div>
@@ -275,14 +275,14 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
 
       {/* Participants */}
       {itinerary.participants.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#c3c9b5]/20 p-5 shadow-sm">
+        <div className="bg-white rounded-2xl p-5 shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
           <div className="flex items-center gap-2 mb-3">
             <Users className="w-5 h-5 text-[#396200]" />
             <h3 className="font-semibold text-[#1b1c1a]">Participants ({itinerary.participants.length})</h3>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
             {itinerary.participants.map((p: any) => (
-              <div key={p.id} className="flex items-center gap-3 border border-[#c3c9b5]/20 rounded-lg p-3">
+              <div key={p.id} className="flex items-center gap-3 bg-[#f5f3ef] rounded-2xl p-3">
                 <div className="w-8 h-8 rounded-full bg-[#efeeea] flex items-center justify-center text-xs font-bold shrink-0 text-[#396200]">
                   {p.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                 </div>
@@ -310,21 +310,21 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
 
         <div className="relative">
           {/* Timeline connector line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-[#c3c9b5]/40 hidden md:block" />
+          <div className="absolute left-6 top-0 bottom-0 w-1 bg-[#b9c7df] rounded-full hidden md:block" />
 
           <div className="space-y-6">
             {itinerary.days.map((day: any) => (
               <div key={day.dayNumber} className="relative md:pl-16">
                 {/* Day number badge on timeline */}
-                <div className="hidden md:flex absolute left-0 top-5 w-12 h-12 rounded-full bg-[#396200] items-center justify-center text-white font-bold text-sm z-10 shadow-lg shadow-[#396200]/20">
+                <div className="hidden md:flex absolute left-0 top-5 w-12 h-12 rounded-full bg-[#8e337b] items-center justify-center text-white font-bold text-sm z-10 shadow-[0_8px_24px_-4px_rgba(142,51,123,0.35)]">
                   {day.dayNumber}
                 </div>
 
-                <div className="bg-white rounded-xl border border-[#c3c9b5]/20 overflow-hidden shadow-sm">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
                   {/* Day header */}
-                  <div className="bg-gradient-to-r from-[#396200]/8 to-transparent px-5 py-4 border-b border-[#c3c9b5]/20">
+                  <div className="bg-gradient-to-r from-[#396200]/8 to-transparent px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="md:hidden w-8 h-8 rounded-full bg-[#396200] flex items-center justify-center text-white font-bold text-xs">{day.dayNumber}</span>
+                      <span className="md:hidden w-8 h-8 rounded-full bg-[#8e337b] flex items-center justify-center text-white font-bold text-xs">{day.dayNumber}</span>
                       <div>
                         <h4 className="font-bold text-[#1b1c1a]">{day.dayTitle || `Day ${day.dayNumber}`}</h4>
                         <p className="text-sm text-[#43493a]">{formatDayName(day.date)} · {formatDateAu(day.date)}</p>
@@ -336,7 +336,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
                   <div className="p-5 space-y-3">
                     {/* Accommodation events */}
                     {day.accommodationEvents?.map((ae: any, i: number) => (
-                      <div key={`ae-${i}`} className="flex items-center gap-3 p-3 rounded-lg bg-[#f5f3ef] border border-[#396200]/15">
+                      <div key={`ae-${i}`} className="flex items-center gap-3 p-3 rounded-2xl bg-[#f5f3ef]">
                         <Building2 className="w-5 h-5 text-[#396200] shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-[#1b1c1a]">
@@ -368,7 +368,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
                           const cat = getCategoryStyle(activity.category)
                           const CatIcon = cat.icon
                           return (
-                            <div key={i} className="flex gap-3 p-4 rounded-xl border border-[#c3c9b5]/20 bg-white hover:border-[#396200]/20 hover:shadow-sm transition-all">
+                            <div key={i} className="flex gap-3 p-4 rounded-2xl bg-[#f5f3ef] hover:bg-[#efeeea] transition-colors">
                               <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: cat.bg }}>
                                 <CatIcon className="w-5 h-5" style={{ color: cat.color }} />
                               </div>

@@ -33,7 +33,7 @@ public class ScheduleController : ControllerBase
             .Include(t => t.Bookings)
             .Include(t => t.StaffAssignments)
             .Include(t => t.VehicleAssignments)
-            .Where(t => t.Status != TripStatus.Cancelled && t.Status != TripStatus.Archived)
+            .Where(t => t.Status != TripStatus.Cancelled && t.Status != TripStatus.Archived && t.Status != TripStatus.Completed)
             .Where(t => t.StartDate <= windowEnd && t.StartDate.AddDays(t.DurationDays - 1) >= windowStart)
             .OrderBy(t => t.StartDate)
             .ToListAsync(ct);

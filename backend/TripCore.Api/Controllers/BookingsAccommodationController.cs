@@ -59,10 +59,7 @@ public class BookingsController : ControllerBase
             InsuranceProvider = b.InsuranceProvider, InsurancePolicyNumber = b.InsurancePolicyNumber,
             InsuranceCoverageStart = b.InsuranceCoverageStart, InsuranceCoverageEnd = b.InsuranceCoverageEnd,
             InsuranceStatus = b.InsuranceStatus,
-            IsInsuranceValid = b.InsuranceStatus == InsuranceStatus.Confirmed
-                && b.InsuranceCoverageStart.HasValue && b.InsuranceCoverageEnd.HasValue
-                && b.InsuranceCoverageStart.Value <= b.TripInstance.EndDate
-                && b.InsuranceCoverageEnd.Value >= b.TripInstance.StartDate,
+            IsInsuranceValid = b.InsuranceStatus == InsuranceStatus.Confirmed,
             CreatedAt = b.CreatedAt, UpdatedAt = b.UpdatedAt
         }));
     }

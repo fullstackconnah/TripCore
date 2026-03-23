@@ -864,19 +864,37 @@ export default function TripDetailPage() {
                   {bookings.map((b: any) => (
                     <tr key={b.id} className="hover:bg-[#efeeea]/50 transition-colors">
                       <td className="p-3 font-medium">{b.participantName || '—'}</td>
-                      <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(b.bookingStatus)}`}>{b.bookingStatus}</span></td>
+                      <td className="p-3">
+                        <select
+                          value={b.bookingStatus}
+                          onChange={e => updateBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${getStatusColor(b.bookingStatus)}`}
+                        >
+                          {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
+                            <option key={s} value={s}>{s === 'NoLongerAttending' ? 'No Longer Attending' : s}</option>
+                          ))}
+                        </select>
+                      </td>
                       <td className="p-3 text-[#43493a]">{formatDateAu(b.bookingDate)}</td>
                       <td className="p-3 text-[#43493a]">{({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string]) || '—'}</td>
                       <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
-                          b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :
-                          b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[#ffdad6] text-[#ba1a1a]' :
-                          'bg-[#efeeea]/15 text-[#43493a]'
-                        }`}>{b.insuranceStatus || 'None'}</span>
+                        <select
+                          value={b.insuranceStatus || 'None'}
+                          onChange={e => updateBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${
+                            b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
+                            b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :
+                            b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[#ffdad6] text-[#ba1a1a]' :
+                            'bg-[#efeeea]/15 text-[#43493a]'
+                          }`}
+                        >
+                          {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">

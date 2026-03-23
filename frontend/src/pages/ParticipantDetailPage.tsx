@@ -22,7 +22,7 @@ export default function ParticipantDetailPage() {
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold">{p.fullName}</h1>
+            <h1 className="text-xl md:text-2xl font-bold">{p.fullName}</h1>
             <span className={`text-xs px-3 py-1 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span>
           </div>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{p.region || 'No region'} · {p.planType} · Support Ratio: {p.supportRatio}</p>
@@ -45,7 +45,7 @@ export default function ParticipantDetailPage() {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
             <h3 className="font-semibold">Personal Information</h3>
-            <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm">
               <span className="text-[var(--color-muted-foreground)]">NDIS Number</span><span className="font-mono">{p.ndisNumber || '—'}</span>
               <span className="text-[var(--color-muted-foreground)]">Date of Birth</span><span>{formatDateAu(p.dateOfBirth)}</span>
               <span className="text-[var(--color-muted-foreground)]">Funding Org</span><span>{p.fundingOrganisation || '—'}</span>
@@ -54,7 +54,7 @@ export default function ParticipantDetailPage() {
           </div>
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
             <h3 className="font-semibold">Support Needs</h3>
-            <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm">
               <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? '✅ Yes' : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? '✅ Yes' : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? '✅ Yes' : 'No'}</span>

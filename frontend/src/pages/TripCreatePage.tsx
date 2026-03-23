@@ -80,7 +80,7 @@ export default function TripCreatePage() {
         <Link to="/trips" className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold">Create New Trip</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Create New Trip</h1>
       </div>
 
       {createTrip.isError && (
@@ -167,7 +167,7 @@ export default function TripCreatePage() {
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <h3 className="font-semibold">Capacity & Requirements</h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Min Participants</label>
               <input type="number" min={0} {...register('minParticipants')} className={inputClass} />
@@ -183,7 +183,7 @@ export default function TripCreatePage() {
             <input type="number" min={0} {...register('requiredWheelchairCapacity')} className={inputClass} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Required Beds</label>
               <input type="number" min={0} {...register('requiredBeds')} className={inputClass} />

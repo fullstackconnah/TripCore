@@ -92,7 +92,7 @@ export default function VehicleCreatePage() {
         <Link to="/vehicles" className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Vehicle' : 'New Vehicle'}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{isEdit ? 'Edit Vehicle' : 'New Vehicle'}</h1>
       </div>
 
       {mutation.isError && (
@@ -139,7 +139,7 @@ export default function VehicleCreatePage() {
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <h3 className="font-semibold">Capacity & Accessibility</h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Total Seats *</label>
               <input type="number" min="0" {...register('totalSeats')} className={inputClass} />

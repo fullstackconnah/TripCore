@@ -72,9 +72,9 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-foreground)]">Vehicles</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-[var(--color-foreground)]">Vehicles</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
             {vehicles.length} {showArchived ? 'archived' : 'active'} vehicle{vehicles.length !== 1 ? 's' : ''}
           </p>
@@ -82,9 +82,9 @@ export default function VehiclesPage() {
         {!showArchived && (
           <Link
             to="/vehicles/new"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white text-sm font-bold hover:opacity-90 transition-all shadow-md"
+            className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white text-sm font-bold hover:opacity-90 transition-all shadow-md flex-shrink-0"
           >
-            <Plus className="w-4 h-4" /> Add Vehicle
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Vehicle</span><span className="sm:hidden">Add</span>
           </Link>
         )}
       </div>
@@ -132,7 +132,7 @@ export default function VehiclesPage() {
         </div>
       ) : (
         /* Vehicle grid */
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
           {vehicles.map((v: any) => {
             const typeKey = (v.vehicleType as VehicleTypeKey) in vehicleTypeConfig
               ? (v.vehicleType as VehicleTypeKey)

@@ -8,39 +8,64 @@ export default function BookingsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">Bookings</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Bookings</h1>
         <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{bookings.length} booking{bookings.length !== 1 ? 's' : ''}</p>
       </div>
 
       {isLoading ? <div className="text-center py-12 text-[var(--color-muted-foreground)]">Loading...</div> : (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Participant</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Trip</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Booking Date</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">🦽</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">High</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Night</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {bookings.map((b: any) => (
-                <tr key={b.id} className="hover:bg-[var(--color-accent)]/50 transition-colors">
-                  <td className="p-3"><Link to={`/participants/${b.participantId}`} className="font-medium hover:text-[var(--color-primary)]">{b.participantName || '—'}</Link></td>
-                  <td className="p-3"><Link to={`/trips/${b.tripInstanceId}`} className="hover:text-[var(--color-primary)]">{b.tripName || '—'}</Link></td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(b.bookingStatus)}`}>{b.bookingStatus}</span></td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{formatDateAu(b.bookingDate)}</td>
-                  <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
-                  <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
-                  <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
+        <>
+          {/* Mobile card view */}
+          <div className="md:hidden space-y-3">
+            {bookings.map((b: any) => (
+              <div key={b.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <Link to={`/participants/${b.participantId}`} className="font-medium text-sm hover:text-[var(--color-primary)]">{b.participantName || '—'}</Link>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                      <Link to={`/trips/${b.tripInstanceId}`} className="hover:text-[var(--color-primary)]">{b.tripName || '—'}</Link>
+                    </p>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusColor(b.bookingStatus)}`}>{b.bookingStatus}</span>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs text-[var(--color-muted-foreground)]">
+                  <span>{formatDateAu(b.bookingDate)}</span>
+                  {b.wheelchairRequired && <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">🦽 Wheelchair</span>}
+                  {b.highSupportRequired && <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-600">High Support</span>}
+                  {b.nightSupportRequired && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600">Night Support</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop table view */}
+          <div className="hidden md:block bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[var(--color-accent)]">
+                <tr>
+                  <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Participant</th>
+                  <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Trip</th>
+                  <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
+                  <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Booking Date</th>
+                  <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">🦽</th>
+                  <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">High</th>
+                  <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Night</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {bookings.map((b: any) => (
+                  <tr key={b.id} className="hover:bg-[var(--color-accent)]/50 transition-colors">
+                    <td className="p-3"><Link to={`/participants/${b.participantId}`} className="font-medium hover:text-[var(--color-primary)]">{b.participantName || '—'}</Link></td>
+                    <td className="p-3"><Link to={`/trips/${b.tripInstanceId}`} className="hover:text-[var(--color-primary)]">{b.tripName || '—'}</Link></td>
+                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(b.bookingStatus)}`}>{b.bookingStatus}</span></td>
+                    <td className="p-3 text-[var(--color-muted-foreground)]">{formatDateAu(b.bookingDate)}</td>
+                    <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
+                    <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
+                    <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

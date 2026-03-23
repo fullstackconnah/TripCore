@@ -93,7 +93,7 @@ export default function AppLayout() {
       <div className="flex-1 lg:ml-72 flex flex-col min-h-screen">
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-[#fbf9f5]/80 backdrop-blur-xl shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
             <div className="flex items-center gap-4">
               <button className="lg:hidden p-2 rounded-xl hover:bg-[#efeeea] transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -119,7 +119,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 pb-24 lg:pb-8">
           <Outlet />
         </main>
       </div>

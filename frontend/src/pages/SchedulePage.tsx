@@ -606,9 +606,9 @@ export default function SchedulePage() {
   return (
     <div className="space-y-4">
       {/* ── Page Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4">
         <div>
-          <h1 className="font-display font-extrabold text-3xl text-[var(--color-primary)] tracking-tight leading-none mb-1">
+          <h1 className="font-display font-extrabold text-2xl md:text-3xl text-[var(--color-primary)] tracking-tight leading-none mb-1">
             Schedule Overview
           </h1>
           <p className="text-sm text-[var(--color-muted-foreground)] font-medium">
@@ -635,9 +635,9 @@ export default function SchedulePage() {
       </div>
 
       {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-3 md:gap-4">
         {/* Active Trips count */}
-        <div className="col-span-12 md:col-span-4 bg-[var(--color-primary-container)] p-5 rounded-[1.5rem] text-white flex flex-col justify-between relative overflow-hidden group">
+        <div className="col-span-12 md:col-span-4 bg-[var(--color-primary-container)] p-4 md:p-5 rounded-2xl md:rounded-[1.5rem] text-white flex flex-col justify-between relative overflow-hidden group">
           <div className="relative z-10">
             <h3 className="text-xs font-bold uppercase tracking-widest opacity-75 mb-2">Active Trips</h3>
             <div className="flex items-baseline gap-2">
@@ -653,7 +653,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Resource Health */}
-        <div className="col-span-12 md:col-span-8 bg-[var(--color-surface-container-low)] p-5 rounded-[1.5rem] flex flex-col justify-between">
+        <div className="col-span-12 md:col-span-8 bg-[var(--color-surface-container-low)] p-4 md:p-5 rounded-2xl md:rounded-[1.5rem] flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <h3 className="text-base font-display font-bold text-[var(--color-secondary)]">Resource Health</h3>
             <span className="text-[var(--color-primary)] font-bold text-sm">{utilization}% Utilization</span>
@@ -698,7 +698,8 @@ export default function SchedulePage() {
         </div>
       ) : (
         /* ── Schedule Grid Table ── */
-        <div className="bg-white rounded-[2rem] overflow-hidden">
+        <div className="bg-white rounded-2xl md:rounded-[2rem] overflow-hidden">
+          <p className="md:hidden text-xs text-[var(--color-muted-foreground)] px-4 pt-3 pb-1">Swipe to see all trips →</p>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse" style={{ minWidth: `${220 + tripCount * 160}px` }}>
               {/* Trip column headers */}

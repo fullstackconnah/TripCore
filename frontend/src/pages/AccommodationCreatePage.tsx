@@ -117,7 +117,7 @@ export default function AccommodationCreatePage() {
         <Link to={isEdit ? `/accommodation/${id}` : '/accommodation'} className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Accommodation' : 'New Accommodation'}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{isEdit ? 'Edit Accommodation' : 'New Accommodation'}</h1>
       </div>
 
       {mutation.isError && (
@@ -162,7 +162,7 @@ export default function AccommodationCreatePage() {
             <input {...register('address')} className={inputClass} placeholder="e.g. 123 Ocean Drive" />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>Suburb</label>
               <input {...register('suburb')} className={inputClass} placeholder="e.g. Surfers Paradise" />
@@ -182,7 +182,7 @@ export default function AccommodationCreatePage() {
             <input {...register('contactPerson')} className={inputClass} placeholder="e.g. Jane Smith" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Email</label>
               <input type="email" {...register('email')} className={inputClass} placeholder="e.g. jane@example.com" />
@@ -193,7 +193,7 @@ export default function AccommodationCreatePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Mobile</label>
               <input {...register('mobile')} className={inputClass} placeholder="e.g. 0412 345 678" />
@@ -209,7 +209,7 @@ export default function AccommodationCreatePage() {
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <h3 className="font-semibold">Capacity & Accessibility</h3>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>Bedrooms</label>
               <input type="number" min="0" {...register('bedroomCount')} className={inputClass} placeholder="0" />

@@ -53,10 +53,57 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+  }
+
+  /* Prevent iOS zoom on input focus */
+  @media screen and (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* Mobile-friendly table card view */
+@media screen and (max-width: 767px) {
+  .mobile-card-table thead {
+    display: none;
+  }
+  .mobile-card-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .mobile-card-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 1rem;
+    border-radius: 1rem;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .mobile-card-table tbody td {
+    padding: 0 !important;
+  }
+  .mobile-card-table tbody td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .mobile-card-table .divide-y > * + * {
+    border-top: none;
   }
 }
 
@@ -85,6 +132,10 @@
 ::-webkit-scrollbar-track { background: var(--color-background); }
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
+
+/* Hide scrollbar for tab bars */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Animations */
 @keyframes fadeIn {

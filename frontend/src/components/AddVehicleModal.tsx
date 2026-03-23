@@ -93,7 +93,7 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
       onClick={onClose}
     >
       <div
-        className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl"
+        className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4 md:p-6 w-full max-w-lg max-h-[90vh] mx-2 overflow-y-auto shadow-xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -197,7 +197,7 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1">Registration</label>
                 <input

@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
@@ -43,6 +43,7 @@ export default function TripDetailPage() {
   const { data: participants = [] } = useParticipants()
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
+  const patchBooking = usePatchBooking()
   const generateSchedule = useGenerateSchedule()
   const deleteScheduledActivity = useDeleteScheduledActivity()
 
@@ -867,7 +868,7 @@ export default function TripDetailPage() {
                       <td className="p-3">
                         <select
                           value={b.bookingStatus}
-                          onChange={e => updateBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
+                          onChange={e => patchBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
                           className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${getStatusColor(b.bookingStatus)}`}
                         >
                           {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
@@ -883,7 +884,7 @@ export default function TripDetailPage() {
                       <td className="p-3 text-center">
                         <select
                           value={b.insuranceStatus || 'None'}
-                          onChange={e => updateBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
+                          onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
                           className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${
                             b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
                             b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :

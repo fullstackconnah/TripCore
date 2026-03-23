@@ -291,6 +291,12 @@ public record UpdateBookingDto : CreateBookingDto
     public string? CancellationReason { get; init; }
 }
 
+public record PatchBookingDto
+{
+    public BookingStatus? BookingStatus { get; init; }
+    public InsuranceStatus? InsuranceStatus { get; init; }
+}
+
 // ══════════════════════════════════════════════════════════════
 // ACCOMMODATION DTOs
 // ══════════════════════════════════════════════════════════════

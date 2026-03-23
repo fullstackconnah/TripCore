@@ -174,6 +174,21 @@ public class BookingsController : ControllerBase
         return Ok(ApiResponse<BookingDetailDto>.Ok(new BookingDetailDto { Id = b.Id, BookingStatus = b.BookingStatus }));
     }
 
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Patch(Guid id, [FromBody] PatchBookingDto dto, CancellationToken ct)
+    {
+        var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (b == null) return NotFound(ApiResponse<bool>.Fail("Booking not found"));
+
+        if (dto.BookingStatus.HasValue) b.BookingStatus = dto.BookingStatus.Value;
+        if (dto.InsuranceStatus.HasValue) b.InsuranceStatus = dto.InsuranceStatus.Value;
+
+        b.UpdatedAt = DateTime.UtcNow;
+        await RecalculateStaffRequired(b.TripInstanceId, ct);
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {

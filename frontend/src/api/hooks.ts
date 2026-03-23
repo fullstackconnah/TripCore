@@ -267,6 +267,14 @@ export function useUpdateBooking() {
   })
 }
 
+export function usePatchBooking() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.patch(`/bookings/${id}`, data).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+  })
+}
+
 export function useDeleteBooking() {
   const qc = useQueryClient()
   return useMutation({

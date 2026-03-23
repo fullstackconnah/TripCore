@@ -889,12 +889,7 @@ export default function TripDetailPage() {
                           <select
                             value={b.insuranceStatus || 'None'}
                             onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
-                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${
-                              b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
-                              b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :
-                              b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[#ffdad6] text-[#ba1a1a]' :
-                              'bg-[#efeeea] text-[#43493a]'
-                            }`}
+                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${getStatusColor(b.insuranceStatus || 'none')}`}
                           >
                             {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
                               <option key={s} value={s}>{s}</option>

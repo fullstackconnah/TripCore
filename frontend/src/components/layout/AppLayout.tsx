@@ -58,10 +58,10 @@ export default function AppLayout() {
           {navItems.map(({ to, label, msIcon }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-4 px-6 py-3 rounded-full text-sm font-medium transition-all duration-150 ${
+                `flex items-center gap-4 px-6 py-3 rounded-full text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-[#bbf37c] text-[#0f2000] font-bold'
-                    : 'text-[#515f74] hover:bg-[#f5f3ef]'
+                    : 'text-[#515f74] font-medium hover:bg-[#f5f3ef]'
                 }`
               }
               onClick={() => setSidebarOpen(false)}

@@ -866,15 +866,18 @@ export default function TripDetailPage() {
                     <tr key={b.id} className="hover:bg-[#efeeea]/50 transition-colors">
                       <td className="p-3 font-medium">{b.participantName || '—'}</td>
                       <td className="p-3">
-                        <select
-                          value={b.bookingStatus}
-                          onChange={e => patchBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${getStatusColor(b.bookingStatus)}`}
-                        >
-                          {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
-                            <option key={s} value={s}>{s === 'NoLongerAttending' ? 'No Longer Attending' : s}</option>
-                          ))}
-                        </select>
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={b.bookingStatus}
+                            onChange={e => patchBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
+                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${getStatusColor(b.bookingStatus)}`}
+                          >
+                            {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
+                              <option key={s} value={s}>{s === 'NoLongerAttending' ? 'No Longer Attending' : s}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-1.5 w-3 h-3 pointer-events-none text-[#1b1c1a] opacity-40" />
+                        </div>
                       </td>
                       <td className="p-3 text-[#43493a]">{formatDateAu(b.bookingDate)}</td>
                       <td className="p-3 text-[#43493a]">{({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string]) || '—'}</td>
@@ -882,20 +885,23 @@ export default function TripDetailPage() {
                       <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">
-                        <select
-                          value={b.insuranceStatus || 'None'}
-                          onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#396200]/30 ${
-                            b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
-                            b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :
-                            b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[#ffdad6] text-[#ba1a1a]' :
-                            'bg-[#efeeea]/15 text-[#43493a]'
-                          }`}
-                        >
-                          {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={b.insuranceStatus || 'None'}
+                            onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
+                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${
+                              b.insuranceStatus === 'Confirmed' ? 'bg-[#bbf37c]/40 text-[#396200]' :
+                              b.insuranceStatus === 'Pending' ? 'bg-[#fef3c7] text-[#92400e]' :
+                              b.insuranceStatus === 'Expired' || b.insuranceStatus === 'Cancelled' ? 'bg-[#ffdad6] text-[#ba1a1a]' :
+                              'bg-[#efeeea] text-[#43493a]'
+                            }`}
+                          >
+                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-1.5 w-3 h-3 pointer-events-none text-[#1b1c1a] opacity-40" />
+                        </div>
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">

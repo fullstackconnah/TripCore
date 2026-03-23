@@ -43,8 +43,8 @@ export default function AppLayout() {
         {/* Brand */}
         <div className="absolute top-4 left-4 right-4">
           <div className="flex items-center gap-3 px-4 py-2">
-            <div className="w-9 h-9 rounded-xl bg-[#396200] flex items-center justify-center shadow-lg shadow-[#396200]/20">
-              <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>map</span>
+            <div className="w-9 h-9 rounded-xl bg-[#4d7c0f] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[#dfffb7]" style={{ fontSize: '18px' }}>travel_explore</span>
             </div>
             <div>
               <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trip Planner</span>
@@ -58,10 +58,10 @@ export default function AppLayout() {
           {navItems.map(({ to, label, msIcon }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                `flex items-center gap-4 px-6 py-3 rounded-full text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? 'text-white font-bold bg-gradient-to-br from-[#396200] to-[#4d7c0f] shadow-md shadow-[#396200]/20'
-                    : 'text-[#515f74] hover:text-[#396200] hover:bg-white/40'
+                    ? 'bg-[#bbf37c] text-[#0f2000] font-bold'
+                    : 'text-[#515f74] hover:bg-[#f5f3ef]'
                 }`
               }
               onClick={() => setSidebarOpen(false)}

@@ -1,9 +1,10 @@
 import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateTrip, useStaff, useEventTemplates } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
+import { Dropdown } from '@/components/Dropdown'
 
 const tripSchema = z.object({
   tripName: z.string().min(1, 'Trip name is required'),
@@ -36,14 +37,12 @@ export default function TripCreatePage() {
   const { data: staffList = [] } = useStaff()
   const { data: templates = [] } = useEventTemplates()
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<TripFormData>({
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<TripFormData>({
     resolver: zodResolver(tripSchema),
     defaultValues: { durationDays: 1, status: 'Draft' },
   })
 
-  const onTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const templateId = e.target.value
-    setValue('eventTemplateId', templateId)
+  const onTemplateChange = (templateId: string) => {
     if (!templateId) return
     const tpl = templates.find((t: any) => String(t.id) === templateId)
     if (tpl) {
@@ -107,10 +106,23 @@ export default function TripCreatePage() {
 
           <div>
             <label className={labelClass}>Event Template</label>
-            <select {...register('eventTemplateId')} onChange={e => { register('eventTemplateId').onChange(e); onTemplateChange(e) }} className={inputClass}>
-              <option value="">None</option>
-              {templates.map((t: any) => <option key={t.id} value={t.id}>{t.templateName}</option>)}
-            </select>
+            <Controller
+              control={control}
+              name="eventTemplateId"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  value={field.value ?? ''}
+                  onChange={val => { field.onChange(val); onTemplateChange(val) }}
+                  onBlur={field.onBlur}
+                  label="None"
+                  items={[
+                    { value: '', label: 'None' },
+                    ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                  ]}
+                />
+              )}
+            />
           </div>
 
           <div>
@@ -147,19 +159,44 @@ export default function TripCreatePage() {
 
           <div>
             <label className={labelClass}>Status</label>
-            <select {...register('status')} className={inputClass}>
-              <option value="Draft">Draft</option>
-              <option value="Planning">Planning</option>
-              <option value="OpenForBookings">Open For Bookings</option>
-            </select>
+            <Controller
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  items={[
+                    { value: 'Draft', label: 'Draft' },
+                    { value: 'Planning', label: 'Planning' },
+                    { value: 'OpenForBookings', label: 'Open For Bookings' },
+                  ]}
+                />
+              )}
+            />
           </div>
 
           <div>
             <label className={labelClass}>Lead Coordinator</label>
-            <select {...register('leadCoordinatorId')} className={inputClass}>
-              <option value="">None</option>
-              {staffList.map((s: any) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
-            </select>
+            <Controller
+              control={control}
+              name="leadCoordinatorId"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  label="None"
+                  items={[
+                    { value: '', label: 'None' },
+                    ...staffList.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                  ]}
+                />
+              )}
+            />
           </div>
         </div>
 

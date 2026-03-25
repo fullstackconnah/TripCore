@@ -47,7 +47,7 @@ export default function AppLayout() {
               <span className="material-symbols-outlined text-[#dfffb7]" style={{ fontSize: '18px' }}>travel_explore</span>
             </div>
             <div>
-              <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trip Planner</span>
+              <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>TripCore</span>
               <p className="text-[10px] text-[#43493a] opacity-70 leading-none mt-0.5">NDIS Management</p>
             </div>
           </div>

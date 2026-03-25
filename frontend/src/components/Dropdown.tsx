@@ -51,6 +51,8 @@ export function Dropdown({
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const onBlurRef = useRef(onBlur)
+  useEffect(() => { onBlurRef.current = onBlur })
 
   // Per-variant default alignment
   const resolvedAlign = align ?? (variant === 'form' ? 'left' : 'right')
@@ -62,12 +64,12 @@ export function Dropdown({
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
         setFocusedIndex(-1)
-        onBlur?.()
+        onBlurRef.current?.()
       }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [open, onBlur])
+  }, [open])
 
   const handleSelect = (item: DropdownItem) => {
     if (item.disabled) return
@@ -165,7 +167,7 @@ export function Dropdown({
       className={`absolute top-full mt-2 bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] overflow-hidden z-50 ${panelAlignClass} ${panelWidthClass}`}
     >
       {items.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-[#43493a] opacity-50">No options available</p>
+        <p role="presentation" className="px-4 py-3 text-sm text-[#43493a] opacity-50">No options available</p>
       ) : (
         items.map((item, idx) => (
           <div key={item.value}>
@@ -173,8 +175,9 @@ export function Dropdown({
             {variant === 'menu' && idx > 0 && item.description && (
               <div className="h-px bg-[rgba(195,201,181,0.25)] mx-4" />
             )}
-            <button
+            <div
               role="option"
+              id={`dd-opt-${item.value}`}
               aria-selected={variant !== 'menu' ? item.value === value : undefined}
               aria-disabled={item.disabled ? 'true' : undefined}
               onClick={() => handleSelect(item)}
@@ -194,7 +197,7 @@ export function Dropdown({
                   <p className="text-[11px] text-[#43493a]">{item.description}</p>
                 )}
               </div>
-            </button>
+            </div>
           </div>
         ))
       )}
@@ -210,6 +213,7 @@ export function Dropdown({
           type="button"
           aria-haspopup="listbox"
           aria-expanded={open}
+          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
           disabled={disabled || loading}
           onClick={() => setOpen(v => !v)}
           onKeyDown={handleKeyDown}
@@ -234,6 +238,7 @@ export function Dropdown({
           type="button"
           aria-haspopup="listbox"
           aria-expanded={open}
+          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
           disabled={disabled || loading}
           onClick={() => setOpen(v => !v)}
           onKeyDown={handleKeyDown}
@@ -257,6 +262,7 @@ export function Dropdown({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
         disabled={disabled || loading}
         onClick={() => setOpen(v => !v)}
         onKeyDown={handleKeyDown}

@@ -136,6 +136,19 @@ public class TripsController : ControllerBase
         return Ok(ApiResponse<TripDetailDto>.Ok(new TripDetailDto { Id = t.Id, TripName = t.TripName, Status = t.Status }));
     }
 
+    /// <summary>Partially update a trip (e.g. status only).</summary>
+    [HttpPatch("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
+    public async Task<ActionResult<ApiResponse<bool>>> Patch(Guid id, [FromBody] PatchTripDto dto, CancellationToken ct)
+    {
+        var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (t == null) return NotFound(ApiResponse<bool>.Fail("Trip not found"));
+        if (dto.Status.HasValue) t.Status = dto.Status.Value;
+        t.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
+
     /// <summary>Soft-delete (archive) a trip.</summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin,Coordinator")]

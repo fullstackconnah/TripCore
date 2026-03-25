@@ -209,6 +209,11 @@ public record UpdateTripDto : CreateTripDto
     public TripStatus Status { get; init; } = TripStatus.Draft;
 }
 
+public record PatchTripDto
+{
+    public TripStatus? Status { get; init; }
+}
+
 // ══════════════════════════════════════════════════════════════
 // BOOKING DTOs
 // ══════════════════════════════════════════════════════════════

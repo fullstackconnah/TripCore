@@ -1,4 +1,4 @@
-import { useTrips, useUpdateTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
+import { useTrips, useUpdateTrip, usePatchTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
@@ -8,6 +8,18 @@ import { Dropdown } from '@/components/Dropdown'
 type Tab = 'active' | 'completed'
 
 const activeStatuses = ['Draft', 'Planning', 'OpenForBookings', 'Confirmed', 'InProgress']
+
+const TRIP_STATUS_ITEMS = [
+  { value: 'Draft', label: 'Draft' },
+  { value: 'Planning', label: 'Planning' },
+  { value: 'OpenForBookings', label: 'Open For Bookings' },
+  { value: 'WaitlistOnly', label: 'Waitlist Only' },
+  { value: 'Confirmed', label: 'Confirmed' },
+  { value: 'InProgress', label: 'In Progress' },
+  { value: 'Completed', label: 'Completed' },
+  { value: 'Cancelled', label: 'Cancelled' },
+  { value: 'Archived', label: 'Archived' },
+]
 
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 const labelClass = 'block text-xs font-medium text-[#43493a] mb-1'
@@ -53,6 +65,7 @@ export default function TripsPage() {
   const { data: allTrips = [], isLoading } = useTrips(params)
   const { data: tripDetail } = useTrip(editingTripId ?? undefined)
   const updateTrip = useUpdateTrip()
+  const patchTrip = usePatchTrip()
   const { data: staffList = [] } = useStaff()
   const { data: templates = [] } = useEventTemplates()
 
@@ -191,34 +204,44 @@ export default function TripsPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {trips.map((t: any) => (
             <div key={t.id} className="bg-white rounded-2xl p-5 hover:shadow-[0_24px_32px_-12px_rgba(27,28,26,0.08)] transition-all group">
-              {/* Header row: title + status pill + edit button as siblings so edit never overlaps content */}
-              <div className="flex items-start justify-between mb-3">
-                <Link to={`/trips/${t.id}`} className="min-w-0 pr-2">
-                  <h3 className="font-semibold group-hover:text-[#396200] transition-colors truncate">{t.tripName}</h3>
-                  {t.tripCode && <span className="text-xs text-[#43493a] font-mono">{t.tripCode}</span>}
-                </Link>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getStatusColor(t.status)}`}>{t.status}</span>
-                  <button
-                    onClick={e => handleOpenEdit(t.id, e)}
-                    title="Edit trip"
-                    className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-all"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                  </button>
-                </div>
-              </div>
+              {/* Title row */}
+              <Link to={`/trips/${t.id}`} className="block mb-3">
+                <h3 className="font-semibold group-hover:text-[#396200] transition-colors truncate">{t.tripName}</h3>
+                {t.tripCode && <span className="text-xs text-[#43493a] font-mono">{t.tripCode}</span>}
+              </Link>
+              {/* Body */}
               <Link to={`/trips/${t.id}`} className="block">
                 <div className="space-y-2 text-sm text-[#43493a]">
                   <p>📍 {t.destination || 'TBD'} {t.region ? `· ${t.region}` : ''}</p>
                   <p>📅 {formatDateAu(t.startDate)} — {formatDateAu(t.endDate)} ({t.durationDays}d)</p>
-                  <div className="flex items-center justify-between pt-2">
-                    <span>👤 {t.currentParticipantCount}/{t.maxParticipants || '—'}</span>
-                    {t.waitlistCount > 0 && <span className="badge-pending text-xs px-2 py-0.5 rounded-full">{t.waitlistCount} waitlist</span>}
-                    {t.leadCoordinatorName && <span className="text-xs">{t.leadCoordinatorName}</span>}
-                  </div>
                 </div>
               </Link>
+              {/* Footer: status (far left, edit slides in on hover) + participant info */}
+              <div className="flex items-center justify-between pt-3 mt-1">
+                <div className="flex items-center gap-1">
+                  <div className="max-w-0 overflow-hidden group-hover:max-w-[2rem] transition-all duration-200">
+                    <button
+                      onClick={e => handleOpenEdit(t.id, e)}
+                      title="Edit trip"
+                      className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-opacity"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                    </button>
+                  </div>
+                  <Dropdown
+                    variant="pill"
+                    value={t.status}
+                    onChange={val => patchTrip.mutate({ id: t.id, data: { status: val } })}
+                    colorClass={getStatusColor(t.status)}
+                    items={TRIP_STATUS_ITEMS}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#43493a]">
+                  <span>👤 {t.currentParticipantCount}/{t.maxParticipants || '—'}</span>
+                  {t.waitlistCount > 0 && <span className="badge-pending text-xs px-2 py-0.5 rounded-full">{t.waitlistCount} waitlist</span>}
+                  {t.leadCoordinatorName && <span className="text-xs">{t.leadCoordinatorName}</span>}
+                </div>
+              </div>
             </div>
           ))}
         </div>

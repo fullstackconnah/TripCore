@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
+import { Dropdown } from '@/components/Dropdown'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities'
 
@@ -958,18 +959,21 @@ export default function TripDetailPage() {
                     <tr key={b.id} className="hover:bg-[#efeeea]/50 transition-colors">
                       <td className="p-3 font-medium">{b.participantName || '—'}</td>
                       <td className="p-3">
-                        <div className="relative inline-flex items-center">
-                          <select
-                            value={b.bookingStatus}
-                            onChange={e => patchBooking.mutate({ id: b.id, data: { bookingStatus: e.target.value } })}
-                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${getStatusColor(b.bookingStatus)}`}
-                          >
-                            {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
-                              <option key={s} value={s}>{s === 'NoLongerAttending' ? 'No Longer Attending' : s}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-1.5 w-3 h-3 pointer-events-none text-[#1b1c1a] opacity-40" />
-                        </div>
+                        <Dropdown
+                          variant="pill"
+                          value={b.bookingStatus}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val } })}
+                          colorClass={getStatusColor(b.bookingStatus)}
+                          items={[
+                            { value: 'Enquiry', label: 'Enquiry' },
+                            { value: 'Held', label: 'Held' },
+                            { value: 'Confirmed', label: 'Confirmed' },
+                            { value: 'Waitlist', label: 'Waitlist' },
+                            { value: 'Cancelled', label: 'Cancelled' },
+                            { value: 'Completed', label: 'Completed' },
+                            { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                          ]}
+                        />
                       </td>
                       <td className="p-3 text-[#43493a]">{formatDateAu(b.bookingDate)}</td>
                       <td className="p-3 text-[#43493a]">{({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string]) || '—'}</td>
@@ -977,18 +981,19 @@ export default function TripDetailPage() {
                       <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
                       <td className="p-3 text-center">
-                        <div className="relative inline-flex items-center">
-                          <select
-                            value={b.insuranceStatus || 'None'}
-                            onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value } })}
-                            className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${getStatusColor(b.insuranceStatus || 'none')}`}
-                          >
-                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-1.5 w-3 h-3 pointer-events-none text-[#1b1c1a] opacity-40" />
-                        </div>
+                        <Dropdown
+                          variant="pill"
+                          value={b.insuranceStatus || 'None'}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val } })}
+                          colorClass={getStatusColor(b.insuranceStatus || 'none')}
+                          items={[
+                            { value: 'None', label: 'None' },
+                            { value: 'Pending', label: 'Pending' },
+                            { value: 'Confirmed', label: 'Confirmed' },
+                            { value: 'Expired', label: 'Expired' },
+                            { value: 'Cancelled', label: 'Cancelled' },
+                          ]}
+                        />
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -1076,12 +1081,20 @@ export default function TripDetailPage() {
                     {/* Booking Status */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Booking Status</label>
-                      <select value={editForm.bookingStatus} onChange={e => setEditForm({ ...editForm, bookingStatus: e.target.value })}
-                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                        {['Enquiry', 'Held', 'Confirmed', 'Waitlist', 'Cancelled', 'Completed', 'NoLongerAttending'].map(s => (
-                          <option key={s} value={s}>{s === 'NoLongerAttending' ? 'No Longer Attending' : s}</option>
-                        ))}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={editForm.bookingStatus}
+                        onChange={val => setEditForm({ ...editForm, bookingStatus: val })}
+                        items={[
+                          { value: 'Enquiry', label: 'Enquiry' },
+                          { value: 'Held', label: 'Held' },
+                          { value: 'Confirmed', label: 'Confirmed' },
+                          { value: 'Waitlist', label: 'Waitlist' },
+                          { value: 'Cancelled', label: 'Cancelled' },
+                          { value: 'Completed', label: 'Completed' },
+                          { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                        ]}
+                      />
                     </div>
 
                     {/* Support Requirements */}
@@ -1114,13 +1127,23 @@ export default function TripDetailPage() {
                     {/* Support Ratio Override */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Support Ratio Override</label>
-                      <select value={editForm.supportRatioOverride} onChange={e => setEditForm({ ...editForm, supportRatioOverride: e.target.value })}
-                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                        <option value="">No override</option>
-                        {[['OneToOne','1:1'],['OneToTwo','1:2'],['OneToThree','1:3'],['OneToFour','1:4'],['OneToFive','1:5'],['TwoToOne','2:1'],['SharedSupport','Shared'],['Other','Other']].map(([val, label]) => (
-                          <option key={val} value={val}>{label}</option>
-                        ))}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={editForm.supportRatioOverride}
+                        onChange={val => setEditForm({ ...editForm, supportRatioOverride: val })}
+                        label="No override"
+                        items={[
+                          { value: '', label: 'No override' },
+                          { value: 'OneToOne', label: '1:1' },
+                          { value: 'OneToTwo', label: '1:2' },
+                          { value: 'OneToThree', label: '1:3' },
+                          { value: 'OneToFour', label: '1:4' },
+                          { value: 'OneToFive', label: '1:5' },
+                          { value: 'TwoToOne', label: '2:1' },
+                          { value: 'SharedSupport', label: 'Shared' },
+                          { value: 'Other', label: 'Other' },
+                        ]}
+                      />
                     </div>
 
                     {/* Notes */}
@@ -1137,12 +1160,18 @@ export default function TripDetailPage() {
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs text-[#43493a] mb-1">Status</label>
-                          <select value={editForm.insuranceStatus} onChange={e => setEditForm({ ...editForm, insuranceStatus: e.target.value })}
-                            className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
+                          <Dropdown
+                            variant="form"
+                            value={editForm.insuranceStatus}
+                            onChange={val => setEditForm({ ...editForm, insuranceStatus: val })}
+                            items={[
+                              { value: 'None', label: 'None' },
+                              { value: 'Pending', label: 'Pending' },
+                              { value: 'Confirmed', label: 'Confirmed' },
+                              { value: 'Expired', label: 'Expired' },
+                              { value: 'Cancelled', label: 'Cancelled' },
+                            ]}
+                          />
                         </div>
                         {editForm.insuranceStatus !== 'None' && (
                           <>
@@ -2349,11 +2378,16 @@ export default function TripDetailPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[#43493a] mb-1">Event Template</label>
-                      <select value={tripEditForm.eventTemplateId} onChange={e => setTripEditForm({ ...tripEditForm, eventTemplateId: e.target.value })}
-                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                        <option value="">None</option>
-                        {templates.map((t: any) => <option key={t.id} value={t.id}>{t.templateName}</option>)}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={tripEditForm.eventTemplateId}
+                        onChange={val => setTripEditForm({ ...tripEditForm, eventTemplateId: val })}
+                        label="None"
+                        items={[
+                          { value: '', label: 'None' },
+                          ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[#43493a] mb-1">Destination</label>
@@ -2389,20 +2423,34 @@ export default function TripDetailPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[#43493a] mb-1">Status</label>
-                      <select value={tripEditForm.status} onChange={e => setTripEditForm({ ...tripEditForm, status: e.target.value })}
-                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                        {['Draft', 'Planning', 'OpenForBookings', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'Archived'].map(s => (
-                          <option key={s} value={s}>{s === 'OpenForBookings' ? 'Open For Bookings' : s === 'InProgress' ? 'In Progress' : s}</option>
-                        ))}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={tripEditForm.status}
+                        onChange={val => setTripEditForm({ ...tripEditForm, status: val })}
+                        items={[
+                          { value: 'Draft', label: 'Draft' },
+                          { value: 'Planning', label: 'Planning' },
+                          { value: 'OpenForBookings', label: 'Open For Bookings' },
+                          { value: 'Confirmed', label: 'Confirmed' },
+                          { value: 'InProgress', label: 'In Progress' },
+                          { value: 'Completed', label: 'Completed' },
+                          { value: 'Cancelled', label: 'Cancelled' },
+                          { value: 'Archived', label: 'Archived' },
+                        ]}
+                      />
                     </div>
                     <div className="col-span-2">
                       <label className="block text-xs font-medium text-[#43493a] mb-1">Lead Coordinator</label>
-                      <select value={tripEditForm.leadCoordinatorId} onChange={e => setTripEditForm({ ...tripEditForm, leadCoordinatorId: e.target.value })}
-                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                        <option value="">None</option>
-                        {allStaff.map((s: any) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={tripEditForm.leadCoordinatorId}
+                        onChange={val => setTripEditForm({ ...tripEditForm, leadCoordinatorId: val })}
+                        label="None"
+                        items={[
+                          { value: '', label: 'None' },
+                          ...allStaff.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

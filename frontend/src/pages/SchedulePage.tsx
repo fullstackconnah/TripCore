@@ -9,6 +9,7 @@ import {
   useCreateStaffAvailability, useUpdateStaffAvailability, useDeleteStaffAvailability,
 } from '../api/hooks'
 import { useQueryClient } from '@tanstack/react-query'
+import { Dropdown } from '@/components/Dropdown'
 
 // ── Status Pill Styles ──
 
@@ -361,31 +362,33 @@ function StaffAssignModal({ staff, trip, onClose, onAssign, isLoading }: StaffAs
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)] block mb-1.5">Assignment Role</label>
-            <select
+            <Dropdown
+              variant="form"
               value={role}
-              onChange={e => setRole(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-full bg-[var(--color-surface-container-low)] border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-            >
-              <option value="Support Worker">Support Worker</option>
-              <option value="Senior Support Worker">Senior Support Worker</option>
-              <option value="Lead Coordinator">Lead Coordinator</option>
-              <option value="Team Leader">Team Leader</option>
-              <option value="Senior Support / Driver">Senior Support / Driver</option>
-              <option value="Driver">Driver</option>
-            </select>
+              onChange={setRole}
+              items={[
+                { value: 'Support Worker', label: 'Support Worker' },
+                { value: 'Senior Support Worker', label: 'Senior Support Worker' },
+                { value: 'Lead Coordinator', label: 'Lead Coordinator' },
+                { value: 'Team Leader', label: 'Team Leader' },
+                { value: 'Senior Support / Driver', label: 'Senior Support / Driver' },
+                { value: 'Driver', label: 'Driver' },
+              ]}
+            />
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)] block mb-1.5">Sleepover Type</label>
-            <select
+            <Dropdown
+              variant="form"
               value={sleepoverType}
-              onChange={e => setSleepoverType(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-full bg-[var(--color-surface-container-low)] border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-            >
-              <option value="None">None</option>
-              <option value="ActiveNight">Active Night</option>
-              <option value="PassiveNight">Passive Night</option>
-              <option value="Sleepover">Sleepover</option>
-            </select>
+              onChange={setSleepoverType}
+              items={[
+                { value: 'None', label: 'None' },
+                { value: 'ActiveNight', label: 'Active Night' },
+                { value: 'PassiveNight', label: 'Passive Night' },
+                { value: 'Sleepover', label: 'Sleepover' },
+              ]}
+            />
           </div>
           <label className="flex items-center gap-3 cursor-pointer">
             <input
@@ -480,16 +483,16 @@ function VehicleAssignModal({ vehicle, trip, staff, onClose, onAssign, isLoading
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)] block mb-1.5">Assigned Driver (optional)</label>
-            <select
+            <Dropdown
+              variant="form"
               value={driverStaffId}
-              onChange={e => setDriverStaffId(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-full bg-[var(--color-surface-container-low)] border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-            >
-              <option value="">— No driver selected —</option>
-              {eligibleDrivers.map((s: any) => (
-                <option key={s.id} value={s.id}>{s.fullName}</option>
-              ))}
-            </select>
+              onChange={setDriverStaffId}
+              label="— No driver selected —"
+              items={[
+                { value: '', label: '— No driver selected —' },
+                ...eligibleDrivers.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+              ]}
+            />
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)] block mb-1.5">Comments (optional)</label>

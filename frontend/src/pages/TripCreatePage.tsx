@@ -36,7 +36,7 @@ export default function TripCreatePage() {
   const { data: staffList = [] } = useStaff()
   const { data: templates = [] } = useEventTemplates()
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<z.input<typeof tripSchema>, any, TripFormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<TripFormData>({
     resolver: zodResolver(tripSchema),
     defaultValues: { durationDays: 1, status: 'Draft' },
   })

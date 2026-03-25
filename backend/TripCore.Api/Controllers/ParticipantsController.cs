@@ -39,7 +39,7 @@ public class ParticipantsController : ControllerBase
                 Id = p.Id, FirstName = p.FirstName, LastName = p.LastName,
                 PreferredName = p.PreferredName,
                 FullName = string.IsNullOrEmpty(p.PreferredName) ? p.FirstName + " " + p.LastName : p.PreferredName + " " + p.LastName,
-                MaskedNdisNumber = p.NdisNumber != null ? p.NdisNumber.Length > 0 ? "••••••••" + p.NdisNumber[^1] : "•••" : null,
+                MaskedNdisNumber = p.NdisNumber != null ? p.NdisNumber.Length > 0 ? "••••••••" + p.NdisNumber.Substring(p.NdisNumber.Length - 1) : "•••" : null,
                 PlanType = p.PlanType, Region = p.Region, IsRepeatClient = p.IsRepeatClient,
                 IsActive = p.IsActive, WheelchairRequired = p.WheelchairRequired,
                 IsHighSupport = p.IsHighSupport, SupportRatio = p.SupportRatio

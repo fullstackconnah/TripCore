@@ -320,7 +320,7 @@ interface StaffAssignModalProps {
 function StaffAssignModal({ staff, trip, onClose, onAssign, isLoading }: StaffAssignModalProps) {
   const [role, setRole] = useState('Support Worker')
   const [isDriver, setIsDriver] = useState(false)
-  const [sleepoverType, setSleepoverType] = useState(0)
+  const [sleepoverType, setSleepoverType] = useState('None')
   const [shiftNotes, setShiftNotes] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -378,13 +378,13 @@ function StaffAssignModal({ staff, trip, onClose, onAssign, isLoading }: StaffAs
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)] block mb-1.5">Sleepover Type</label>
             <select
               value={sleepoverType}
-              onChange={e => setSleepoverType(Number(e.target.value))}
+              onChange={e => setSleepoverType(e.target.value)}
               className="w-full px-4 py-2.5 rounded-full bg-[var(--color-surface-container-low)] border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             >
-              <option value={0}>None</option>
-              <option value={1}>Active Night</option>
-              <option value={2}>Passive Night</option>
-              <option value={3}>Sleepover</option>
+              <option value="None">None</option>
+              <option value="ActiveNight">Active Night</option>
+              <option value="PassiveNight">Passive Night</option>
+              <option value="Sleepover">Sleepover</option>
             </select>
           </div>
           <label className="flex items-center gap-3 cursor-pointer">

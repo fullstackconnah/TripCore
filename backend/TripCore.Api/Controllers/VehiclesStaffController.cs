@@ -54,6 +54,7 @@ public class VehiclesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<VehicleDetailDto>>> Create([FromBody] CreateVehicleDto dto, CancellationToken ct)
     {
         var v = new Vehicle
@@ -70,6 +71,7 @@ public class VehiclesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<VehicleDetailDto>>> Update(Guid id, [FromBody] UpdateVehicleDto dto, CancellationToken ct)
     {
         var v = await _db.Vehicles.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -87,6 +89,7 @@ public class VehiclesController : ControllerBase
 
     /// <summary>Archive (soft-delete) a vehicle.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var v = await _db.Vehicles.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -121,6 +124,7 @@ public class VehicleAssignmentsController : ControllerBase
     public VehicleAssignmentsController(TripCoreDbContext db) => _db = db;
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<VehicleAssignmentDto>>> Create([FromBody] CreateVehicleAssignmentDto dto, CancellationToken ct)
     {
         var trip = await _db.TripInstances.FirstOrDefaultAsync(t => t.Id == dto.TripInstanceId, ct);
@@ -150,6 +154,7 @@ public class VehicleAssignmentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<VehicleAssignmentDto>>> Update(Guid id, [FromBody] UpdateVehicleAssignmentDto dto, CancellationToken ct)
     {
         var a = await _db.VehicleAssignments.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -165,6 +170,7 @@ public class VehicleAssignmentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var a = await _db.VehicleAssignments.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -221,6 +227,7 @@ public class StaffController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffDetailDto>>> Create([FromBody] CreateStaffDto dto, CancellationToken ct)
     {
         var s = new Staff
@@ -237,6 +244,7 @@ public class StaffController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffDetailDto>>> Update(Guid id, [FromBody] UpdateStaffDto dto, CancellationToken ct)
     {
         var s = await _db.Staff.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -255,6 +263,7 @@ public class StaffController : ControllerBase
 
     /// <summary>Archive (soft-delete) a staff member.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var s = await _db.Staff.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -330,6 +339,7 @@ public class StaffAvailabilityController : ControllerBase
     public StaffAvailabilityController(TripCoreDbContext db) => _db = db;
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffAvailabilityDto>>> Create([FromBody] CreateStaffAvailabilityDto dto, CancellationToken ct)
     {
         var a = new StaffAvailability
@@ -344,6 +354,7 @@ public class StaffAvailabilityController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffAvailabilityDto>>> Update(Guid id, [FromBody] UpdateStaffAvailabilityDto dto, CancellationToken ct)
     {
         var a = await _db.StaffAvailabilities.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -358,6 +369,7 @@ public class StaffAvailabilityController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var a = await _db.StaffAvailabilities.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -377,6 +389,7 @@ public class StaffAssignmentsController : ControllerBase
     public StaffAssignmentsController(TripCoreDbContext db) => _db = db;
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffAssignmentDto>>> Create([FromBody] CreateStaffAssignmentDto dto, CancellationToken ct)
     {
         var assignment = new StaffAssignment
@@ -411,6 +424,7 @@ public class StaffAssignmentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<StaffAssignmentDto>>> Update(Guid id, [FromBody] UpdateStaffAssignmentDto dto, CancellationToken ct)
     {
         var a = await _db.StaffAssignments.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -426,11 +440,13 @@ public class StaffAssignmentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var a = await _db.StaffAssignments.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (a == null) return NotFound(ApiResponse<bool>.Fail("Assignment not found"));
-        _db.StaffAssignments.Remove(a);
+        a.Status = AssignmentStatus.Cancelled;
+        a.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<bool>.Ok(true, "Assignment deleted"));
     }

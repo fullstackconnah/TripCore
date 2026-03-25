@@ -24,9 +24,9 @@ const accommodationSchema = z.object({
   isSemiModified: z.boolean().optional(),
   isWheelchairAccessible: z.boolean().optional(),
   accessibilityNotes: z.string().optional(),
-  bedroomCount: z.string().optional(),
-  bedCount: z.string().optional(),
-  maxCapacity: z.string().optional(),
+  bedroomCount: z.coerce.number().optional(),
+  bedCount: z.coerce.number().optional(),
+  maxCapacity: z.coerce.number().optional(),
   beddingConfiguration: z.string().optional(),
   hoistBathroomNotes: z.string().optional(),
   generalNotes: z.string().optional(),
@@ -77,9 +77,9 @@ export default function AccommodationCreatePage() {
         isSemiModified: existing.isSemiModified ?? false,
         isWheelchairAccessible: existing.isWheelchairAccessible ?? false,
         accessibilityNotes: existing.accessibilityNotes ?? '',
-        bedroomCount: existing.bedroomCount ?? '',
-        bedCount: existing.bedCount ?? '',
-        maxCapacity: existing.maxCapacity ?? '',
+        bedroomCount: existing.bedroomCount ?? undefined,
+        bedCount: existing.bedCount ?? undefined,
+        maxCapacity: existing.maxCapacity ?? undefined,
         beddingConfiguration: existing.beddingConfiguration ?? '',
         hoistBathroomNotes: existing.hoistBathroomNotes ?? '',
         generalNotes: existing.generalNotes ?? '',
@@ -89,9 +89,9 @@ export default function AccommodationCreatePage() {
 
   const onSubmit = async (data: AccommodationFormData) => {
     const payload: any = { ...data }
-    // Convert numeric string fields
+    // Treat 0 as null for optional numeric fields (coerced from empty input)
     for (const numField of ['bedroomCount', 'bedCount', 'maxCapacity']) {
-      payload[numField] = payload[numField] ? Number(payload[numField]) : null
+      if (payload[numField] === 0 || payload[numField] === undefined) payload[numField] = null
     }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null

@@ -3,7 +3,11 @@ import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
 export default function BookingsPage() {
-  const { data: bookings = [], isLoading } = useBookings()
+  const { data: bookings = [], isLoading, isError } = useBookings()
+
+  if (isError) return (
+    <div className="p-8 text-center text-red-600">Failed to load bookings. Please refresh the page.</div>
+  )
 
   return (
     <div className="space-y-6 animate-fade-in">

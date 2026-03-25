@@ -255,7 +255,7 @@ export function useCreateBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => apiClient.post('/bookings', data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trips'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -263,7 +263,7 @@ export function useUpdateBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.put(`/bookings/${id}`, data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trips'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }); qc.invalidateQueries({ queryKey: ['participant-bookings'] }) },
   })
 }
 
@@ -271,7 +271,7 @@ export function usePatchBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => apiClient.patch(`/bookings/${id}`, data).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 
@@ -279,7 +279,7 @@ export function useDeleteBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/bookings/${id}`).then(r => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trip'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); qc.invalidateQueries({ queryKey: ['trip-bookings'] }); qc.invalidateQueries({ queryKey: ['trips'] }); qc.invalidateQueries({ queryKey: ['trip-itinerary'] }) },
   })
 }
 

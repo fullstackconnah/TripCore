@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useParticipant, useParticipantBookings, useSupportProfile } from '@/api/hooks'
-import { formatDateAu, getStatusColor } from '@/lib/utils'
+import { formatDateAu, getStatusColor, maskNdisNumber } from '@/lib/utils'
 import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
 
@@ -46,7 +46,7 @@ export default function ParticipantDetailPage() {
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
             <h3 className="font-semibold">Personal Information</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
-              <span className="text-[var(--color-muted-foreground)]">NDIS Number</span><span className="font-mono">{p.ndisNumber || '—'}</span>
+              <span className="text-[var(--color-muted-foreground)]">NDIS Number</span><span className="font-mono">{p.ndisNumber ? maskNdisNumber(p.maskedNdisNumber || p.ndisNumber) : '—'}</span>
               <span className="text-[var(--color-muted-foreground)]">Date of Birth</span><span>{formatDateAu(p.dateOfBirth)}</span>
               <span className="text-[var(--color-muted-foreground)]">Funding Org</span><span>{p.fundingOrganisation || '—'}</span>
               <span className="text-[var(--color-muted-foreground)]">Repeat Client</span><span>{p.isRepeatClient ? 'Yes' : 'No'}</span>

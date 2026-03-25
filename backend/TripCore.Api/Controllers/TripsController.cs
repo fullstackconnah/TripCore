@@ -97,6 +97,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Create a new trip instance.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Create([FromBody] CreateTripDto dto, CancellationToken ct)
     {
         var trip = new TripInstance
@@ -104,7 +105,7 @@ public class TripsController : ControllerBase
             Id = Guid.NewGuid(), TripName = dto.TripName, TripCode = dto.TripCode,
             EventTemplateId = dto.EventTemplateId, Destination = dto.Destination, Region = dto.Region,
             StartDate = dto.StartDate, DurationDays = dto.DurationDays, BookingCutoffDate = dto.BookingCutoffDate,
-            Status = dto.Status, LeadCoordinatorId = dto.LeadCoordinatorId,
+            Status = TripStatus.Draft, LeadCoordinatorId = dto.LeadCoordinatorId,
             MinParticipants = dto.MinParticipants, MaxParticipants = dto.MaxParticipants,
             RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity, RequiredBeds = dto.RequiredBeds,
             RequiredBedrooms = dto.RequiredBedrooms, MinStaffRequired = dto.MinStaffRequired, Notes = dto.Notes
@@ -117,6 +118,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Update a trip instance.</summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Update(Guid id, [FromBody] UpdateTripDto dto, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -136,6 +138,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Soft-delete (archive) a trip.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);

@@ -48,6 +48,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<TaskDto>>> Create([FromBody] CreateTaskDto dto, CancellationToken ct)
     {
         var task = new BookingTask
@@ -64,6 +65,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<TaskDto>>> Update(Guid id, [FromBody] UpdateTaskDto dto, CancellationToken ct)
     {
         var t = await _db.BookingTasks.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -78,6 +80,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var t = await _db.BookingTasks.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -110,6 +113,7 @@ public class ActivitiesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ActivityDto>>> Create([FromBody] CreateActivityDto dto, CancellationToken ct)
     {
         var a = new Activity
@@ -124,6 +128,7 @@ public class ActivitiesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ActivityDto>>> Update(Guid id, [FromBody] UpdateActivityDto dto, CancellationToken ct)
     {
         var a = await _db.Activities.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -166,6 +171,7 @@ public class EventTemplatesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<EventTemplateDto>>> Create([FromBody] CreateEventTemplateDto dto, CancellationToken ct)
     {
         var e = new EventTemplate
@@ -185,6 +191,7 @@ public class EventTemplatesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<EventTemplateDto>>> Update(Guid id, [FromBody] UpdateEventTemplateDto dto, CancellationToken ct)
     {
         var e = await _db.EventTemplates.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -212,6 +219,7 @@ public class TripDayScheduleController : ControllerBase
     public TripDayScheduleController(TripCoreDbContext db) => _db = db;
 
     [HttpPut("trip-days/{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<TripDayDto>>> UpdateTripDay(Guid id, [FromBody] UpdateTripDayDto dto, CancellationToken ct)
     {
         var d = await _db.TripDays.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -222,6 +230,7 @@ public class TripDayScheduleController : ControllerBase
     }
 
     [HttpPost("trip-days/{id:guid}/activities")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ScheduledActivityDto>>> AddActivity(Guid id, [FromBody] CreateScheduledActivityDto dto, CancellationToken ct)
     {
         var a = new ScheduledActivity
@@ -252,6 +261,7 @@ public class TripDayScheduleController : ControllerBase
     }
 
     [HttpPut("scheduled-activities/{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ScheduledActivityDto>>> UpdateActivity(Guid id, [FromBody] UpdateScheduledActivityDto dto, CancellationToken ct)
     {
         var a = await _db.ScheduledActivities.Include(s => s.Activity).FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -281,6 +291,7 @@ public class TripDayScheduleController : ControllerBase
     }
 
     [HttpDelete("scheduled-activities/{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteActivity(Guid id, CancellationToken ct)
     {
         var a = await _db.ScheduledActivities.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -331,9 +342,7 @@ public class DashboardController : ControllerBase
                 Priority = t.Priority, DueDate = t.DueDate, Status = t.Status
             }).ToListAsync(ct);
 
-        var upcomingTripIds = await _db.TripInstances
-            .Where(t => activeStatuses.Contains(t.Status) && t.StartDate >= today)
-            .Select(t => t.Id).ToListAsync(ct);
+        var upcomingTripIds = upcomingTrips.Select(t => t.Id).ToList();
 
         var tripsWithAccommodation = await _db.AccommodationReservations
             .Where(r => upcomingTripIds.Contains(r.TripInstanceId) && r.ReservationStatus != ReservationStatus.Cancelled)

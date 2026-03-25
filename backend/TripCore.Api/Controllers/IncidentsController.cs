@@ -36,10 +36,10 @@ public class IncidentsController : ControllerBase
             .AsQueryable();
 
         // Default: only active records unless explicitly filtered
-        if (isActive.HasValue)
-            query = query.Where(i => i.IsActive == isActive.Value);
-        else if (status != IncidentStatus.Closed)
+        if (isActive != false)
             query = query.Where(i => i.IsActive);
+        else if (isActive == false)
+            query = query.Where(i => !i.IsActive);
 
         if (tripId.HasValue) query = query.Where(i => i.TripInstanceId == tripId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
@@ -134,6 +134,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<IncidentListDto>>> Create([FromBody] CreateIncidentDto dto, CancellationToken ct)
     {
         var incident = new IncidentReport
@@ -171,6 +172,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<IncidentListDto>>> Update(Guid id, [FromBody] UpdateIncidentDto dto, CancellationToken ct)
     {
         var i = await _db.IncidentReports.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -218,6 +220,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var i = await _db.IncidentReports.FirstOrDefaultAsync(x => x.Id == id, ct);

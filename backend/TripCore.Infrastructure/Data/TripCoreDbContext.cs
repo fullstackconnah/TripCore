@@ -414,7 +414,7 @@ public class TripCoreDbContext : DbContext
             e.HasKey(i => i.Id);
             e.Property(i => i.Title).HasMaxLength(300).IsRequired();
 
-            e.HasOne(i => i.TripInstance).WithMany(t => t.IncidentReports).HasForeignKey(i => i.TripInstanceId);
+            e.HasOne(i => i.TripInstance).WithMany(t => t.IncidentReports).HasForeignKey(i => i.TripInstanceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(i => i.InvolvedParticipant).WithMany().HasForeignKey(i => i.InvolvedParticipantId);
             e.HasOne(i => i.InvolvedStaff).WithMany().HasForeignKey(i => i.InvolvedStaffId);
             e.HasOne(i => i.ReportedByStaff).WithMany().HasForeignKey(i => i.ReportedByStaffId);

@@ -1,10 +1,11 @@
 import { useParticipants, useDeleteParticipant, useUpdateParticipant } from '@/api/hooks'
 import { maskNdisNumber } from '@/lib/utils'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ParticipantsPage() {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
@@ -80,7 +81,7 @@ export default function ParticipantsPage() {
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {participants.map((p: any) => (
-                <tr key={p.id} className="hover:bg-[var(--color-accent)]/50 transition-colors cursor-pointer" onClick={() => window.location.href = `/participants/${p.id}`}>
+                <tr key={p.id} className="hover:bg-[var(--color-accent)]/50 transition-colors cursor-pointer" onClick={() => navigate(`/participants/${p.id}`)}>
                   <td className="p-3">
                     <Link to={`/participants/${p.id}`} className="font-medium hover:text-[var(--color-primary)]">{p.fullName}</Link>
                   </td>

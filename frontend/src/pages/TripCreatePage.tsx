@@ -107,7 +107,7 @@ export default function TripCreatePage() {
 
           <div>
             <label className={labelClass}>Event Template</label>
-            <select {...register('eventTemplateId')} onChange={onTemplateChange} className={inputClass}>
+            <select {...register('eventTemplateId')} onChange={e => { register('eventTemplateId').onChange(e); onTemplateChange(e) }} className={inputClass}>
               <option value="">None</option>
               {templates.map((t: any) => <option key={t.id} value={t.id}>{t.templateName}</option>)}
             </select>

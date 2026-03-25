@@ -52,7 +52,6 @@ public class AuthController : ControllerBase
         var response = new AuthResponseDto
         {
             Token = token,
-            RefreshToken = Guid.NewGuid().ToString("N"),
             ExpiresAt = DateTime.UtcNow.AddHours(8),
             Username = user.Username,
             FullName = $"{user.FirstName} {user.LastName}",

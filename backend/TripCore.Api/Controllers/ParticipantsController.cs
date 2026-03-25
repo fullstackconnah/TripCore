@@ -39,7 +39,7 @@ public class ParticipantsController : ControllerBase
                 Id = p.Id, FirstName = p.FirstName, LastName = p.LastName,
                 PreferredName = p.PreferredName,
                 FullName = string.IsNullOrEmpty(p.PreferredName) ? p.FirstName + " " + p.LastName : p.PreferredName + " " + p.LastName,
-                MaskedNdisNumber = p.NdisNumber != null ? "••••••••" + p.NdisNumber.Substring(p.NdisNumber.Length - 1) : null,
+                MaskedNdisNumber = p.NdisNumber != null ? p.NdisNumber.Length > 0 ? "••••••••" + p.NdisNumber[^1] : "•••" : null,
                 PlanType = p.PlanType, Region = p.Region, IsRepeatClient = p.IsRepeatClient,
                 IsActive = p.IsActive, WheelchairRequired = p.WheelchairRequired,
                 IsHighSupport = p.IsHighSupport, SupportRatio = p.SupportRatio
@@ -59,7 +59,7 @@ public class ParticipantsController : ControllerBase
         {
             Id = p.Id, FirstName = p.FirstName, LastName = p.LastName, PreferredName = p.PreferredName,
             FullName = string.IsNullOrEmpty(p.PreferredName) ? p.FirstName + " " + p.LastName : p.PreferredName + " " + p.LastName,
-            MaskedNdisNumber = p.NdisNumber != null ? "••••••••" + p.NdisNumber.Substring(p.NdisNumber.Length - 1) : null,
+            MaskedNdisNumber = p.NdisNumber != null ? p.NdisNumber.Length > 0 ? "••••••••" + p.NdisNumber[^1] : "•••" : null,
             NdisNumber = p.NdisNumber, DateOfBirth = p.DateOfBirth, PlanType = p.PlanType, Region = p.Region,
             FundingOrganisation = p.FundingOrganisation, IsRepeatClient = p.IsRepeatClient, IsActive = p.IsActive,
             WheelchairRequired = p.WheelchairRequired, IsHighSupport = p.IsHighSupport, SupportRatio = p.SupportRatio,
@@ -73,6 +73,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Create a new participant.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ParticipantDetailDto>>> Create([FromBody] CreateParticipantDto dto, CancellationToken ct)
     {
         var participant = new Participant
@@ -94,6 +95,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Update an existing participant.</summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<ParticipantDetailDto>>> Update(Guid id, [FromBody] UpdateParticipantDto dto, CancellationToken ct)
     {
         var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -168,6 +170,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Archive (soft-delete) a participant.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);

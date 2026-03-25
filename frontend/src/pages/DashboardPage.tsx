@@ -52,7 +52,7 @@ const statusBadge: Record<string, string> = {
 }
 
 export default function DashboardPage() {
-  const { data, isLoading } = useDashboard()
+  const { data, isLoading, isError } = useDashboard()
 
   if (isLoading) {
     return (
@@ -61,6 +61,10 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  if (isError) return (
+    <div className="p-8 text-center text-red-600">Failed to load dashboard. Please refresh the page.</div>
+  )
 
   const d = data || {
     upcomingTripCount: 0, activeParticipantCount: 0, outstandingTaskCount: 0,

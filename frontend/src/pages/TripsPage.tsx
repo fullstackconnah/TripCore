@@ -210,11 +210,11 @@ export default function TripsPage() {
                   </div>
                 </div>
               </Link>
-              {/* Edit button — outside the Link to avoid nested interactive elements */}
+              {/* Edit button — outside the Link to avoid nested interactive elements, tucked in bottom-right */}
               <button
                 onClick={e => handleOpenEdit(t.id, e)}
                 title="Edit trip"
-                className="absolute top-4 right-[4.5rem] p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-all"
+                className="absolute bottom-4 right-4 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-all"
               >
                 <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
               </button>

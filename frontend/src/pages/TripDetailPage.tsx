@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
@@ -101,7 +101,34 @@ export default function TripDetailPage() {
   const [deletingBooking, setDeletingBooking] = useState<any>(null)
 
   const [editingBooking, setEditingBooking] = useState<any>(null)
-  const [editForm, setEditForm] = useState<any>({})
+  const [editForm, setEditForm] = useState<{
+    bookingStatus: string
+    supportRatioOverride: string
+    wheelchairRequired: boolean
+    highSupportRequired: boolean
+    nightSupportRequired: boolean
+    hasRestrictivePracticeFlag: boolean
+    bookingNotes: string
+    insuranceStatus: string
+    insuranceProvider: string
+    insurancePolicyNumber: string
+    insuranceCoverageStart: string
+    insuranceCoverageEnd: string
+    [key: string]: unknown
+  }>({
+    bookingStatus: '',
+    supportRatioOverride: '',
+    wheelchairRequired: false,
+    highSupportRequired: false,
+    nightSupportRequired: false,
+    hasRestrictivePracticeFlag: false,
+    bookingNotes: '',
+    insuranceStatus: 'None',
+    insuranceProvider: '',
+    insurancePolicyNumber: '',
+    insuranceCoverageStart: '',
+    insuranceCoverageEnd: '',
+  })
 
   const updateStaffAssignment = useUpdateStaffAssignment()
   const deleteStaffAssignment = useDeleteStaffAssignment()
@@ -266,7 +293,7 @@ export default function TripDetailPage() {
   }
 
   // Accommodation coverage check
-  const getAccommodationCoverage = () => {
+  const accommodationCoverage = useMemo(() => {
     if (!trip?.startDate || !trip?.endDate) return null
     const start = new Date(trip.startDate)
     const end = new Date(trip.endDate)
@@ -299,7 +326,7 @@ export default function TripDetailPage() {
     }
 
     return { totalNights, coveredNights: totalNights - uncoveredNights.length, uncoveredNights, allCovered: uncoveredNights.length === 0 }
-  }
+  }, [accommodation, trip?.startDate, trip?.endDate])
 
   const openEditStaffModal = (s: any) => {
     setEditingStaff(s)
@@ -399,6 +426,7 @@ export default function TripDetailPage() {
     })
   }
 
+  if (!id) return null
   if (isLoading) return <div className="flex items-center justify-center h-64 text-[#43493a]">Loading trip...</div>
   if (!trip) return <div className="text-center py-12">Trip not found</div>
 
@@ -888,7 +916,7 @@ export default function TripDetailPage() {
                         <div className="relative inline-flex items-center">
                           <select
                             value={b.insuranceStatus || 'None'}
-                            onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value === 'None' ? null : e.target.value } })}
+                            onChange={e => patchBooking.mutate({ id: b.id, data: { insuranceStatus: e.target.value } })}
                             className={`text-xs pl-2.5 pr-6 py-1 rounded-full font-medium border-0 cursor-pointer appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-[#396200]/25 hover:shadow-[0_0_0_2px_rgba(57,98,0,0.18)] ${getStatusColor(b.insuranceStatus || 'none')}`}
                           >
                             {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
@@ -1159,7 +1187,7 @@ export default function TripDetailPage() {
               const tripStart = new Date(trip.startDate)
               const tripEnd = new Date(trip.endDate)
               const totalDays = Math.max(1, Math.round((tripEnd.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24)))
-              const coverage = getAccommodationCoverage()
+              const coverage = accommodationCoverage
               const activeRes = accommodation.filter((r: any) => !['Cancelled', 'Unavailable'].includes(r.reservationStatus))
 
               // Build day labels

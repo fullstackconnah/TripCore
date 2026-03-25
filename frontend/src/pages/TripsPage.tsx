@@ -189,17 +189,25 @@ export default function TripsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {trips.map((t: any) => (
-            <div key={t.id} className="bg-white rounded-2xl p-5 hover:shadow-[0_24px_32px_-12px_rgba(27,28,26,0.08)] transition-all group relative">
-              <Link to={`/trips/${t.id}`} className="block">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="min-w-0 pr-2">
-                    <h3 className="font-semibold group-hover:text-[#396200] transition-colors truncate">{t.tripName}</h3>
-                    {t.tripCode && <span className="text-xs text-[#43493a] font-mono">{t.tripCode}</span>}
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getStatusColor(t.status)}`}>{t.status}</span>
-                  </div>
+            <div key={t.id} className="bg-white rounded-2xl p-5 hover:shadow-[0_24px_32px_-12px_rgba(27,28,26,0.08)] transition-all group">
+              {/* Header row: title + status pill + edit button as siblings so edit never overlaps content */}
+              <div className="flex items-start justify-between mb-3">
+                <Link to={`/trips/${t.id}`} className="min-w-0 pr-2">
+                  <h3 className="font-semibold group-hover:text-[#396200] transition-colors truncate">{t.tripName}</h3>
+                  {t.tripCode && <span className="text-xs text-[#43493a] font-mono">{t.tripCode}</span>}
+                </Link>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getStatusColor(t.status)}`}>{t.status}</span>
+                  <button
+                    onClick={e => handleOpenEdit(t.id, e)}
+                    title="Edit trip"
+                    className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-all"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                  </button>
                 </div>
+              </div>
+              <Link to={`/trips/${t.id}`} className="block">
                 <div className="space-y-2 text-sm text-[#43493a]">
                   <p>📍 {t.destination || 'TBD'} {t.region ? `· ${t.region}` : ''}</p>
                   <p>📅 {formatDateAu(t.startDate)} — {formatDateAu(t.endDate)} ({t.durationDays}d)</p>
@@ -210,14 +218,6 @@ export default function TripsPage() {
                   </div>
                 </div>
               </Link>
-              {/* Edit button — outside the Link to avoid nested interactive elements, tucked in bottom-right */}
-              <button
-                onClick={e => handleOpenEdit(t.id, e)}
-                title="Edit trip"
-                className="absolute bottom-4 right-4 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-all"
-              >
-                <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-              </button>
             </div>
           ))}
         </div>

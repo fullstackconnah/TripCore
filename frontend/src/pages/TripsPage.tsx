@@ -3,6 +3,7 @@ import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { Dropdown } from '@/components/Dropdown'
 
 type Tab = 'active' | 'completed'
 
@@ -257,11 +258,16 @@ export default function TripsPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Event Template</label>
-                      <select value={editForm.eventTemplateId} onChange={e => setEditForm({ ...editForm, eventTemplateId: e.target.value })}
-                        className={inputClass}>
-                        <option value="">None</option>
-                        {templates.map((t: any) => <option key={t.id} value={t.id}>{t.templateName}</option>)}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={editForm.eventTemplateId}
+                        onChange={val => setEditForm({ ...editForm, eventTemplateId: val })}
+                        label="None"
+                        items={[
+                          { value: '', label: 'None' },
+                          ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className={labelClass}>Destination</label>
@@ -297,20 +303,34 @@ export default function TripsPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Status</label>
-                      <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}
-                        className={inputClass}>
-                        {['Draft', 'Planning', 'OpenForBookings', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'Archived'].map(s => (
-                          <option key={s} value={s}>{s === 'OpenForBookings' ? 'Open For Bookings' : s === 'InProgress' ? 'In Progress' : s}</option>
-                        ))}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={editForm.status}
+                        onChange={val => setEditForm({ ...editForm, status: val })}
+                        items={[
+                          { value: 'Draft', label: 'Draft' },
+                          { value: 'Planning', label: 'Planning' },
+                          { value: 'OpenForBookings', label: 'Open For Bookings' },
+                          { value: 'Confirmed', label: 'Confirmed' },
+                          { value: 'InProgress', label: 'In Progress' },
+                          { value: 'Completed', label: 'Completed' },
+                          { value: 'Cancelled', label: 'Cancelled' },
+                          { value: 'Archived', label: 'Archived' },
+                        ]}
+                      />
                     </div>
                     <div className="col-span-2">
                       <label className={labelClass}>Lead Coordinator</label>
-                      <select value={editForm.leadCoordinatorId} onChange={e => setEditForm({ ...editForm, leadCoordinatorId: e.target.value })}
-                        className={inputClass}>
-                        <option value="">None</option>
-                        {staffList.map((s: any) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
-                      </select>
+                      <Dropdown
+                        variant="form"
+                        value={editForm.leadCoordinatorId}
+                        onChange={val => setEditForm({ ...editForm, leadCoordinatorId: val })}
+                        label="None"
+                        items={[
+                          { value: '', label: 'None' },
+                          ...staffList.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
 
 export type DropdownItem = {
@@ -49,19 +50,42 @@ export function Dropdown({
 }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
+  const [panelStyle, setPanelStyle] = useState<CSSProperties>({})
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const onBlurRef = useRef(onBlur)
   useEffect(() => { onBlurRef.current = onBlur })
 
   // Per-variant default alignment
   const resolvedAlign = align ?? (variant === 'form' ? 'left' : 'right')
 
-  // Click-outside: close and fire onBlur
+  // Position the portal panel relative to the trigger on open
+  useEffect(() => {
+    if (!open || !triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const style: CSSProperties = {
+      position: 'fixed',
+      top: rect.bottom + 8,
+      zIndex: 9999,
+    }
+    if (resolvedAlign === 'left') {
+      style.left = rect.left
+      if (variant === 'form') style.width = rect.width
+    } else {
+      style.right = window.innerWidth - rect.right
+    }
+    setPanelStyle(style)
+  }, [open, resolvedAlign, variant])
+
+  // Click-outside: close if click is outside both trigger container AND portal panel
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const inContainer = containerRef.current?.contains(target)
+      const inPanel = panelRef.current?.contains(target)
+      if (!inContainer && !inPanel) {
         setOpen(false)
         setFocusedIndex(-1)
         onBlurRef.current?.()
@@ -90,7 +114,6 @@ export function Dropdown({
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
         setOpen(true)
-        // Start focus on first non-disabled item
         const first = items.findIndex(i => !i.disabled)
         setFocusedIndex(first >= 0 ? first : 0)
       }
@@ -106,14 +129,12 @@ export function Dropdown({
       return
     }
     if (e.key === 'Tab') {
-      // Do NOT preventDefault — let Tab move focus naturally
       setOpen(false)
       setFocusedIndex(-1)
       onBlur?.()
       return
     }
 
-    // Arrow keys skip disabled items
     const enabledIndices = items
       .map((item, i) => (item.disabled ? -1 : i))
       .filter(i => i !== -1)
@@ -146,7 +167,6 @@ export function Dropdown({
 
   const selectedLabel = items.find(i => i.value === value)?.label
 
-  // Chevron / loading spinner
   const chevron =
     loading && variant !== 'menu' ? (
       <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
@@ -156,22 +176,20 @@ export function Dropdown({
       />
     )
 
-  // Floating panel
-  const panelAlignClass = resolvedAlign === 'left' ? 'left-0' : 'right-0'
-  const panelWidthClass =
-    variant === 'form' ? 'w-full' : variant === 'pill' ? 'min-w-[10rem]' : 'w-56'
+  const panelWidthClass = variant === 'pill' ? 'min-w-[10rem]' : variant === 'menu' ? 'w-56' : ''
 
-  const panel = open && (
+  const panel = open && createPortal(
     <div
+      ref={panelRef}
       role="listbox"
-      className={`absolute top-full mt-2 bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] overflow-hidden z-50 ${panelAlignClass} ${panelWidthClass}`}
+      style={panelStyle}
+      className={`bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] overflow-hidden ${panelWidthClass}`}
     >
       {items.length === 0 ? (
         <p role="presentation" className="px-4 py-3 text-sm text-[#43493a] opacity-50">No options available</p>
       ) : (
         items.map((item, idx) => (
           <div key={item.value}>
-            {/* Divider between menu items that carry a description */}
             {variant === 'menu' && idx > 0 && item.description && (
               <div className="h-px bg-[rgba(195,201,181,0.25)] mx-4" />
             )}
@@ -201,7 +219,8 @@ export function Dropdown({
           </div>
         ))
       )}
-    </div>
+    </div>,
+    document.body
   )
 
   // ── pill variant ──────────────────────────────────────────────────────────

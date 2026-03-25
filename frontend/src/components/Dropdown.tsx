@@ -132,6 +132,11 @@ export function Dropdown({
 
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
+      if (focusedIndex === -1) {
+        const first = items.findIndex(i => !i.disabled)
+        if (first >= 0) setFocusedIndex(first)
+        return
+      }
       const focused = items[focusedIndex]
       if (focused && !focused.disabled) handleSelect(focused)
     }
@@ -170,7 +175,7 @@ export function Dropdown({
             )}
             <button
               role="option"
-              aria-selected={item.value === value}
+              aria-selected={variant !== 'menu' ? item.value === value : undefined}
               aria-disabled={item.disabled ? 'true' : undefined}
               onClick={() => handleSelect(item)}
               onMouseEnter={() => !item.disabled && setFocusedIndex(idx)}

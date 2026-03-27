@@ -11,14 +11,6 @@ namespace TripCore.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports");
-
-            migrationBuilder.DropColumn(
-                name: "OopPaymentStatus",
-                table: "ParticipantBookings");
-
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
                 table: "Vehicles",
@@ -40,30 +32,6 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "DriverLicenceExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "FirstAidExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "ManualHandlingExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "MedicationCompetencyExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
                 table: "Staff",
@@ -77,13 +45,6 @@ namespace TripCore.Infrastructure.Migrations
                 type: "uuid",
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
-
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentStatus",
-                table: "ParticipantBookings",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
@@ -208,14 +169,6 @@ namespace TripCore.Infrastructure.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports",
-                column: "TripInstanceId",
-                principalTable: "TripInstances",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
                 name: "FK_Participants_Tenants_TenantId",
                 table: "Participants",
                 column: "TenantId",
@@ -266,10 +219,6 @@ namespace TripCore.Infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_EventTemplates_Tenants_TenantId",
                 table: "EventTemplates");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Participants_Tenants_TenantId",
@@ -343,22 +292,6 @@ namespace TripCore.Infrastructure.Migrations
                 table: "TripInstances");
 
             migrationBuilder.DropColumn(
-                name: "DriverLicenceExpiryDate",
-                table: "Staff");
-
-            migrationBuilder.DropColumn(
-                name: "FirstAidExpiryDate",
-                table: "Staff");
-
-            migrationBuilder.DropColumn(
-                name: "ManualHandlingExpiryDate",
-                table: "Staff");
-
-            migrationBuilder.DropColumn(
-                name: "MedicationCompetencyExpiryDate",
-                table: "Staff");
-
-            migrationBuilder.DropColumn(
                 name: "TenantId",
                 table: "Staff");
 
@@ -367,30 +300,12 @@ namespace TripCore.Infrastructure.Migrations
                 table: "Participants");
 
             migrationBuilder.DropColumn(
-                name: "PaymentStatus",
-                table: "ParticipantBookings");
-
-            migrationBuilder.DropColumn(
                 name: "TenantId",
                 table: "EventTemplates");
 
             migrationBuilder.DropColumn(
                 name: "TenantId",
                 table: "AccommodationProperties");
-
-            migrationBuilder.AddColumn<string>(
-                name: "OopPaymentStatus",
-                table: "ParticipantBookings",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports",
-                column: "TripInstanceId",
-                principalTable: "TripInstances",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
     }
 }

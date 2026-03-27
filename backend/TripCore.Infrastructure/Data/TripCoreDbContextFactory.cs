@@ -17,7 +17,8 @@ public class TripCoreDbContextFactory : IDesignTimeDbContextFactory<TripCoreDbCo
 
         var connectionString =
             Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")
-            ?? "Host=localhost;Port=5432;Database=tripcore;Username=postgres;Password=postgres";
+            ?? throw new InvalidOperationException(
+                "Set POSTGRES_CONNECTION_STRING before running dotnet ef commands.");
 
         optionsBuilder.UseNpgsql(connectionString);
 

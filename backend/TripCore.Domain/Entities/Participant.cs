@@ -32,6 +32,10 @@ public class Participant
     public string? MedicalSummary { get; set; }
     public string? BehaviourRiskSummary { get; set; }
     public string? Notes { get; set; }
+    public DateOnly? PlanStartDate { get; set; }
+    public DateOnly? PlanEndDate { get; set; }
+    public Guid? PlanManagerContactId { get; set; }
+    public Contact? PlanManagerContact { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

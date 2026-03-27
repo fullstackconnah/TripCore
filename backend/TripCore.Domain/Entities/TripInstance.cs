@@ -30,6 +30,9 @@ public class TripInstance
     public int? MinStaffRequired { get; set; }
     public decimal CalculatedStaffRequired { get; set; }
     public string? Notes { get; set; }
+    public Guid? DefaultActivityGroupId { get; set; }
+    public SupportActivityGroup? DefaultActivityGroup { get; set; }
+    public decimal ActiveHoursPerDay { get; set; } = 8;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -42,4 +45,5 @@ public class TripInstance
     public ICollection<TripDocument> Documents { get; set; } = new List<TripDocument>();
     public ICollection<TripDay> TripDays { get; set; } = new List<TripDay>();
     public ICollection<IncidentReport> IncidentReports { get; set; } = new List<IncidentReport>();
+    public ICollection<TripClaim> TripClaims { get; set; } = new List<TripClaim>();
 }

@@ -494,7 +494,7 @@ export function useDeleteTask() {
 
 export function useLogin() {
   return useMutation({
-    mutationFn: (data: { username: string; password: string }) => apiClient.post('/auth/login', data).then(r => r.data),
+    mutationFn: (data: { username: string; password: string; email: string }) => apiClient.post('/auth/login', data).then(r => r.data),
   })
 }
 

@@ -1,13 +1,16 @@
 using TripCore.Domain.Enums;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Central hub entity — an actual scheduled trip departure.
 /// </summary>
-public class TripInstance
+public class TripInstance : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string TripName { get; set; } = string.Empty;
     public string? TripCode { get; set; }
     public Guid? EventTemplateId { get; set; }

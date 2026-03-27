@@ -3,7 +3,9 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TripCore.Application.Services;
 using TripCore.Infrastructure.Data;
+using TripCore.Infrastructure.Services;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -18,19 +20,12 @@ builder.Services.AddDbContext<TripCoreDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ── JWT Authentication ───────────────────────────────────────
-var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
-    jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? Environment.GetEnvironmentVariable("JWT_SECRET");
 
-if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
-{
-    if (builder.Environment.IsDevelopment())
-        jwtSecret = "TripCore-Dev-Only-Secret-Min32Characters!!";
-    else
-        throw new InvalidOperationException(
-            "JWT_SECRET environment variable or Jwt:Secret config is required in non-development environments. " +
-            "Set a strong random secret of at least 32 characters.");
-}
+if (string.IsNullOrEmpty(jwtSecret) || jwtSecret == "TripCore-Dev-Only-Secret-Min32Characters!!")
+    throw new InvalidOperationException(
+        "Jwt:Secret must be set to a strong secret in configuration or JWT_SECRET environment variable.");
 
 if (jwtSecret.Length < 32)
     throw new InvalidOperationException("JWT secret must be at least 32 characters long.");
@@ -131,6 +126,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentTenant, CurrentTenant>();
+
 var app = builder.Build();
 
 // ── Migrate + Seed ───────────────────────────────────────────
@@ -202,17 +200,6 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
-        """);
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        CREATE TABLE IF NOT EXISTS "AppSettings" (
-            "Id" integer NOT NULL,
-            "QualificationWarningDays" integer NOT NULL DEFAULT 30,
-            CONSTRAINT "PK_AppSettings" PRIMARY KEY ("Id")
-        );
-        INSERT INTO "AppSettings" ("Id", "QualificationWarningDays")
-        VALUES (1, 30)
-        ON CONFLICT ("Id") DO NOTHING;
         """);
     await DbSeeder.SeedAsync(db);
 }

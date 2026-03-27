@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripCore.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripCore.Api", "TripCore.Api\TripCore.Api.csproj", "{C47AA815-B52E-4CF3-9CF4-16A22BC1703C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripCore.Tests", "TripCore.Tests\TripCore.Tests.csproj", "{73D66701-BB25-4E6C-A844-5F9882AD0B82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{C47AA815-B52E-4CF3-9CF4-16A22BC1703C}.Release|x64.Build.0 = Release|Any CPU
 		{C47AA815-B52E-4CF3-9CF4-16A22BC1703C}.Release|x86.ActiveCfg = Release|Any CPU
 		{C47AA815-B52E-4CF3-9CF4-16A22BC1703C}.Release|x86.Build.0 = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|x64.Build.0 = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Debug|x86.Build.0 = Debug|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|x64.ActiveCfg = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|x64.Build.0 = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|x86.ActiveCfg = Release|Any CPU
+		{73D66701-BB25-4E6C-A844-5F9882AD0B82}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {}
+    "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {}
   },
   "projects": {
-    "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
+    "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
+        "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
         "projectName": "TripCore.Domain",
-        "projectPath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
-        "packagesPath": "C:\\Users\\conna\\.nuget\\packages\\",
-        "outputPath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\obj\\",
+        "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
+        "packagesPath": "C:\\Users\\Work\\.nuget\\packages\\",
+        "outputPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "F:\\VS2022\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\conna\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Work\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],

@@ -40,7 +40,7 @@ function buildRows(staff: any[], warningDays: number): QualRow[] {
         })
         continue
       }
-      const expiry = new Date(expiryDate)
+      const expiry = new Date(expiryDate + 'T00:00:00')
       expiry.setHours(0, 0, 0, 0)
       const diff = Math.floor((expiry.getTime() - today.getTime()) / 86400000)
       if (diff < 0) {

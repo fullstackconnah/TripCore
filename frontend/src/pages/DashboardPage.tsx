@@ -89,7 +89,7 @@ export default function DashboardPage() {
     return count + checks.filter(({ flag, expiry }) => {
       if (!flag) return false
       if (!expiry) return true  // no date set counts as an issue
-      const diff = Math.floor((new Date(expiry).getTime() - today.getTime()) / 86400000)
+      const diff = Math.floor((new Date(expiry + 'T00:00:00').getTime() - today.getTime()) / 86400000)
       return diff <= warningDays
     }).length
   }, 0)

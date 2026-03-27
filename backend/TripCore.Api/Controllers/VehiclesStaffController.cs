@@ -196,6 +196,7 @@ public class StaffController : ControllerBase
         var query = _db.Staff.OrderBy(s => s.LastName).AsQueryable();
         if (isActive.HasValue) query = query.Where(s => s.IsActive == isActive.Value);
 
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var items = await query
             .Select(s => new StaffListDto
             {
@@ -204,7 +205,16 @@ public class StaffController : ControllerBase
                 Mobile = s.Mobile, Region = s.Region, IsDriverEligible = s.IsDriverEligible,
                 IsFirstAidQualified = s.IsFirstAidQualified, IsMedicationCompetent = s.IsMedicationCompetent,
                 IsManualHandlingCompetent = s.IsManualHandlingCompetent, IsOvernightEligible = s.IsOvernightEligible,
-                IsActive = s.IsActive
+                IsActive = s.IsActive,
+                FirstAidExpiryDate = s.FirstAidExpiryDate,
+                DriverLicenceExpiryDate = s.DriverLicenceExpiryDate,
+                ManualHandlingExpiryDate = s.ManualHandlingExpiryDate,
+                MedicationCompetencyExpiryDate = s.MedicationCompetencyExpiryDate,
+                HasExpiredQualifications =
+                    (s.IsFirstAidQualified && s.FirstAidExpiryDate != null && s.FirstAidExpiryDate < today)
+                    || (s.IsDriverEligible && s.DriverLicenceExpiryDate != null && s.DriverLicenceExpiryDate < today)
+                    || (s.IsManualHandlingCompetent && s.ManualHandlingExpiryDate != null && s.ManualHandlingExpiryDate < today)
+                    || (s.IsMedicationCompetent && s.MedicationCompetencyExpiryDate != null && s.MedicationCompetencyExpiryDate < today)
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<StaffListDto>>.Ok(items));
     }
@@ -222,7 +232,12 @@ public class StaffController : ControllerBase
             Mobile = s.Mobile, Region = s.Region, IsDriverEligible = s.IsDriverEligible,
             IsFirstAidQualified = s.IsFirstAidQualified, IsMedicationCompetent = s.IsMedicationCompetent,
             IsManualHandlingCompetent = s.IsManualHandlingCompetent, IsOvernightEligible = s.IsOvernightEligible,
-            IsActive = s.IsActive, Notes = s.Notes
+            IsActive = s.IsActive, Notes = s.Notes,
+            FirstAidExpiryDate = s.FirstAidExpiryDate,
+            DriverLicenceExpiryDate = s.DriverLicenceExpiryDate,
+            ManualHandlingExpiryDate = s.ManualHandlingExpiryDate,
+            MedicationCompetencyExpiryDate = s.MedicationCompetencyExpiryDate,
+            HasExpiredQualifications = s.HasExpiredQualifications
         }));
     }
 
@@ -236,7 +251,11 @@ public class StaffController : ControllerBase
             Email = dto.Email, Mobile = dto.Mobile, Region = dto.Region,
             IsDriverEligible = dto.IsDriverEligible, IsFirstAidQualified = dto.IsFirstAidQualified,
             IsMedicationCompetent = dto.IsMedicationCompetent, IsManualHandlingCompetent = dto.IsManualHandlingCompetent,
-            IsOvernightEligible = dto.IsOvernightEligible, IsActive = dto.IsActive, Notes = dto.Notes
+            IsOvernightEligible = dto.IsOvernightEligible, IsActive = dto.IsActive, Notes = dto.Notes,
+            FirstAidExpiryDate = dto.FirstAidExpiryDate,
+            DriverLicenceExpiryDate = dto.DriverLicenceExpiryDate,
+            ManualHandlingExpiryDate = dto.ManualHandlingExpiryDate,
+            MedicationCompetencyExpiryDate = dto.MedicationCompetencyExpiryDate
         };
         _db.Staff.Add(s);
         await _db.SaveChangesAsync(ct);
@@ -255,7 +274,12 @@ public class StaffController : ControllerBase
         s.IsDriverEligible = dto.IsDriverEligible; s.IsFirstAidQualified = dto.IsFirstAidQualified;
         s.IsMedicationCompetent = dto.IsMedicationCompetent; s.IsManualHandlingCompetent = dto.IsManualHandlingCompetent;
         s.IsOvernightEligible = dto.IsOvernightEligible; s.IsActive = dto.IsActive;
-        s.Notes = dto.Notes; s.UpdatedAt = DateTime.UtcNow;
+        s.Notes = dto.Notes;
+        s.FirstAidExpiryDate = dto.FirstAidExpiryDate;
+        s.DriverLicenceExpiryDate = dto.DriverLicenceExpiryDate;
+        s.ManualHandlingExpiryDate = dto.ManualHandlingExpiryDate;
+        s.MedicationCompetencyExpiryDate = dto.MedicationCompetencyExpiryDate;
+        s.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<StaffDetailDto>.Ok(new StaffDetailDto { Id = s.Id }));

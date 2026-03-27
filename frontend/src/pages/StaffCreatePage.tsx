@@ -18,6 +18,10 @@ const staffSchema = z.object({
   isMedicationCompetent: z.boolean().optional(),
   isManualHandlingCompetent: z.boolean().optional(),
   isOvernightEligible: z.boolean().optional(),
+  firstAidExpiryDate: z.string().optional(),
+  driverLicenceExpiryDate: z.string().optional(),
+  manualHandlingExpiryDate: z.string().optional(),
+  medicationCompetencyExpiryDate: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -63,6 +67,10 @@ export default function StaffCreatePage() {
         isMedicationCompetent: existing.isMedicationCompetent ?? false,
         isManualHandlingCompetent: existing.isManualHandlingCompetent ?? false,
         isOvernightEligible: existing.isOvernightEligible ?? false,
+        firstAidExpiryDate: existing.firstAidExpiryDate ?? '',
+        driverLicenceExpiryDate: existing.driverLicenceExpiryDate ?? '',
+        manualHandlingExpiryDate: existing.manualHandlingExpiryDate ?? '',
+        medicationCompetencyExpiryDate: existing.medicationCompetencyExpiryDate ?? '',
         notes: existing.notes ?? '',
       })
     }
@@ -161,25 +169,49 @@ export default function StaffCreatePage() {
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4 md:col-span-2">
           <h3 className="font-semibold">Qualifications & Eligibility</h3>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-            <div className={checkboxWrapperClass}>
-              <input type="checkbox" {...register('isDriverEligible')} id="isDriverEligible" className="w-4 h-4 rounded border-[var(--color-border)]" />
-              <label htmlFor="isDriverEligible" className={checkboxLabelClass}>Driver Eligible</label>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className={checkboxWrapperClass}>
+                <input type="checkbox" {...register('isFirstAidQualified')} id="isFirstAidQualified" className="w-4 h-4 rounded border-[var(--color-border)]" />
+                <label htmlFor="isFirstAidQualified" className={checkboxLabelClass}>First Aid Qualified</label>
+              </div>
+              <div className="ml-7">
+                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
+                <input type="date" {...register('firstAidExpiryDate')} className={inputClass} />
+              </div>
             </div>
 
-            <div className={checkboxWrapperClass}>
-              <input type="checkbox" {...register('isFirstAidQualified')} id="isFirstAidQualified" className="w-4 h-4 rounded border-[var(--color-border)]" />
-              <label htmlFor="isFirstAidQualified" className={checkboxLabelClass}>First Aid Qualified</label>
+            <div className="space-y-1">
+              <div className={checkboxWrapperClass}>
+                <input type="checkbox" {...register('isDriverEligible')} id="isDriverEligible" className="w-4 h-4 rounded border-[var(--color-border)]" />
+                <label htmlFor="isDriverEligible" className={checkboxLabelClass}>Driver Eligible</label>
+              </div>
+              <div className="ml-7">
+                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Licence expiry date</label>
+                <input type="date" {...register('driverLicenceExpiryDate')} className={inputClass} />
+              </div>
             </div>
 
-            <div className={checkboxWrapperClass}>
-              <input type="checkbox" {...register('isMedicationCompetent')} id="isMedicationCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
-              <label htmlFor="isMedicationCompetent" className={checkboxLabelClass}>Medication Competent</label>
+            <div className="space-y-1">
+              <div className={checkboxWrapperClass}>
+                <input type="checkbox" {...register('isManualHandlingCompetent')} id="isManualHandlingCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
+                <label htmlFor="isManualHandlingCompetent" className={checkboxLabelClass}>Manual Handling Competent</label>
+              </div>
+              <div className="ml-7">
+                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
+                <input type="date" {...register('manualHandlingExpiryDate')} className={inputClass} />
+              </div>
             </div>
 
-            <div className={checkboxWrapperClass}>
-              <input type="checkbox" {...register('isManualHandlingCompetent')} id="isManualHandlingCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
-              <label htmlFor="isManualHandlingCompetent" className={checkboxLabelClass}>Manual Handling Competent</label>
+            <div className="space-y-1">
+              <div className={checkboxWrapperClass}>
+                <input type="checkbox" {...register('isMedicationCompetent')} id="isMedicationCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
+                <label htmlFor="isMedicationCompetent" className={checkboxLabelClass}>Medication Competent</label>
+              </div>
+              <div className="ml-7">
+                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
+                <input type="date" {...register('medicationCompetencyExpiryDate')} className={inputClass} />
+              </div>
             </div>
 
             <div className={checkboxWrapperClass}>

@@ -134,7 +134,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SupportWorker")]
     public async Task<ActionResult<ApiResponse<IncidentListDto>>> Create([FromBody] CreateIncidentDto dto, CancellationToken ct)
     {
         var incident = new IncidentReport

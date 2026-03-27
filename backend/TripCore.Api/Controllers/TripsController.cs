@@ -143,6 +143,26 @@ public class TripsController : ControllerBase
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (t == null) return NotFound(ApiResponse<bool>.Fail("Trip not found"));
+
+        if (dto.Status.HasValue && dto.Status.Value == TripStatus.InProgress && t.Status != TripStatus.InProgress)
+        {
+            var gateErrors = new List<string>();
+
+            var hasConfirmedStaff = await _db.StaffAssignments
+                .AnyAsync(sa => sa.TripInstanceId == id && sa.Status == AssignmentStatus.Confirmed, ct);
+            if (!hasConfirmedStaff)
+                gateErrors.Add("at least one confirmed staff assignment is required");
+
+            var hasConfirmedBooking = await _db.ParticipantBookings
+                .AnyAsync(pb => pb.TripInstanceId == id && pb.BookingStatus == BookingStatus.Confirmed, ct);
+            if (!hasConfirmedBooking)
+                gateErrors.Add("at least one confirmed participant booking is required");
+
+            if (gateErrors.Count > 0)
+                return BadRequest(ApiResponse<bool>.Fail(
+                    $"Pre-departure gate failed: {string.Join("; ", gateErrors)}"));
+        }
+
         if (dto.Status.HasValue) t.Status = dto.Status.Value;
         t.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);

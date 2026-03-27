@@ -630,3 +630,22 @@ export function useDeleteIncident() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['incidents'] }); qc.invalidateQueries({ queryKey: ['dashboard'] }) },
   })
 }
+
+export function useSettings() {
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: () =>
+      apiClient
+        .get<ApiResponse<{ qualificationWarningDays: number }>>('/settings')
+        .then(r => r.data.data ?? { qualificationWarningDays: 30 }),
+  })
+}
+
+export function useUpdateSettings() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { qualificationWarningDays: number }) =>
+      apiClient.put('/settings', data).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
+  })
+}

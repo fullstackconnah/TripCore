@@ -96,9 +96,9 @@ export default function SettingsPage() {
                 </span>
               </div>
               <div className="text-sm text-[var(--color-muted-foreground)] space-y-1">
-                <p>📍 {t.defaultDestination || '—'} · {t.defaultRegion || '—'}</p>
-                {t.standardDurationDays && <p>⏱ {t.standardDurationDays} days</p>}
-                {t.preferredTimeOfYear && <p>📅 {t.preferredTimeOfYear}</p>}
+                <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">location_on</span> {t.defaultDestination || '—'} · {t.defaultRegion || '—'}</p>
+                {t.standardDurationDays && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">schedule</span> {t.standardDurationDays} days</p>}
+                {t.preferredTimeOfYear && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">calendar_today</span> {t.preferredTimeOfYear}</p>}
               </div>
             </div>
           ))}

@@ -148,7 +148,7 @@ export default function DashboardPage() {
             Qualification Issues
           </p>
           <p className={`text-3xl font-display font-bold ${qualIssueCount > 0 ? 'text-[#ba1a1a]' : 'text-[var(--color-primary)]'}`}>
-            {qualIssueCount > 0 ? qualIssueCount : '✓'}
+            {qualIssueCount > 0 ? qualIssueCount : <span className="material-symbols-outlined text-3xl leading-none">check_circle</span>}
           </p>
           {qualIssueCount === 0 && (
             <p className="text-xs text-[var(--color-muted-foreground)] mt-1">All clear</p>

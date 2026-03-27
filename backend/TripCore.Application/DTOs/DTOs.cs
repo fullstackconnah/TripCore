@@ -245,7 +245,6 @@ public record BookingDetailDto : BookingListDto
     public string? TransportNotes { get; init; }
     public string? EquipmentNotes { get; init; }
     public string? RiskSupportNotes { get; init; }
-    public PaymentStatus PaymentStatus { get; init; }
     public string? BookingNotes { get; init; }
     public string? CancellationReason { get; init; }
     public DateTime CreatedAt { get; init; }

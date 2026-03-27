@@ -150,8 +150,8 @@ namespace TripCore.Infrastructure.Migrations
                 values: new object[]
                 {
                     new Guid("00000000-0000-0000-0000-000000000001"),
-                    "Default Org",
-                    "default.local",
+                    "Connah",
+                    "connah.com.au",
                     true,
                     new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 });

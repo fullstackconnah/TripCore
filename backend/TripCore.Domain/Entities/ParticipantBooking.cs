@@ -25,7 +25,7 @@ public class ParticipantBooking
     public string? TransportNotes { get; set; }
     public string? EquipmentNotes { get; set; }
     public string? RiskSupportNotes { get; set; }
-    public string? OopPaymentStatus { get; set; }
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.NotInvoiced;
 
     // Insurance tracking
     public string? InsuranceProvider { get; set; }

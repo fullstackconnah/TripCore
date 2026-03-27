@@ -195,7 +195,7 @@ public class TripsController : ControllerBase
                 WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
                 NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
                 SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired,
-                InsuranceStatus = b.InsuranceStatus
+                InsuranceStatus = b.InsuranceStatus, PaymentStatus = b.PaymentStatus
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<BookingListDto>>.Ok(bookings));
     }

@@ -75,6 +75,10 @@ namespace TripCore.Infrastructure.Migrations
                     table.PrimaryKey("PK_Tenants", x => x.Id);
                 });
 
+            // Drop old AppSettings table if it exists (created by prior raw SQL seed)
+            // The table previously had int Id (singleton pattern) — now replaced with Guid Id + TenantId
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"AppSettings\"");
+
             migrationBuilder.CreateTable(
                 name: "AppSettings",
                 columns: table => new

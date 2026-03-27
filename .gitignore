@@ -8,6 +8,10 @@
 CLAUDE.md
 .worktrees/
 .superpowers/
+.claude-flow/
+.serena/
+.swarm/
+.playwright-mcp/
 
 # ── Documentation / planning ─────────────────────────────────────────────────
 docs/
@@ -32,3 +36,7 @@ desktop.ini
 
 # ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
+
+# ── Frontend build artifacts ──────────────────────────────────────────────────
+frontend/dist/
+frontend/node_modules/

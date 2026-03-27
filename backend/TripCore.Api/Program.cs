@@ -18,9 +18,22 @@ builder.Services.AddDbContext<TripCoreDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ── JWT Authentication ───────────────────────────────────────
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? "TripCore-Dev-Secret-Key-Minimum-32-Characters!";
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
+    jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
+{
+    if (builder.Environment.IsDevelopment())
+        jwtSecret = "TripCore-Dev-Only-Secret-Min32Characters!!";
+    else
+        throw new InvalidOperationException(
+            "JWT_SECRET environment variable or Jwt:Secret config is required in non-development environments. " +
+            "Set a strong random secret of at least 32 characters.");
+}
+
+if (jwtSecret.Length < 32)
+    throw new InvalidOperationException("JWT secret must be at least 32 characters long.");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -158,6 +171,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TripCore API v1"));
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 // Security headers middleware

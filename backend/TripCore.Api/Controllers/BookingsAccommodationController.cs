@@ -33,7 +33,7 @@ public class BookingsController : ControllerBase
                 WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
                 NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
                 SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired,
-                InsuranceStatus = b.InsuranceStatus
+                InsuranceStatus = b.InsuranceStatus, PaymentStatus = b.PaymentStatus
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<BookingListDto>>.Ok(items));
     }
@@ -56,7 +56,7 @@ public class BookingsController : ControllerBase
             PlanTypeOverride = b.PlanTypeOverride, FundingNotes = b.FundingNotes,
             RoomPreference = b.RoomPreference, TransportNotes = b.TransportNotes,
             EquipmentNotes = b.EquipmentNotes, RiskSupportNotes = b.RiskSupportNotes,
-            OopPaymentStatus = b.OopPaymentStatus, BookingNotes = b.BookingNotes,
+            PaymentStatus = b.PaymentStatus, BookingNotes = b.BookingNotes,
             CancellationReason = b.CancellationReason,
             InsuranceProvider = b.InsuranceProvider, InsurancePolicyNumber = b.InsurancePolicyNumber,
             InsuranceCoverageStart = b.InsuranceCoverageStart, InsuranceCoverageEnd = b.InsuranceCoverageEnd,
@@ -164,7 +164,7 @@ public class BookingsController : ControllerBase
         b.PlanTypeOverride = dto.PlanTypeOverride; b.FundingNotes = dto.FundingNotes;
         b.RoomPreference = dto.RoomPreference; b.TransportNotes = dto.TransportNotes;
         b.EquipmentNotes = dto.EquipmentNotes; b.RiskSupportNotes = dto.RiskSupportNotes;
-        b.OopPaymentStatus = dto.OopPaymentStatus; b.ActionRequired = dto.ActionRequired;
+        b.PaymentStatus = dto.PaymentStatus; b.ActionRequired = dto.ActionRequired;
         b.BookingNotes = dto.BookingNotes; b.CancellationReason = dto.CancellationReason;
         b.InsuranceProvider = dto.InsuranceProvider; b.InsurancePolicyNumber = dto.InsurancePolicyNumber;
         b.InsuranceCoverageStart = dto.InsuranceCoverageStart; b.InsuranceCoverageEnd = dto.InsuranceCoverageEnd;
@@ -199,6 +199,7 @@ public class BookingsController : ControllerBase
 
         if (dto.BookingStatus.HasValue) b.BookingStatus = dto.BookingStatus.Value;
         if (dto.InsuranceStatus.HasValue) b.InsuranceStatus = dto.InsuranceStatus.Value;
+        if (dto.PaymentStatus.HasValue) b.PaymentStatus = dto.PaymentStatus.Value;
 
         b.UpdatedAt = DateTime.UtcNow;
         await RecalculateStaffRequired(b.TripInstanceId, ct);

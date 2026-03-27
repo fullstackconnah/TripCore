@@ -239,3 +239,12 @@ public enum InsuranceStatus
     Expired,
     Cancelled
 }
+
+public enum PaymentStatus
+{
+    NotInvoiced = 0,
+    InvoiceSent = 1,
+    Partial     = 2,
+    Paid        = 3,
+    Overdue     = 4
+}

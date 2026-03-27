@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -715,6 +715,34 @@ export default function TripDetailPage() {
                   </div>
                 )}
 
+                {/* Payment summary */}
+                {bookings.length > 0 && (() => {
+                  const counts: Record<string, number> = {}
+                  for (const b of bookings) {
+                    const s = (b.paymentStatus as string) || 'NotInvoiced'
+                    counts[s] = (counts[s] ?? 0) + 1
+                  }
+                  const entries = PAYMENT_STATUS_ITEMS
+                    .map(item => ({ ...item, count: counts[item.value] ?? 0 }))
+                    .filter(e => e.count > 0)
+                  if (entries.length === 0) return null
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Payment</p>
+                      <div className="flex flex-wrap gap-2 px-1">
+                        {entries.map(({ value, label, count }) => (
+                          <span
+                            key={value}
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[value]}`}
+                          >
+                            {count} {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
                 {/* Staff */}
                 {staff.length > 0 && (
                   <div className="space-y-2">
@@ -951,6 +979,7 @@ export default function TripDetailPage() {
                     <th className="text-center p-3 font-medium text-[#43493a]">High</th>
                     <th className="text-center p-3 font-medium text-[#43493a]">Night</th>
                     <th className="text-center p-3 font-medium text-[#43493a]">Insurance</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Payment</th>
                     <th className="text-center p-3 font-medium text-[#43493a]"></th>
                   </tr>
                 </thead>
@@ -996,6 +1025,16 @@ export default function TripDetailPage() {
                         />
                       </td>
                       <td className="p-3 text-center">
+                        <Dropdown
+                          variant="pill"
+                          value={b.paymentStatus || 'NotInvoiced'}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val } })}
+                          colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
+                          items={PAYMENT_STATUS_ITEMS}
+                          disabled={isReadOnly}
+                        />
+                      </td>
+                      <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
                           <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
@@ -1012,7 +1051,7 @@ export default function TripDetailPage() {
                     </tr>
                   ))}
                   {bookings.length === 0 && (
-                    <tr><td colSpan={9} className="p-6 text-center text-[#43493a]">No bookings yet</td></tr>
+                    <tr><td colSpan={10} className="p-6 text-center text-[#43493a]">No bookings yet</td></tr>
                   )}
                 </tbody>
               </table>

@@ -13,8 +13,6 @@ CLAUDE.md
 .swarm/
 .playwright-mcp/
 
-# ── Documentation / planning ─────────────────────────────────────────────────
-docs/
 
 # ── .NET build artifacts ─────────────────────────────────────────────────────
 backend/**/bin/

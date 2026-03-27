@@ -170,6 +170,17 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
         """);
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        CREATE TABLE IF NOT EXISTS "AppSettings" (
+            "Id" integer NOT NULL,
+            "QualificationWarningDays" integer NOT NULL DEFAULT 30,
+            CONSTRAINT "PK_AppSettings" PRIMARY KEY ("Id")
+        );
+        INSERT INTO "AppSettings" ("Id", "QualificationWarningDays")
+        VALUES (1, 30)
+        ON CONFLICT ("Id") DO NOTHING;
+        """);
     await DbSeeder.SeedAsync(db);
 }
 
@@ -178,6 +189,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TripCore API v1"));
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 // Security headers middleware

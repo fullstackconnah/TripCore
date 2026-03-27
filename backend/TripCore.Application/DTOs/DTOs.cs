@@ -234,6 +234,7 @@ public record BookingListDto
     public SupportRatio? SupportRatioOverride { get; init; }
     public bool ActionRequired { get; init; }
     public InsuranceStatus InsuranceStatus { get; init; }
+    public PaymentStatus PaymentStatus { get; init; }
 }
 
 public record BookingDetailDto : BookingListDto
@@ -244,7 +245,6 @@ public record BookingDetailDto : BookingListDto
     public string? TransportNotes { get; init; }
     public string? EquipmentNotes { get; init; }
     public string? RiskSupportNotes { get; init; }
-    public string? OopPaymentStatus { get; init; }
     public string? BookingNotes { get; init; }
     public string? CancellationReason { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -293,7 +293,7 @@ public record CreateBookingDto
 
 public record UpdateBookingDto : CreateBookingDto
 {
-    public string? OopPaymentStatus { get; init; }
+    public PaymentStatus PaymentStatus { get; init; }
     public bool ActionRequired { get; init; }
     public string? CancellationReason { get; init; }
 }
@@ -302,6 +302,7 @@ public record PatchBookingDto
 {
     public BookingStatus? BookingStatus { get; init; }
     public InsuranceStatus? InsuranceStatus { get; init; }
+    public PaymentStatus? PaymentStatus { get; init; }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -546,12 +547,10 @@ public record StaffListDto
     public DateOnly? ManualHandlingExpiryDate { get; init; }
     public DateOnly? MedicationCompetencyExpiryDate { get; init; }
     public bool HasExpiredQualifications { get; init; }
-}
-
-public record StaffDetailDto : StaffListDto
-{
     public string? Notes { get; init; }
 }
+
+public record StaffDetailDto : StaffListDto { }
 
 public record CreateStaffDto
 {
@@ -580,6 +579,21 @@ public record CreateStaffDto
 }
 
 public record UpdateStaffDto : CreateStaffDto { }
+
+// ══════════════════════════════════════════════════════════════
+// APP SETTINGS DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record AppSettingsDto
+{
+    public int QualificationWarningDays { get; init; }
+}
+
+public record UpdateAppSettingsDto
+{
+    [System.ComponentModel.DataAnnotations.Range(1, 365)]
+    public int QualificationWarningDays { get; init; }
+}
 
 // ══════════════════════════════════════════════════════════════
 // STAFF AVAILABILITY DTOs

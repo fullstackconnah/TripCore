@@ -210,6 +210,7 @@ public class StaffController : ControllerBase
                 DriverLicenceExpiryDate = s.DriverLicenceExpiryDate,
                 ManualHandlingExpiryDate = s.ManualHandlingExpiryDate,
                 MedicationCompetencyExpiryDate = s.MedicationCompetencyExpiryDate,
+                Notes = s.Notes,
                 HasExpiredQualifications =
                     (s.IsFirstAidQualified && s.FirstAidExpiryDate != null && s.FirstAidExpiryDate < today)
                     || (s.IsDriverEligible && s.DriverLicenceExpiryDate != null && s.DriverLicenceExpiryDate < today)

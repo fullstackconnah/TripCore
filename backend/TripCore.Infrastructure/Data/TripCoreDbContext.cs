@@ -33,6 +33,7 @@ public class TripCoreDbContext : DbContext
     public DbSet<TripDocument> TripDocuments => Set<TripDocument>();
     public DbSet<User> Users => Set<User>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
+    public DbSet<AppSettings> AppSettings => Set<AppSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

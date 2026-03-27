@@ -548,12 +548,10 @@ public record StaffListDto
     public DateOnly? ManualHandlingExpiryDate { get; init; }
     public DateOnly? MedicationCompetencyExpiryDate { get; init; }
     public bool HasExpiredQualifications { get; init; }
-}
-
-public record StaffDetailDto : StaffListDto
-{
     public string? Notes { get; init; }
 }
+
+public record StaffDetailDto : StaffListDto { }
 
 public record CreateStaffDto
 {
@@ -582,6 +580,21 @@ public record CreateStaffDto
 }
 
 public record UpdateStaffDto : CreateStaffDto { }
+
+// ══════════════════════════════════════════════════════════════
+// APP SETTINGS DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record AppSettingsDto
+{
+    public int QualificationWarningDays { get; init; }
+}
+
+public record UpdateAppSettingsDto
+{
+    [System.ComponentModel.DataAnnotations.Range(1, 365)]
+    public int QualificationWarningDays { get; init; }
+}
 
 // ══════════════════════════════════════════════════════════════
 // STAFF AVAILABILITY DTOs

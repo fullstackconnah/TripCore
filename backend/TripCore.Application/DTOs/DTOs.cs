@@ -234,6 +234,7 @@ public record BookingListDto
     public SupportRatio? SupportRatioOverride { get; init; }
     public bool ActionRequired { get; init; }
     public InsuranceStatus InsuranceStatus { get; init; }
+    public PaymentStatus PaymentStatus { get; init; }
 }
 
 public record BookingDetailDto : BookingListDto
@@ -244,7 +245,7 @@ public record BookingDetailDto : BookingListDto
     public string? TransportNotes { get; init; }
     public string? EquipmentNotes { get; init; }
     public string? RiskSupportNotes { get; init; }
-    public string? OopPaymentStatus { get; init; }
+    public PaymentStatus PaymentStatus { get; init; }
     public string? BookingNotes { get; init; }
     public string? CancellationReason { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -293,7 +294,7 @@ public record CreateBookingDto
 
 public record UpdateBookingDto : CreateBookingDto
 {
-    public string? OopPaymentStatus { get; init; }
+    public PaymentStatus PaymentStatus { get; init; }
     public bool ActionRequired { get; init; }
     public string? CancellationReason { get; init; }
 }
@@ -302,6 +303,7 @@ public record PatchBookingDto
 {
     public BookingStatus? BookingStatus { get; init; }
     public InsuranceStatus? InsuranceStatus { get; init; }
+    public PaymentStatus? PaymentStatus { get; init; }
 }
 
 // ══════════════════════════════════════════════════════════════

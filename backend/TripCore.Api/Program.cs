@@ -139,8 +139,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<TripCoreDbContext>();
     // Apply pending EF Core migrations automatically on startup
     await db.Database.MigrateAsync();
-    await db.Database.EnsureCreatedAsync();
-    // Add new columns that EnsureCreated won't add to existing tables
+    // Add new columns that migrations won't add to existing tables
     await db.Database.ExecuteSqlRawAsync(
         """ALTER TABLE "TripInstances" ADD COLUMN IF NOT EXISTS "CalculatedStaffRequired" numeric NOT NULL DEFAULT 0""");
     // ScheduledActivity tracking fields

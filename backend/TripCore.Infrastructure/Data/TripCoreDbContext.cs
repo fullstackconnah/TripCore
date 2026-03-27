@@ -463,27 +463,43 @@ public class TripCoreDbContext : DbContext
 
         modelBuilder.Entity<User>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<User>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<Participant>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Participant>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<Staff>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Staff>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<Vehicle>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Vehicle>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<AccommodationProperty>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<AccommodationProperty>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<EventTemplate>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<EventTemplate>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<TripInstance>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<TripInstance>()
+            .HasIndex(e => e.TenantId);
 
         modelBuilder.Entity<AppSettings>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<AppSettings>()
+            .HasIndex(e => e.TenantId);
 
         // Tenants table — unique index on EmailDomain
         modelBuilder.Entity<Tenant>()

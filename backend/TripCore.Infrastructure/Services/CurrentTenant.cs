@@ -17,7 +17,7 @@ public sealed class CurrentTenant : ICurrentTenant
     {
         var user = accessor.HttpContext?.User;
         var claim = user?.FindFirst("tenant_id")?.Value;
-        TenantId = claim is not null ? Guid.Parse(claim) : null;
+        TenantId = Guid.TryParse(claim, out var parsed) ? parsed : null;
         IsSuperAdmin = user?.IsInRole("SuperAdmin") ?? false;
     }
 }

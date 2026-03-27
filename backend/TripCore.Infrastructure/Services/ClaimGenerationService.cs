@@ -70,8 +70,8 @@ public class ClaimGenerationService
 
         foreach (var booking in confirmedBookings)
         {
-            if (string.IsNullOrWhiteSpace(booking.Participant.NdisNumber))
-                continue; // Skip participants without NDIS number
+            if (booking.Participant == null || string.IsNullOrWhiteSpace(booking.Participant.NdisNumber))
+                continue; // Skip bookings without a participant or NDIS number
 
             var ratio = booking.SupportRatioOverride ?? booking.Participant.SupportRatio;
             // GSTCode.P1 = GST applies, GSTCode.P2 = GST-free

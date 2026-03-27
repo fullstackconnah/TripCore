@@ -4,6 +4,7 @@ import { useLogin } from '@/api/hooks'
 import { Map, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -15,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     try {
-      const res = await login.mutateAsync({ username, password })
+      const res = await login.mutateAsync({ username, password, email })
       if (res.success && res.data) {
         const userToStore = {
           ...res.data,
@@ -54,10 +55,17 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div>
+              <label htmlFor="login-email" className="block text-sm font-medium mb-1.5 text-[#43493a]">Email</label>
+              <input id="login-email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-2xl bg-[#f5f3ef] text-[#1b1c1a] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all"
+                placeholder="Enter your email" required autoFocus />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium mb-1.5 text-[#43493a]">Username</label>
               <input id="login-username" type="text" value={username} onChange={e => setUsername(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-2xl bg-[#f5f3ef] text-[#1b1c1a] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all"
-                placeholder="Enter your username" required autoFocus />
+                placeholder="Enter your username" required />
             </div>
 
             <div>

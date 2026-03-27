@@ -470,23 +470,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\conna\\.nuget\\packages\\": {},
+    "C:\\Users\\Work\\.nuget\\packages\\": {},
     "F:\\VS2022\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Application\\TripCore.Application.csproj",
+      "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\TripCore.Application.csproj",
       "projectName": "TripCore.Application",
-      "projectPath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Application\\TripCore.Application.csproj",
-      "packagesPath": "C:\\Users\\conna\\.nuget\\packages\\",
-      "outputPath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Application\\obj\\",
+      "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\TripCore.Application.csproj",
+      "packagesPath": "C:\\Users\\Work\\.nuget\\packages\\",
+      "outputPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "F:\\VS2022\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\conna\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Work\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -501,8 +501,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
-              "projectPath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj"
+            "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
+              "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj"
             }
           }
         }

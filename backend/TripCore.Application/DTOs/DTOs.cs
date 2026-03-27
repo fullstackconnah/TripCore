@@ -1045,6 +1045,7 @@ public record AuthResponseDto
     public string Username { get; init; } = string.Empty;
     public string FullName { get; init; } = string.Empty;
     public string Role { get; init; } = string.Empty;
+    public string? TenantName { get; set; }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1217,3 +1218,21 @@ public record UpdateIncidentDto : CreateIncidentDto
     public bool SupportCoordinatorNotified { get; init; }
     public DateTime? SupportCoordinatorNotifiedAt { get; init; }
 }
+
+// ── Tenant DTOs ─────────────────────────────────────────────────────────────
+
+public record TenantDto(
+    Guid Id,
+    string Name,
+    string EmailDomain,
+    bool IsActive,
+    DateTime CreatedAt);
+
+public record CreateTenantDto(
+    string Name,
+    string EmailDomain);
+
+public record UpdateTenantDto(
+    string Name,
+    string EmailDomain,
+    bool IsActive);

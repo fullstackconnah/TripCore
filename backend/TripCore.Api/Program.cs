@@ -57,6 +57,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// ── NDIS Claiming Services ────────────────────────────────────
+builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.BprCsvService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
+
 // ── Rate Limiting ────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
 {

@@ -150,6 +150,7 @@ public enum TaskType
     PreDeparture,
     PostTrip,
     InsuranceConfirmation,
+    GenerateNdisClaims,
     Other
 }
 
@@ -247,4 +248,71 @@ public enum PaymentStatus
     Partial     = 2,
     Paid        = 3,
     Overdue     = 4
+}
+
+public enum ContactType
+{
+    Primary,
+    Secondary,
+    Emergency,
+    Other
+}
+
+public enum TripClaimStatus
+{
+    Draft,
+    Submitted,
+    Approved,
+    Rejected,
+    Paid,
+    Cancelled
+}
+
+public enum ClaimLineItemStatus
+{
+    Draft,
+    Submitted,
+    Approved,
+    Rejected,
+    Paid,
+    PartiallyPaid
+}
+
+public enum ClaimDayType
+{
+    Weekday,
+    Weekend,
+    PublicHoliday,
+    ShortNotice
+}
+
+public enum ClaimType
+{
+    Standard,
+    Variation,
+    Adjustment
+}
+
+public enum GSTCode
+{
+    GST,
+    NoGST,
+    Exempt
+}
+
+public enum ClaimStatus
+{
+    Draft,
+    Submitted,
+    Approved,
+    Rejected,
+    Paid
+}
+
+public enum OvernightSupportType
+{
+    PassiveNight,
+    ActiveNight,
+    SleepoverSupport,
+    None
 }

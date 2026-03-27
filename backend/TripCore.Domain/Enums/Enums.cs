@@ -186,7 +186,8 @@ public enum UserRole
     Admin,
     Coordinator,
     SupportWorker,
-    ReadOnly
+    ReadOnly,
+    SuperAdmin   // Platform operator — TenantId is null, bypasses all query filters
 }
 
 public enum IncidentType

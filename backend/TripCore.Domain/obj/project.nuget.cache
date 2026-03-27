@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Tq6oOiQ+O+c=",
+  "dgSpecHash": "uQSvLx5tGPE=",
   "success": true,
-  "projectFilePath": "F:\\Projects\\personal\\Trip Planner\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
+  "projectFilePath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

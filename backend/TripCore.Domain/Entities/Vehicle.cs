@@ -1,13 +1,16 @@
 using TripCore.Domain.Enums;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Master record for a vehicle in the fleet.
 /// </summary>
-public class Vehicle
+public class Vehicle : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string VehicleName { get; set; } = string.Empty;
     public string? Registration { get; set; }
     public VehicleType VehicleType { get; set; }

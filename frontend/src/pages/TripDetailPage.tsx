@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS, PAYMENT_STATUS_LABELS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -714,6 +714,34 @@ export default function TripDetailPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Payment summary */}
+                {bookings.length > 0 && (() => {
+                  const counts: Record<string, number> = {}
+                  for (const b of bookings) {
+                    const s = (b.paymentStatus as string) || 'NotInvoiced'
+                    counts[s] = (counts[s] ?? 0) + 1
+                  }
+                  const entries = PAYMENT_STATUS_ITEMS
+                    .map(item => ({ ...item, count: counts[item.value] ?? 0 }))
+                    .filter(e => e.count > 0)
+                  if (entries.length === 0) return null
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Payment</p>
+                      <div className="flex flex-wrap gap-2 px-1">
+                        {entries.map(({ value, label, count }) => (
+                          <span
+                            key={value}
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[value]}`}
+                          >
+                            {count} {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {/* Staff */}
                 {staff.length > 0 && (

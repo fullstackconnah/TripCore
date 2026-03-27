@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStaff, useSettings, useUpdateStaff } from '@/api/hooks'
 
-type QualStatus = 'expired' | 'expiring' | 'no-date'
+type QualStatus = 'expired' | 'expiring' | 'no-date' | 'ok'
 type FilterTab = 'all' | 'expired' | 'expiring' | 'no-date'
 
 interface QualRow {
@@ -16,6 +16,13 @@ interface QualRow {
   status: QualStatus
 }
 
+interface StaffGroup {
+  staffId: string
+  staffName: string
+  issueCount: number
+  rows: QualRow[]
+}
+
 const QUALS = [
   { label: 'First Aid', flag: 'isFirstAidQualified', field: 'firstAidExpiryDate' },
   { label: 'Driver Licence', flag: 'isDriverEligible', field: 'driverLicenceExpiryDate' },
@@ -23,57 +30,60 @@ const QUALS = [
   { label: 'Medication Competency', flag: 'isMedicationCompetent', field: 'medicationCompetencyExpiryDate' },
 ] as const
 
-function buildRows(staff: any[], warningDays: number): QualRow[] {
+function buildGroups(staff: any[], warningDays: number): StaffGroup[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const rows: QualRow[] = []
+  const groups: StaffGroup[] = []
 
   for (const s of staff) {
+    const rows: QualRow[] = []
+    let issueCount = 0
+
     for (const q of QUALS) {
       if (!s[q.flag]) continue
       const expiryDate = s[q.field] as string | null
+      let status: QualStatus
+      let daysUntilExpiry: number | null = null
+
       if (!expiryDate) {
-        rows.push({
-          key: `${s.id}-${q.field}`, staffId: s.id, staffName: s.fullName,
-          qualification: q.label, fieldKey: q.field,
-          expiryDate: null, daysUntilExpiry: null, status: 'no-date',
-        })
-        continue
+        status = 'no-date'
+        issueCount++
+      } else {
+        const expiry = new Date(expiryDate + 'T00:00:00')
+        expiry.setHours(0, 0, 0, 0)
+        const diff = Math.floor((expiry.getTime() - today.getTime()) / 86400000)
+        daysUntilExpiry = diff
+        if (diff < 0) { status = 'expired'; issueCount++ }
+        else if (diff <= warningDays) { status = 'expiring'; issueCount++ }
+        else { status = 'ok' }
       }
-      const expiry = new Date(expiryDate + 'T00:00:00')
-      expiry.setHours(0, 0, 0, 0)
-      const diff = Math.floor((expiry.getTime() - today.getTime()) / 86400000)
-      if (diff < 0) {
-        rows.push({
-          key: `${s.id}-${q.field}`, staffId: s.id, staffName: s.fullName,
-          qualification: q.label, fieldKey: q.field,
-          expiryDate, daysUntilExpiry: diff, status: 'expired',
-        })
-      } else if (diff <= warningDays) {
-        rows.push({
-          key: `${s.id}-${q.field}`, staffId: s.id, staffName: s.fullName,
-          qualification: q.label, fieldKey: q.field,
-          expiryDate, daysUntilExpiry: diff, status: 'expiring',
-        })
-      }
-      // Beyond warningDays: not shown
+
+      rows.push({
+        key: `${s.id}-${q.field}`,
+        staffId: s.id,
+        staffName: s.fullName,
+        qualification: q.label,
+        fieldKey: q.field,
+        expiryDate,
+        daysUntilExpiry,
+        status,
+      })
+    }
+
+    if (issueCount > 0) {
+      groups.push({ staffId: s.id, staffName: s.fullName, issueCount, rows })
     }
   }
 
-  // Sort: expired first, then by days remaining ascending, then no-date last
-  rows.sort((a, b) => {
-    if (a.status === 'expired' && b.status !== 'expired') return -1
-    if (a.status !== 'expired' && b.status === 'expired') return 1
-    if (a.daysUntilExpiry === null) return 1
-    if (b.daysUntilExpiry === null) return -1
-    return a.daysUntilExpiry - b.daysUntilExpiry
-  })
-  return rows
+  // Sort: most issues first
+  groups.sort((a, b) => b.issueCount - a.issueCount)
+  return groups
 }
 
 function getStatusBadge(row: QualRow): { label: string; cls: string } {
   if (row.status === 'expired') return { label: 'EXPIRED', cls: 'badge-cancelled' }
   if (row.status === 'no-date') return { label: 'No date set', cls: 'badge-draft' }
+  if (row.status === 'ok') return { label: 'Current', cls: 'badge-confirmed' }
   const days = row.daysUntilExpiry!
   const label = days === 0 ? 'Expires today' : `${days} day${days === 1 ? '' : 's'}`
   return { label, cls: 'badge-pending' }
@@ -85,19 +95,32 @@ export default function QualificationsPage() {
   const updateStaff = useUpdateStaff()
 
   const [filterTab, setFilterTab] = useState<FilterTab>('all')
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const warningDays = settings?.qualificationWarningDays ?? 30
-  const rows = buildRows(allStaff, warningDays)
-  const filteredRows = filterTab === 'all' ? rows : rows.filter(r => r.status === filterTab)
+  const groups = buildGroups(allStaff, warningDays)
+
+  const filteredGroups = filterTab === 'all'
+    ? groups
+    : groups.filter(g => g.rows.some(r => r.status === filterTab))
 
   const counts = {
-    all: rows.length,
-    expired: rows.filter(r => r.status === 'expired').length,
-    expiring: rows.filter(r => r.status === 'expiring').length,
-    'no-date': rows.filter(r => r.status === 'no-date').length,
+    all: groups.length,
+    expired: groups.filter(g => g.rows.some(r => r.status === 'expired')).length,
+    expiring: groups.filter(g => g.rows.some(r => r.status === 'expiring')).length,
+    'no-date': groups.filter(g => g.rows.some(r => r.status === 'no-date')).length,
+  }
+
+  function toggleGroup(id: string) {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   function handleEdit(row: QualRow) {
@@ -179,7 +202,7 @@ export default function QualificationsPage() {
       </div>
 
       {/* Empty state */}
-      {filteredRows.length === 0 ? (
+      {filteredGroups.length === 0 ? (
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-12 text-center">
           <p className="text-3xl mb-3">✓</p>
           <p className="font-semibold text-[var(--color-foreground)]">All qualifications are current</p>
@@ -188,85 +211,102 @@ export default function QualificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                <th className="text-left p-4 font-medium text-[var(--color-muted-foreground)]">Staff</th>
-                <th className="text-left p-4 font-medium text-[var(--color-muted-foreground)]">Qualification</th>
-                <th className="text-left p-4 font-medium text-[var(--color-muted-foreground)]">Expiry Date</th>
-                <th className="text-left p-4 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                <th className="p-4" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {filteredRows.map(row => {
-                const isEditing = editingKey === row.key
-                const badge = getStatusBadge(row)
-                return (
-                  <tr key={row.key}
-                    className={`hover:bg-[var(--color-accent)]/50 transition-colors ${
-                      row.status === 'expired'
-                        ? 'bg-[#ffdad6]/10'
-                        : row.status === 'expiring'
-                        ? 'bg-[#fef3c7]/10'
-                        : ''
-                    }`}>
-                    <td className="p-4 font-medium">{row.staffName}</td>
-                    <td className="p-4 text-[var(--color-muted-foreground)]">{row.qualification}</td>
-                    <td className="p-4">
-                      {isEditing ? (
-                        <div className="space-y-1">
-                          <input
-                            type="date"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                          />
-                          {saveError && (
-                            <p className="text-xs text-[#ba1a1a]">{saveError}</p>
-                          )}
-                        </div>
-                      ) : (
-                        <span>{row.expiryDate ?? '—'}</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
-                        {badge.label}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      {isEditing ? (
-                        <div className="flex items-center gap-3 justify-end">
-                          <button
-                            onClick={() => handleSave(row)}
-                            disabled={updateStaff.isPending}
-                            className="text-xs font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
-                          >
-                            {updateStaff.isPending ? 'Saving...' : 'Save'}
-                          </button>
-                          <button
-                            onClick={() => { setEditingKey(null); setSaveError(null) }}
-                            className="text-xs text-[var(--color-muted-foreground)] hover:underline"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-xs font-medium text-[var(--color-primary)] hover:underline"
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {filteredGroups.map(group => (
+            <div key={group.staffId} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+              {/* Accordion header */}
+              <div
+                onClick={() => toggleGroup(group.staffId)}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-[var(--color-accent)]/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[var(--color-muted-foreground)] text-lg">
+                    {expandedIds.has(group.staffId) ? 'expand_less' : 'expand_more'}
+                  </span>
+                  <span className="font-medium">{group.staffName}</span>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full badge-cancelled font-medium">
+                  {group.issueCount} issue{group.issueCount !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {/* Accordion body */}
+              {expandedIds.has(group.staffId) && (
+                <div className="border-t border-[var(--color-border)]">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[var(--color-accent)]">
+                      <tr>
+                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Qualification</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Expiry Date</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
+                        <th className="p-3" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--color-border)]">
+                      {group.rows.map(row => {
+                        const isEditing = editingKey === row.key
+                        const badge = getStatusBadge(row)
+                        return (
+                          <tr key={row.key} className={`hover:bg-[var(--color-accent)]/50 transition-colors ${
+                            row.status === 'expired' ? 'bg-[#ffdad6]/10' :
+                            row.status === 'expiring' ? 'bg-[#fef3c7]/10' : ''
+                          }`}>
+                            <td className="p-3 text-[var(--color-muted-foreground)]">{row.qualification}</td>
+                            <td className="p-3">
+                              {isEditing ? (
+                                <div className="space-y-1">
+                                  <input
+                                    type="date"
+                                    value={editValue}
+                                    onChange={e => setEditValue(e.target.value)}
+                                    className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                  />
+                                  {saveError && <p className="text-xs text-[#ba1a1a]">{saveError}</p>}
+                                </div>
+                              ) : (
+                                <span>{row.expiryDate ?? '—'}</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
+                                {badge.label}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right">
+                              {isEditing ? (
+                                <div className="flex items-center gap-3 justify-end">
+                                  <button
+                                    onClick={() => handleSave(row)}
+                                    disabled={updateStaff.isPending}
+                                    className="text-xs font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
+                                  >
+                                    {updateStaff.isPending ? 'Saving...' : 'Save'}
+                                  </button>
+                                  <button
+                                    onClick={() => { setEditingKey(null); setSaveError(null) }}
+                                    className="text-xs text-[var(--color-muted-foreground)] hover:underline"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleEdit(row)}
+                                  className="text-xs font-medium text-[var(--color-primary)] hover:underline"
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

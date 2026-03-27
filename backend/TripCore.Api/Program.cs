@@ -137,6 +137,38 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TripCoreDbContext>();
+
+    // Ensure the migrations history table exists before we try to use it.
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+            "MigrationId" character varying(150) NOT NULL,
+            "ProductVersion" character varying(32) NOT NULL,
+            CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+        );
+        """);
+
+    // If the DB tables already exist (e.g. from a prior deployment that didn't track
+    // migration history), mark all known migrations as applied so MigrateAsync doesn't
+    // try to re-run them and crash with "relation already exists".
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        SELECT m."MigrationId", '8.0.11'
+        FROM (VALUES
+            ('20260320104626_AddIncidentReports'),
+            ('20260320133223_AddScheduledActivityTrackingFields'),
+            ('20260321093551_AddInsuranceTracking'),
+            ('20260327084507_AddPaymentStatusToBooking')
+        ) AS m("MigrationId")
+        WHERE EXISTS (
+            SELECT 1 FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = 'AccommodationProperties'
+        )
+        ON CONFLICT DO NOTHING;
+        """);
+
     // Apply pending EF Core migrations automatically on startup
     await db.Database.MigrateAsync();
     // Add new columns that migrations won't add to existing tables

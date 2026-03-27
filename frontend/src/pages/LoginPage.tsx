@@ -17,8 +17,12 @@ export default function LoginPage() {
     try {
       const res = await login.mutateAsync({ username, password })
       if (res.success && res.data) {
+        const userToStore = {
+          ...res.data,
+          tenantName: res.tenantName,
+        }
         localStorage.setItem('tripcore_token', res.data.token)
-        localStorage.setItem('tripcore_user', JSON.stringify(res.data))
+        localStorage.setItem('tripcore_user', JSON.stringify(userToStore))
         navigate('/')
       } else {
         setError(res.errors?.[0] || 'Login failed')

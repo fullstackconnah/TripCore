@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
         if (tenant is null)
         {
             _logger.LogWarning("Failed login attempt — unknown email domain: {Domain}", domain);
-            return Unauthorized(ApiResponse<AuthResponseDto>.Fail("Unknown organisation"));
+            return Unauthorized(ApiResponse<AuthResponseDto>.Fail("Invalid username or password"));
         }
 
         // 2. Resolve user within that tenant (bypass query filter; not authenticated yet)
@@ -93,11 +93,9 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Domain.Entities.User user, Guid tenantId)
     {
-        var secret = _config["Jwt:Secret"];
-        if (string.IsNullOrWhiteSpace(secret) || secret.StartsWith("CHANGE-ME"))
-            secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        if (string.IsNullOrWhiteSpace(secret) || secret.StartsWith("CHANGE-ME"))
-            secret = "TripCore-Dev-Only-Secret-Min32Characters!!";
+        var secret = _config["Jwt:Secret"]
+            ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? throw new InvalidOperationException("JWT secret not configured");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

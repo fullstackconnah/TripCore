@@ -16,6 +16,7 @@ const navItems = [
   { to: '/tasks', icon: ListChecks, label: 'Tasks', msIcon: 'checklist' },
   { to: '/incidents', icon: AlertTriangle, label: 'Incidents', msIcon: 'emergency' },
   { to: '/bookings', icon: ClipboardList, label: 'Bookings', msIcon: 'description' },
+  { to: '/qualifications', icon: Settings, label: 'Qualifications', msIcon: 'health_and_safety' },
   { to: '/settings', icon: Settings, label: 'Settings', msIcon: 'settings' },
 ]
 

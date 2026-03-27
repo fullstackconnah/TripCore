@@ -22,6 +22,7 @@ import IncidentCreatePage from './pages/IncidentCreatePage'
 import BookingsPage from './pages/BookingsPage'
 import SchedulePage from './pages/SchedulePage'
 import SettingsPage from './pages/SettingsPage'
+import QualificationsPage from './pages/QualificationsPage'
 import LoginPage from './pages/LoginPage'
 import './index.css'
 
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="/incidents/:id/edit" element={<IncidentCreatePage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/qualifications" element={<QualificationsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

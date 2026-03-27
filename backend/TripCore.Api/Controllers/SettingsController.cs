@@ -33,7 +33,7 @@ public class SettingsController : ControllerBase
         var s = await _db.AppSettings.FirstOrDefaultAsync(ct);
         if (s == null)
         {
-            s = new AppSettings { Id = 1, QualificationWarningDays = dto.QualificationWarningDays };
+            s = new AppSettings { QualificationWarningDays = dto.QualificationWarningDays };
             _db.AppSettings.Add(s);
         }
         else

@@ -3,7 +3,9 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TripCore.Application.Services;
 using TripCore.Infrastructure.Data;
+using TripCore.Infrastructure.Services;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -131,6 +133,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentTenant, CurrentTenant>();
+
 var app = builder.Build();
 
 // ── Migrate + Seed ───────────────────────────────────────────
@@ -202,17 +207,6 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
-        """);
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        CREATE TABLE IF NOT EXISTS "AppSettings" (
-            "Id" integer NOT NULL,
-            "QualificationWarningDays" integer NOT NULL DEFAULT 30,
-            CONSTRAINT "PK_AppSettings" PRIMARY KEY ("Id")
-        );
-        INSERT INTO "AppSettings" ("Id", "QualificationWarningDays")
-        VALUES (1, 30)
-        ON CONFLICT ("Id") DO NOTHING;
         """);
     await DbSeeder.SeedAsync(db);
 }

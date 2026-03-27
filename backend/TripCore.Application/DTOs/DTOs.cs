@@ -541,6 +541,11 @@ public record StaffListDto
     public bool IsManualHandlingCompetent { get; init; }
     public bool IsOvernightEligible { get; init; }
     public bool IsActive { get; init; }
+    public DateOnly? FirstAidExpiryDate { get; init; }
+    public DateOnly? DriverLicenceExpiryDate { get; init; }
+    public DateOnly? ManualHandlingExpiryDate { get; init; }
+    public DateOnly? MedicationCompetencyExpiryDate { get; init; }
+    public bool HasExpiredQualifications { get; init; }
 }
 
 public record StaffDetailDto : StaffListDto
@@ -568,6 +573,10 @@ public record CreateStaffDto
     public bool IsOvernightEligible { get; init; }
     public bool IsActive { get; init; } = true;
     public string? Notes { get; init; }
+    public DateOnly? FirstAidExpiryDate { get; init; }
+    public DateOnly? DriverLicenceExpiryDate { get; init; }
+    public DateOnly? ManualHandlingExpiryDate { get; init; }
+    public DateOnly? MedicationCompetencyExpiryDate { get; init; }
 }
 
 public record UpdateStaffDto : CreateStaffDto { }

@@ -163,6 +163,13 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsuranceStatus" integer NOT NULL DEFAULT 0;
         CREATE INDEX IF NOT EXISTS "IX_ParticipantBookings_InsuranceStatus" ON "ParticipantBookings" ("InsuranceStatus");
         """);
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "FirstAidExpiryDate" date;
+        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;
+        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
+        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
+        """);
     await DbSeeder.SeedAsync(db);
 }
 

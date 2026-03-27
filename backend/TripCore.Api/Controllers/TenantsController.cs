@@ -31,14 +31,16 @@ public class TenantsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTenantDto dto)
     {
-        if (await _db.Tenants.AnyAsync(t => t.EmailDomain == dto.EmailDomain))
+        var domain = dto.EmailDomain.ToLower();
+
+        if (await _db.Tenants.AnyAsync(t => t.EmailDomain == domain))
             return Conflict("A tenant with this email domain already exists");
 
         var tenant = new Tenant
         {
             Id = Guid.NewGuid(),
             Name = dto.Name,
-            EmailDomain = dto.EmailDomain.ToLower(),
+            EmailDomain = domain,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

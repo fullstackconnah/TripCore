@@ -19,7 +19,7 @@ export default function LoginPage() {
       if (res.success && res.data) {
         const userToStore = {
           ...res.data,
-          tenantName: res.tenantName,
+          tenantName: res.data.tenantName,
         }
         localStorage.setItem('tripcore_token', res.data.token)
         localStorage.setItem('tripcore_user', JSON.stringify(userToStore))

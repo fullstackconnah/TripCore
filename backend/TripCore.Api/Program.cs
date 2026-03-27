@@ -215,6 +215,7 @@ using (var scope = app.Services.CreateScope())
         ON CONFLICT ("Id") DO NOTHING;
         """);
     await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedNdisDataAsync(db);
 }
 
 // ── Middleware pipeline ──────────────────────────────────────

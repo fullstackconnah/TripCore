@@ -204,7 +204,7 @@ export default function QualificationsPage() {
       {/* Empty state */}
       {filteredGroups.length === 0 ? (
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <p className="text-3xl mb-3">✓</p>
+          <span className="material-symbols-outlined text-5xl leading-none text-[var(--color-primary)] mb-3 block">check_circle</span>
           <p className="font-semibold text-[var(--color-foreground)]">All qualifications are current</p>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
             No issues found within the {warningDays}-day warning window

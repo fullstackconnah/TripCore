@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using TripCore.Application.Services;
 using TripCore.Domain.Entities;
 using TripCore.Domain.Enums;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Infrastructure.Data;
 
@@ -10,8 +12,15 @@ namespace TripCore.Infrastructure.Data;
 /// </summary>
 public class TripCoreDbContext : DbContext
 {
-    public TripCoreDbContext(DbContextOptions<TripCoreDbContext> options) : base(options) { }
+    private readonly ICurrentTenant _tenant;
 
+    public TripCoreDbContext(DbContextOptions<TripCoreDbContext> options, ICurrentTenant tenant)
+        : base(options)
+    {
+        _tenant = tenant;
+    }
+
+    public DbSet<Tenant> Tenants { get; set; }
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<ParticipantContact> ParticipantContacts => Set<ParticipantContact>();
@@ -580,5 +589,67 @@ public class TripCoreDbContext : DbContext
             .WithMany()
             .HasForeignKey(p => p.PlanManagerContactId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // ── Multi-Tenancy Query Filters ─────────────────────────────────────────────
+        // Applied to all root aggregate entities. SuperAdmin bypasses all filters.
+
+        modelBuilder.Entity<User>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<User>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<Participant>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Participant>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<Staff>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Staff>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<Vehicle>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<Vehicle>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<AccommodationProperty>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<AccommodationProperty>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<EventTemplate>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<EventTemplate>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<TripInstance>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<TripInstance>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<AppSettings>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<AppSettings>()
+            .HasIndex(e => e.TenantId);
+
+        // Tenants table — unique index on EmailDomain
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.EmailDomain).IsUnique();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        // Auto-populate TenantId on new tenant-scoped entities
+        if (_tenant.TenantId.HasValue)
+        {
+            foreach (var entry in ChangeTracker.Entries<ITenantEntity>()
+                .Where(e => e.State == EntityState.Added))
+            {
+                entry.Entity.TenantId = _tenant.TenantId.Value;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }

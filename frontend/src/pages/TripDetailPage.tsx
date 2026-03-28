@@ -975,7 +975,7 @@ export default function TripDetailPage() {
                     <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
                     <th className="text-left p-3 font-medium text-[#43493a]">Date</th>
                     <th className="text-left p-3 font-medium text-[#43493a]">Ratio</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">🦽</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]"><span className="material-symbols-outlined text-base leading-none">accessible</span></th>
                     <th className="text-center p-3 font-medium text-[#43493a]">High</th>
                     <th className="text-center p-3 font-medium text-[#43493a]">Night</th>
                     <th className="text-center p-3 font-medium text-[#43493a]">Insurance</th>
@@ -1880,11 +1880,11 @@ export default function TripDetailPage() {
                     </div>
                     <div className="flex gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(v.status)}`}>{v.status}</span>
-                      {v.hasOverlapConflict && <span className="badge-conflict text-xs px-2 py-0.5 rounded-full">⚠ Conflict</span>}
+                      {v.hasOverlapConflict && <span className="badge-conflict text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"><span className="material-symbols-outlined text-xs leading-none">warning</span> Conflict</span>}
                     </div>
                   </div>
                   <div className="mt-3 text-sm text-[#43493a]">
-                    <p>{v.vehicleType} · {v.totalSeats} seats{v.wheelchairPositions ? ` · ♿ ${v.wheelchairPositions}` : ''}</p>
+                    <p className="flex items-center gap-1">{v.vehicleType} · {v.totalSeats} seats{v.wheelchairPositions ? <> · <span className="material-symbols-outlined text-sm leading-none">accessible</span> {v.wheelchairPositions}</> : ''}</p>
                   </div>
                 </div>
               ))}

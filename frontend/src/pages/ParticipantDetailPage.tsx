@@ -55,10 +55,10 @@ export default function ParticipantDetailPage() {
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
             <h3 className="font-semibold">Support Needs</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
-              <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">Restrictive Practice</span><span>{p.hasRestrictivePracticeFlag ? '⚠️ Yes' : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Restrictive Practice</span><span>{p.hasRestrictivePracticeFlag ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-amber-500">warning</span> Yes</span> : 'No'}</span>
             </div>
           </div>
           {(p.mobilityNotes || p.transportRequirements || p.equipmentRequirements || p.notes) && (

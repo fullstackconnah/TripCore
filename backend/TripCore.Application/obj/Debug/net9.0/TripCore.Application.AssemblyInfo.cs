@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TripCore.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c821ba14186ecfda6753457c64ef0d0ffc04240b")]
 [assembly: System.Reflection.AssemblyProductAttribute("TripCore.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TripCore.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

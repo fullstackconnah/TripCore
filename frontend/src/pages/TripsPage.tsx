@@ -212,8 +212,8 @@ export default function TripsPage() {
               {/* Body */}
               <Link to={`/trips/${t.id}`} className="block">
                 <div className="space-y-2 text-sm text-[#43493a]">
-                  <p>📍 {t.destination || 'TBD'} {t.region ? `· ${t.region}` : ''}</p>
-                  <p>📅 {formatDateAu(t.startDate)} — {formatDateAu(t.endDate)} ({t.durationDays}d)</p>
+                  <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">location_on</span> {t.destination || 'TBD'} {t.region ? `· ${t.region}` : ''}</p>
+                  <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">calendar_today</span> {formatDateAu(t.startDate)} — {formatDateAu(t.endDate)} ({t.durationDays}d)</p>
                 </div>
               </Link>
               {/* Footer: status (far left, edit slides in on hover) + participant info */}
@@ -237,7 +237,7 @@ export default function TripsPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#43493a]">
-                  <span>👤 {t.currentParticipantCount}/{t.maxParticipants || '—'}</span>
+                  <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">person</span> {t.currentParticipantCount}/{t.maxParticipants || '—'}</span>
                   {t.waitlistCount > 0 && <span className="badge-pending text-xs px-2 py-0.5 rounded-full">{t.waitlistCount} waitlist</span>}
                   {t.leadCoordinatorName && <span className="text-xs">{t.leadCoordinatorName}</span>}
                 </div>

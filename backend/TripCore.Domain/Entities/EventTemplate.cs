@@ -1,11 +1,15 @@
+using TripCore.Domain.Interfaces;
+
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Reusable event/holiday concept (e.g. "Gold Coast Beach Break").
 /// </summary>
-public class EventTemplate
+public class EventTemplate : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string EventCode { get; set; } = string.Empty;
     public string EventName { get; set; } = string.Empty;
     public string? DefaultDestination { get; set; }

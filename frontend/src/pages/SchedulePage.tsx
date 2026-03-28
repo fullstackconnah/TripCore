@@ -856,7 +856,7 @@ export default function SchedulePage() {
                           <div className="text-xs font-bold truncate">{v.vehicleName}</div>
                           <div className="text-[10px] text-[var(--color-muted-foreground)]">
                             {v.registration || '—'} · {v.vehicleType?.replace(/([A-Z])/g, ' $1').trim()} · {v.totalSeats} seats
-                            {v.wheelchairPositions > 0 && ` · ${v.wheelchairPositions} ♿`}
+                            {v.wheelchairPositions > 0 && <> · {v.wheelchairPositions} <span className="material-symbols-outlined text-[10px] leading-none align-middle">accessible</span></>}
                           </div>
                         </div>
                       </div>

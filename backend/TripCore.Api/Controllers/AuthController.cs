@@ -36,8 +36,27 @@ public class AuthController : ControllerBase
     [EnableRateLimiting("login")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto, CancellationToken ct)
     {
-        var user = await _db.Users.Include(u => u.Staff)
-            .FirstOrDefaultAsync(u => u.Username == dto.Username && u.IsActive, ct);
+        // 1. Resolve tenant from email domain
+        var domain = dto.Email.Contains('@')
+            ? dto.Email.Split('@').Last().ToLower()
+            : string.Empty;
+
+        var tenant = await _db.Tenants
+            .FirstOrDefaultAsync(t => t.EmailDomain == domain && t.IsActive, ct);
+
+        if (tenant is null)
+        {
+            _logger.LogWarning("Failed login attempt — unknown email domain: {Domain}", domain);
+            return Unauthorized(ApiResponse<AuthResponseDto>.Fail("Invalid username or password"));
+        }
+
+        // 2. Resolve user within that tenant (bypass query filter; not authenticated yet)
+        var user = await _db.Users
+            .IgnoreQueryFilters()
+            .Include(u => u.Staff)
+            .FirstOrDefaultAsync(u => u.Username == dto.Username
+                                      && u.TenantId == tenant.Id
+                                      && u.IsActive, ct);
 
         if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
         {
@@ -48,14 +67,15 @@ public class AuthController : ControllerBase
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        var token = GenerateJwtToken(user);
+        var token = GenerateJwtToken(user, tenant.Id);
         var response = new AuthResponseDto
         {
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddHours(8),
             Username = user.Username,
             FullName = $"{user.FirstName} {user.LastName}",
-            Role = user.Role.ToString()
+            Role = user.Role.ToString(),
+            TenantName = tenant.Name
         };
 
         return Ok(ApiResponse<AuthResponseDto>.Ok(response));
@@ -71,13 +91,11 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<AuthResponseDto>.Fail("Refresh not yet implemented"));
     }
 
-    private string GenerateJwtToken(Domain.Entities.User user)
+    private string GenerateJwtToken(Domain.Entities.User user, Guid tenantId)
     {
-        var secret = _config["Jwt:Secret"];
-        if (string.IsNullOrWhiteSpace(secret) || secret.StartsWith("CHANGE-ME"))
-            secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        if (string.IsNullOrWhiteSpace(secret) || secret.StartsWith("CHANGE-ME"))
-            secret = "TripCore-Dev-Only-Secret-Min32Characters!!";
+        var secret = _config["Jwt:Secret"]
+            ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? throw new InvalidOperationException("JWT secret not configured");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -88,7 +106,8 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("fullName", $"{user.FirstName} {user.LastName}")
+            new Claim("fullName", $"{user.FirstName} {user.LastName}"),
+            new Claim("tenant_id", tenantId.ToString())
         };
 
         var token = new JwtSecurityToken(

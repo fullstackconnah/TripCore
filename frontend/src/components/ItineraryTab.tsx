@@ -288,7 +288,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
                                   <p className="text-xs text-[#43493a]">Ref: {activity.bookingReference}</p>
                                 )}
                                 {activity.accessibilityNotes && (
-                                  <p className="text-xs text-[#f59e0b] mt-1">♿ {activity.accessibilityNotes}</p>
+                                  <p className="flex items-center gap-1 text-xs text-[#f59e0b] mt-1"><span className="material-symbols-outlined text-base leading-none">accessible</span> {activity.accessibilityNotes}</p>
                                 )}
                                 {activity.notes && (
                                   <p className="text-xs text-[#43493a] mt-1 italic">{activity.notes}</p>

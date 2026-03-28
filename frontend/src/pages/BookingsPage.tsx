@@ -25,7 +25,7 @@ export default function BookingsPage() {
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Trip</th>
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
                 <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Booking Date</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">🦽</th>
+                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]"><span className="material-symbols-outlined text-base leading-none">accessible</span></th>
                 <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">High</th>
                 <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Night</th>
               </tr>

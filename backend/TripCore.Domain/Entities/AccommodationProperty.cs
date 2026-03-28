@@ -1,11 +1,15 @@
+using TripCore.Domain.Interfaces;
+
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Master record for an accommodation property.
 /// </summary>
-public class AccommodationProperty
+public class AccommodationProperty : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string PropertyName { get; set; } = string.Empty;
     public string? ProviderOwner { get; set; }
     public string? Location { get; set; }

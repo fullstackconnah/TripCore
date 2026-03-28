@@ -88,10 +88,10 @@ export default function ParticipantsPage() {
                   <td className="p-3 text-[var(--color-muted-foreground)] font-mono text-xs">{maskNdisNumber(p.maskedNdisNumber || p.ndisNumber)}</td>
                   <td className="p-3 text-[var(--color-muted-foreground)]">{p.planType}</td>
                   <td className="p-3 text-[var(--color-muted-foreground)]">{p.region || '—'}</td>
-                  <td className="p-3 text-center">{p.wheelchairRequired ? '✅' : ''}</td>
-                  <td className="p-3 text-center">{p.isHighSupport ? '✅' : ''}</td>
+                  <td className="p-3 text-center">{p.wheelchairRequired ? <span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> : ''}</td>
+                  <td className="p-3 text-center">{p.isHighSupport ? <span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> : ''}</td>
                   <td className="p-3 text-[var(--color-muted-foreground)]">{p.supportRatio}</td>
-                  <td className="p-3 text-center">{p.isRepeatClient ? '🔁' : ''}</td>
+                  <td className="p-3 text-center">{p.isRepeatClient ? <span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">repeat</span> : ''}</td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td className="p-3">
                     {showArchived ? (

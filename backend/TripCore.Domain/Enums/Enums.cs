@@ -187,7 +187,8 @@ public enum UserRole
     Admin,
     Coordinator,
     SupportWorker,
-    ReadOnly
+    ReadOnly,
+    SuperAdmin   // Platform operator — TenantId is null, bypasses all query filters
 }
 
 public enum IncidentType
@@ -257,7 +258,9 @@ public enum ContactType
     EmergencyContact = 2,
     PlanManager = 3,
     SupportCoordinator = 4,
-    Other = 5
+    Primary = 5,
+    Secondary = 6,
+    Other = 7
 }
 
 public enum TripClaimStatus
@@ -265,17 +268,21 @@ public enum TripClaimStatus
     Draft = 0,
     Ready = 1,
     Submitted = 2,
-    Paid = 3,
-    PartiallyPaid = 4,
-    Rejected = 5
+    Approved = 3,
+    Paid = 4,
+    PartiallyPaid = 5,
+    Rejected = 6,
+    Cancelled = 7
 }
 
 public enum ClaimLineItemStatus
 {
     Draft = 0,
     Submitted = 1,
-    Paid = 2,
-    Rejected = 3
+    Approved = 2,
+    Paid = 3,
+    PartiallyPaid = 4,
+    Rejected = 5
 }
 
 public enum ClaimDayType
@@ -283,34 +290,45 @@ public enum ClaimDayType
     Weekday = 0,
     Saturday = 1,
     Sunday = 2,
-    PublicHoliday = 3
+    Weekend = 3,
+    PublicHoliday = 4,
+    ShortNotice = 5
 }
 
 public enum ClaimType
 {
     Standard = 0,
-    Cancellation = 1
+    Cancellation = 1,
+    Variation = 2,
+    Adjustment = 3
 }
 
 public enum GSTCode
 {
     P1 = 0,
     P2 = 1,
-    P5 = 2
+    P5 = 2,
+    GST = 3,
+    NoGST = 4,
+    Exempt = 5
 }
 
 public enum ClaimStatus
 {
     NotClaimed = 0,
     InClaim = 1,
-    Submitted = 2,
-    Paid = 3,
-    Rejected = 4
+    Draft = 2,
+    Submitted = 3,
+    Approved = 4,
+    Paid = 5,
+    Rejected = 6
 }
 
 public enum OvernightSupportType
 {
     None = 0,
     ActiveNight = 1,
-    Sleepover = 2
+    PassiveNight = 2,
+    Sleepover = 3,
+    SleepoverSupport = 4
 }

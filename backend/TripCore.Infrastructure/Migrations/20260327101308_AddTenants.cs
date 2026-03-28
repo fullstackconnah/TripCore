@@ -156,6 +156,15 @@ namespace TripCore.Infrastructure.Migrations
                     new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 });
 
+            // Update existing rows to use the seed tenant (zero UUID is not a valid FK target)
+            migrationBuilder.Sql("UPDATE \"AccommodationProperties\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"EventTemplates\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"Participants\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"Staff\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"TripInstances\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"Users\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+            migrationBuilder.Sql("UPDATE \"Vehicles\" SET \"TenantId\" = '00000000-0000-0000-0000-000000000001' WHERE \"TenantId\" = '00000000-0000-0000-0000-000000000000'");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_AccommodationProperties_Tenants_TenantId",
                 table: "AccommodationProperties",

@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useClaim, useUpdateClaim, useUpdateClaimLineItem } from '@/api/hooks'
-import { Download, Check } from 'lucide-react'
+import { Download, Check, DollarSign, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { apiClient } from '@/api/client'
 
@@ -81,9 +81,9 @@ export default function ClaimDetailPage() {
     })
   }
 
-  function handleSubmit() {
+  function handleStatusChange(status: string) {
     if (!id) return
-    updateClaim.mutate({ claimId: id, data: { status: 'Submitted' } })
+    updateClaim.mutate({ claimId: id, data: { status } })
   }
 
   return (
@@ -117,13 +117,33 @@ export default function ClaimDetailPage() {
           </button>
           {claim.status === 'Draft' && (
             <button
-              onClick={handleSubmit}
+              onClick={() => handleStatusChange('Submitted')}
               disabled={updateClaim.isPending}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
               Mark as Submitted
             </button>
+          )}
+          {claim.status === 'Submitted' && (
+            <>
+              <button
+                onClick={() => handleStatusChange('Paid')}
+                disabled={updateClaim.isPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
+              >
+                <DollarSign className="w-4 h-4" />
+                Mark as Paid
+              </button>
+              <button
+                onClick={() => handleStatusChange('Rejected')}
+                disabled={updateClaim.isPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                <XCircle className="w-4 h-4" />
+                Mark as Rejected
+              </button>
+            </>
           )}
         </div>
       </div>

@@ -7,6 +7,7 @@ public class ProviderSettings
     public string ABN { get; set; } = string.Empty;
     public string OrganisationName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    public string State { get; set; } = "VIC";
     public bool GSTRegistered { get; set; }
     public bool IsPaceProvider { get; set; }
 

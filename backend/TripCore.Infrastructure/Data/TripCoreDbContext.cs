@@ -533,11 +533,14 @@ public class TripCoreDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Unit).HasMaxLength(10);
             entity.Property(e => e.CatalogueVersion).HasMaxLength(20);
-            entity.Property(e => e.PriceLimit_Standard).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to2).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to3).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to4).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to5).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_ACT).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_NSW).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_NT).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_QLD).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_SA).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_TAS).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_VIC).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_WA).HasPrecision(18, 2);
             entity.Property(e => e.PriceLimit_Remote).HasPrecision(18, 2);
             entity.Property(e => e.PriceLimit_VeryRemote).HasPrecision(18, 2);
 

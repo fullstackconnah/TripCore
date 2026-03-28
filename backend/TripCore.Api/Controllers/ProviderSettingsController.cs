@@ -28,7 +28,8 @@ public class ProviderSettingsController : ControllerBase
             OrganisationName = s.OrganisationName, Address = s.Address,
             GSTRegistered = s.GSTRegistered, IsPaceProvider = s.IsPaceProvider,
             BankAccountName = s.BankAccountName, BSB = s.BSB,
-            AccountNumber = s.AccountNumber, InvoiceFooterNotes = s.InvoiceFooterNotes
+            AccountNumber = s.AccountNumber, InvoiceFooterNotes = s.InvoiceFooterNotes,
+            State = s.State
         }));
     }
 
@@ -48,6 +49,7 @@ public class ProviderSettingsController : ControllerBase
         s.GSTRegistered = dto.GSTRegistered; s.IsPaceProvider = dto.IsPaceProvider;
         s.BankAccountName = dto.BankAccountName; s.BSB = dto.BSB;
         s.AccountNumber = dto.AccountNumber; s.InvoiceFooterNotes = dto.InvoiceFooterNotes;
+        s.State = dto.State;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<bool>.Ok(true));

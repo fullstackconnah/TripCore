@@ -33,9 +33,16 @@ public class SupportCatalogueController : ControllerBase
             {
                 Id = i.Id, ItemNumber = i.ItemNumber, Description = i.Description,
                 Unit = i.Unit, DayType = i.DayType,
-                PriceLimit_Standard = i.PriceLimit_Standard, PriceLimit_1to2 = i.PriceLimit_1to2,
-                PriceLimit_1to3 = i.PriceLimit_1to3, PriceLimit_1to4 = i.PriceLimit_1to4,
-                PriceLimit_1to5 = i.PriceLimit_1to5,
+                PriceLimit_ACT = i.PriceLimit_ACT,
+                PriceLimit_NSW = i.PriceLimit_NSW,
+                PriceLimit_NT = i.PriceLimit_NT,
+                PriceLimit_QLD = i.PriceLimit_QLD,
+                PriceLimit_SA = i.PriceLimit_SA,
+                PriceLimit_TAS = i.PriceLimit_TAS,
+                PriceLimit_VIC = i.PriceLimit_VIC,
+                PriceLimit_WA = i.PriceLimit_WA,
+                PriceLimit_Remote = i.PriceLimit_Remote,
+                PriceLimit_VeryRemote = i.PriceLimit_VeryRemote,
                 CatalogueVersion = i.CatalogueVersion, EffectiveFrom = i.EffectiveFrom, IsActive = i.IsActive
             }).ToList()
         }).ToList();

@@ -45,7 +45,7 @@ public class CatalogueImportService
         {
             var existing = existingItems.FirstOrDefault(i => i.ItemNumber == row.ItemNumber);
             var isNew = existing == null;
-            var priceChanged = existing != null && existing.PriceLimit_Standard != row.PriceLimit_Standard;
+            var priceChanged = existing != null && existing.PriceLimit_VIC != row.PriceLimit_VIC;
 
             previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
         }
@@ -105,13 +105,16 @@ public class CatalogueImportService
                 Description = row.Description,
                 Unit = "H",
                 DayType = row.DayType,
-                PriceLimit_Standard = row.PriceLimit_Standard,
-                PriceLimit_1to2 = row.PriceLimit_1to2,
-                PriceLimit_1to3 = row.PriceLimit_1to3,
-                PriceLimit_1to4 = row.PriceLimit_1to4,
-                PriceLimit_1to5 = row.PriceLimit_1to5,
-                PriceLimit_Remote = 0,
-                PriceLimit_VeryRemote = 0,
+                PriceLimit_ACT = row.PriceLimit_ACT,
+                PriceLimit_NSW = row.PriceLimit_NSW,
+                PriceLimit_NT  = row.PriceLimit_NT,
+                PriceLimit_QLD = row.PriceLimit_QLD,
+                PriceLimit_SA  = row.PriceLimit_SA,
+                PriceLimit_TAS = row.PriceLimit_TAS,
+                PriceLimit_VIC = row.PriceLimit_VIC,
+                PriceLimit_WA  = row.PriceLimit_WA,
+                PriceLimit_Remote     = row.PriceLimit_Remote,
+                PriceLimit_VeryRemote = row.PriceLimit_VeryRemote,
                 CatalogueVersion = dto.CatalogueVersion,
                 EffectiveFrom = today,
                 IsActive = true
@@ -168,8 +171,17 @@ public class CatalogueImportService
 
         var colItemNumber = ColIdx("Support Item Number", "SupportItemNumber", "Item Number");
         var colDescription = ColIdx("Support Item Name", "SupportItemName", "Item Name", "Description");
-        // Real NDIS catalogue uses per-state columns — VIC is the price limit for Victorian providers
+        // Real NDIS catalogue uses per-state price columns
+        var colACT = ColIdx("ACT");
+        var colNSW = ColIdx("NSW");
+        var colNT  = ColIdx("NT");
+        var colQLD = ColIdx("QLD");
+        var colSA  = ColIdx("SA");
+        var colTAS = ColIdx("TAS");
         var colVic = ColIdx("VIC", "Vic");
+        var colWA  = ColIdx("WA");
+        var colRemote     = ColIdx("Remote");
+        var colVeryRemote = ColIdx("Very Remote");
 
         if (colItemNumber == 0)
             return results;
@@ -209,11 +221,16 @@ public class CatalogueImportService
                 ItemNumber = itemNumber,
                 Description = colDescription > 0 ? ws.Cell(r, colDescription).GetString().Trim() : itemNumber,
                 DayType = dayType,
-                PriceLimit_Standard = vicPrice,
-                PriceLimit_1to2 = vicPrice,
-                PriceLimit_1to3 = vicPrice,
-                PriceLimit_1to4 = vicPrice,
-                PriceLimit_1to5 = vicPrice
+                PriceLimit_ACT = Price(colACT),
+                PriceLimit_NSW = Price(colNSW),
+                PriceLimit_NT  = Price(colNT),
+                PriceLimit_QLD = Price(colQLD),
+                PriceLimit_SA  = Price(colSA),
+                PriceLimit_TAS = Price(colTAS),
+                PriceLimit_VIC = vicPrice,
+                PriceLimit_WA  = Price(colWA),
+                PriceLimit_Remote     = Price(colRemote),
+                PriceLimit_VeryRemote = Price(colVeryRemote),
             });
         }
 

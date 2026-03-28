@@ -83,7 +83,6 @@ public class ClaimGenerationService
             if (booking.Participant == null || string.IsNullOrWhiteSpace(booking.Participant.NdisNumber))
                 continue; // Skip bookings without a participant or NDIS number
 
-            var ratio = booking.SupportRatioOverride ?? booking.Participant.SupportRatio;
             // GSTCode.P1 = GST applies, GSTCode.P2 = GST-free
             var gstCode = settings.GSTRegistered ? GSTCode.P1 : GSTCode.P2;
 
@@ -96,7 +95,7 @@ public class ClaimGenerationService
                 if (catalogueItem == null)
                     continue;
 
-                var unitPrice = GetPriceForRatio(catalogueItem, ratio);
+                var unitPrice = GetPriceForState(catalogueItem, settings.State ?? "VIC");
                 var hours = group.DayCount * trip.ActiveHoursPerDay;
                 var total = hours * unitPrice;
 
@@ -172,18 +171,20 @@ public class ClaimGenerationService
         };
     }
 
-    private static decimal GetPriceForRatio(SupportCatalogueItem item, SupportRatio ratio)
-    {
-        var price = ratio switch
+    private static decimal GetPriceForState(SupportCatalogueItem item, string state) =>
+        state.ToUpperInvariant() switch
         {
-            SupportRatio.OneToTwo => item.PriceLimit_1to2,
-            SupportRatio.OneToThree => item.PriceLimit_1to3,
-            SupportRatio.OneToFour => item.PriceLimit_1to4,
-            SupportRatio.OneToFive => item.PriceLimit_1to5,
-            _ => item.PriceLimit_Standard
+            "ACT" => item.PriceLimit_ACT,
+            "NSW" => item.PriceLimit_NSW,
+            "NT"  => item.PriceLimit_NT,
+            "QLD" => item.PriceLimit_QLD,
+            "SA"  => item.PriceLimit_SA,
+            "TAS" => item.PriceLimit_TAS,
+            "WA"  => item.PriceLimit_WA,
+            "REMOTE" => item.PriceLimit_Remote,
+            "VERYREMOTE" or "VERY REMOTE" => item.PriceLimit_VeryRemote,
+            _ => item.PriceLimit_VIC
         };
-        return price > 0 ? price : item.PriceLimit_Standard;
-    }
 
     private class DayGroup
     {

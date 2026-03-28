@@ -190,6 +190,18 @@ function ProviderSettingsTab() {
           <div><label className={labelClass}>ABN</label><input {...f('abn')} /></div>
           <div className="col-span-2"><label className={labelClass}>Organisation Name</label><input {...f('organisationName')} /></div>
           <div className="col-span-2"><label className={labelClass}>Address</label><input {...f('address')} /></div>
+          <div>
+            <label className={labelClass}>State</label>
+            <select
+              value={form.state ?? 'VIC'}
+              onChange={e => setForm((p: any) => ({ ...p, state: e.target.value }))}
+              className={inputClass}
+            >
+              {['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'].map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center gap-3">
             <input type="checkbox" checked={form.gstRegistered ?? false} onChange={e => setForm((p: any) => ({ ...p, gstRegistered: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="gst" />
             <label htmlFor="gst" className="text-sm text-[#43493a]">GST Registered</label>
@@ -300,7 +312,7 @@ function SupportCatalogueTab() {
           <table className="w-full text-sm">
             <thead className="bg-[#f5f3ef]">
               <tr>
-                {['Item Number', 'Description', 'Day Type', '1:1', '1:2', '1:3', '1:4', '1:5', 'Effective From'].map(h => (
+                {['Item Number', 'Description', 'Day Type', 'ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA', 'Remote', 'V.Remote', 'Effective From'].map(h => (
                   <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -311,16 +323,21 @@ function SupportCatalogueTab() {
                   <td className="p-3 font-mono text-xs">{item.itemNumber}</td>
                   <td className="p-3 text-[#43493a]">{item.description}</td>
                   <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${dayTypeColor(item.dayType)}`}>{item.dayType}</span></td>
-                  <td className="p-3 text-right">${item.priceLimit_Standard?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_1to2?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_1to3?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_1to4?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_1to5?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_ACT?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_NSW?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_NT?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_QLD?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_SA?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_TAS?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_VIC?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_WA?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_Remote?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_VeryRemote?.toFixed(2)}</td>
                   <td className="p-3 text-xs text-[#43493a]">{item.effectiveFrom}</td>
                 </tr>
               ))}
               {allItems.length === 0 && (
-                <tr><td colSpan={9} className="p-6 text-center text-[#43493a]">No catalogue items. Import the NDIS Support Catalogue XLSX.</td></tr>
+                <tr><td colSpan={14} className="p-6 text-center text-[#43493a]">No catalogue items. Import the NDIS Support Catalogue XLSX.</td></tr>
               )}
             </tbody>
           </table>

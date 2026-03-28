@@ -85,6 +85,7 @@ public record ProviderSettingsDto
     public string ABN { get; init; } = string.Empty;
     public string OrganisationName { get; init; } = string.Empty;
     public string Address { get; init; } = string.Empty;
+    public string State { get; init; } = "VIC";
     public bool GSTRegistered { get; init; }
     public bool IsPaceProvider { get; init; }
     public string? BankAccountName { get; init; }
@@ -103,6 +104,8 @@ public record UpsertProviderSettingsDto
     public string OrganisationName { get; init; } = string.Empty;
     [Required, StringLength(500)]
     public string Address { get; init; } = string.Empty;
+    [StringLength(10)]
+    public string State { get; init; } = "VIC";
     public bool GSTRegistered { get; init; }
     public bool IsPaceProvider { get; init; }
     [StringLength(200)]
@@ -136,11 +139,16 @@ public record SupportCatalogueItemDto
     public string Description { get; init; } = string.Empty;
     public string Unit { get; init; } = string.Empty;
     public ClaimDayType DayType { get; init; }
-    public decimal PriceLimit_Standard { get; init; }
-    public decimal PriceLimit_1to2 { get; init; }
-    public decimal PriceLimit_1to3 { get; init; }
-    public decimal PriceLimit_1to4 { get; init; }
-    public decimal PriceLimit_1to5 { get; init; }
+    public decimal PriceLimit_ACT { get; init; }
+    public decimal PriceLimit_NSW { get; init; }
+    public decimal PriceLimit_NT { get; init; }
+    public decimal PriceLimit_QLD { get; init; }
+    public decimal PriceLimit_SA { get; init; }
+    public decimal PriceLimit_TAS { get; init; }
+    public decimal PriceLimit_VIC { get; init; }
+    public decimal PriceLimit_WA { get; init; }
+    public decimal PriceLimit_Remote { get; init; }
+    public decimal PriceLimit_VeryRemote { get; init; }
     public string CatalogueVersion { get; init; } = string.Empty;
     public DateOnly EffectiveFrom { get; init; }
     public bool IsActive { get; init; }
@@ -186,11 +194,16 @@ public record CatalogueImportRowDto
     public string ItemNumber { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public ClaimDayType DayType { get; init; }
-    public decimal PriceLimit_Standard { get; init; }
-    public decimal PriceLimit_1to2 { get; init; }
-    public decimal PriceLimit_1to3 { get; init; }
-    public decimal PriceLimit_1to4 { get; init; }
-    public decimal PriceLimit_1to5 { get; init; }
+    public decimal PriceLimit_ACT { get; init; }
+    public decimal PriceLimit_NSW { get; init; }
+    public decimal PriceLimit_NT { get; init; }
+    public decimal PriceLimit_QLD { get; init; }
+    public decimal PriceLimit_SA { get; init; }
+    public decimal PriceLimit_TAS { get; init; }
+    public decimal PriceLimit_VIC { get; init; }
+    public decimal PriceLimit_WA { get; init; }
+    public decimal PriceLimit_Remote { get; init; }
+    public decimal PriceLimit_VeryRemote { get; init; }
     public bool IsNew { get; init; }
     public bool PriceChanged { get; init; }
 }

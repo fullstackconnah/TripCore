@@ -316,3 +316,10 @@ public enum OvernightSupportType
     SleepoverSupport,
     None
 }
+
+public enum AuditAction
+{
+    Created,
+    Updated,
+    Deleted
+}

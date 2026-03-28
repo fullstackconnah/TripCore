@@ -701,6 +701,15 @@ export function useUpdateClaimLineItem() {
   })
 }
 
+export function useDeleteClaim() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (claimId: string) =>
+      apiClient.delete<ApiResponse<boolean>>(`/claims/${claimId}`).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['trip-claims'] }) },
+  })
+}
+
 export function useProviderSettings() {
   return useQuery({
     queryKey: ['provider-settings'],

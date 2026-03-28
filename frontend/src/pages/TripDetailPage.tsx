@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useDeleteClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, FileText } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -12,8 +12,16 @@ type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 't
 
 function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] }) {
   const generateClaim = useGenerateClaim()
+  const deleteClaim = useDeleteClaim()
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function handleDelete(claimId: string) {
+    if (!confirm('Delete this claim? This cannot be undone.')) return
+    deleteClaim.mutate(claimId, {
+      onError: (err: any) => setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to delete claim.'),
+    })
+  }
 
   const claimStatusColor = (status: string) => {
     switch (status) {
@@ -80,8 +88,14 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
                   <td className="p-3 font-medium">${c.totalAmount?.toFixed(2)}</td>
                   <td className="p-3 text-[#43493a]">{c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-AU') : '—'}</td>
                   <td className="p-3 text-[#43493a]">{c.submittedDate ? new Date(c.submittedDate).toLocaleDateString('en-AU') : '—'}</td>
-                  <td className="p-3">
+                  <td className="p-3 flex items-center gap-3">
                     <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
+                    {c.status !== 'Submitted' && c.status !== 'Paid' && (
+                      <button
+                        onClick={() => handleDelete(c.id)}
+                        className="text-xs text-red-500 hover:underline"
+                      >Delete</button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -165,6 +165,35 @@ public class ClaimsController : ControllerBase
         return Ok(ApiResponse<bool>.Ok(true));
     }
 
+    // DELETE /api/v1/claims/{claimId}
+    [HttpDelete("claims/{claimId:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteClaim(Guid claimId, CancellationToken ct)
+    {
+        var claim = await _db.TripClaims
+            .Include(c => c.LineItems)
+            .FirstOrDefaultAsync(x => x.Id == claimId, ct);
+
+        if (claim == null) return NotFound(ApiResponse<bool>.Fail("Claim not found"));
+
+        if (claim.Status == TripClaimStatus.Submitted || claim.Status == TripClaimStatus.Paid)
+            return BadRequest(ApiResponse<bool>.Fail("Cannot delete a claim that has been submitted or paid."));
+
+        // Reset participant bookings back to unclaimed
+        var bookingIds = claim.LineItems.Select(l => l.ParticipantBookingId).Distinct().ToList();
+        var bookings = await _db.ParticipantBookings
+            .Where(b => bookingIds.Contains(b.Id))
+            .ToListAsync(ct);
+        foreach (var booking in bookings)
+            booking.ClaimStatus = ClaimStatus.NotClaimed;
+
+        _db.ClaimLineItems.RemoveRange(claim.LineItems);
+        _db.TripClaims.Remove(claim);
+        await _db.SaveChangesAsync(ct);
+
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
+
     // GET /api/v1/claims/{claimId}/bpr-csv
     [HttpGet("claims/{claimId:guid}/bpr-csv")]
     public async Task<IActionResult> DownloadBprCsv(Guid claimId, CancellationToken ct)

@@ -30,7 +30,7 @@ public class PublicHolidaysController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<PublicHolidayDto>>> Create([FromBody] CreatePublicHolidayDto dto, CancellationToken ct)
     {
         var holiday = new PublicHoliday { Id = Guid.NewGuid(), Date = dto.Date, Name = dto.Name, State = dto.State };
@@ -40,7 +40,7 @@ public class PublicHolidaysController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var h = await _db.PublicHolidays.FirstOrDefaultAsync(x => x.Id == id, ct);

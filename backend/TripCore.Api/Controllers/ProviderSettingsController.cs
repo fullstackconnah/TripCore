@@ -33,7 +33,7 @@ public class ProviderSettingsController : ControllerBase
     }
 
     [HttpPut]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Upsert([FromBody] UpsertProviderSettingsDto dto, CancellationToken ct)
     {
         var s = await _db.ProviderSettings.FirstOrDefaultAsync(ct);

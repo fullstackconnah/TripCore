@@ -44,7 +44,7 @@ public class SupportCatalogueController : ControllerBase
     }
 
     [HttpPost("import/preview")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<CatalogueImportPreviewDto>>> PreviewImport(
         IFormFile file, [FromServices] CatalogueImportService importer, CancellationToken ct)
     {
@@ -67,7 +67,7 @@ public class SupportCatalogueController : ControllerBase
     }
 
     [HttpPost("import/confirm")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> ConfirmImport(
         [FromBody] ConfirmCatalogueImportDto dto, [FromServices] CatalogueImportService importer, CancellationToken ct)
     {

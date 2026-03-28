@@ -40,7 +40,7 @@ public static class DbSeeder
 
         var seedUsers = new[]
         {
-            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), TenantId = tenantId, Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), TenantId = tenantId, Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.SuperAdmin }),
             (Id: Guid.Parse("b1000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), TenantId = tenantId, Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : (Guid?)null }),
             (Id: Guid.Parse("b1000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), TenantId = tenantId, Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : (Guid?)null }),
             (Id: Guid.Parse("b2000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000001"), TenantId = tenantId, Username = "rachel.thompson", Email = "rachel.thompson@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Rachel", LastName = "Thompson", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 4 ? existingStaff[4].Id : (Guid?)null }),
@@ -92,6 +92,16 @@ public static class DbSeeder
         if (orphanedUsers.Count > 0)
         {
             foreach (var u in orphanedUsers) u.TenantId = tenantId;
+            await context.SaveChangesAsync(ct);
+        }
+
+        // Ensure admin@tripcore.com.au has SuperAdmin role (upgrade from Admin if already seeded)
+        var adminUser = await context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == "admin@tripcore.com.au", ct);
+        if (adminUser is not null && adminUser.Role != UserRole.SuperAdmin)
+        {
+            adminUser.Role = UserRole.SuperAdmin;
             await context.SaveChangesAsync(ct);
         }
 

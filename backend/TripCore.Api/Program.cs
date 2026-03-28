@@ -210,7 +210,21 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
         """);
     await DbSeeder.SeedAsync(db);
-    await DbSeeder.SeedNdisDataAsync(db);
+    // TODO: Remove try-catch once AddNdisClaiming migration has been applied to all environments.
+    // SeedNdisDataAsync queries SupportActivityGroups; if the migration hasn't run yet the table
+    // won't exist and the app would crash (Postgres error 42P01 / relation does not exist).
+    try
+    {
+        await DbSeeder.SeedNdisDataAsync(db);
+    }
+    catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(
+            "Skipped NDIS seed data: table not found ({SqlState}). " +
+            "Run the AddNdisClaiming migration to resolve this.",
+            ex.SqlState);
+    }
 }
 
 // ── Middleware pipeline ──────────────────────────────────────

@@ -75,7 +75,8 @@ public class AuthController : ControllerBase
             Username = user.Username,
             FullName = $"{user.FirstName} {user.LastName}",
             Role = user.Role.ToString(),
-            TenantName = tenant.Name
+            TenantName = tenant.Name,
+            TenantId = tenant.Id
         };
 
         return Ok(ApiResponse<AuthResponseDto>.Ok(response));

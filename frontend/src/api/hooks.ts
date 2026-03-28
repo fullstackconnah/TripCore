@@ -649,3 +649,10 @@ export function useUpdateSettings() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
   })
 }
+
+export function useAdminTenants() {
+  return useQuery({
+    queryKey: ['admin-tenants'],
+    queryFn: () => apiClient.get('/admin/tenants').then(r => r.data),
+  })
+}

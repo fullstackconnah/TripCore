@@ -13,6 +13,10 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  const viewingTenantId = localStorage.getItem('tripcore_viewing_tenant')
+  if (viewingTenantId) {
+    config.headers['X-View-As-Tenant'] = viewingTenantId
+  }
   return config
 })
 
@@ -22,6 +26,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('tripcore_token')
       localStorage.removeItem('tripcore_user')
+      localStorage.removeItem('tripcore_viewing_tenant')
       window.location.href = '/login'
     }
     return Promise.reject(error)

@@ -32,7 +32,7 @@ public class SupportCatalogueController : ControllerBase
             Items = g.Items.Select(i => new SupportCatalogueItemDto
             {
                 Id = i.Id, ItemNumber = i.ItemNumber, Description = i.Description,
-                Unit = i.Unit, DayType = i.DayType,
+                Unit = i.Unit, DayType = i.DayType, IsIntensive = i.IsIntensive,
                 PriceLimit_ACT = i.PriceLimit_ACT,
                 PriceLimit_NSW = i.PriceLimit_NSW,
                 PriceLimit_NT = i.PriceLimit_NT,

@@ -91,7 +91,9 @@ public class ClaimGenerationService
 
             foreach (var group in dayGroups)
             {
-                var catalogueItem = catalogueItems.FirstOrDefault(i => i.DayType == group.DayType);
+                var isIntensive = booking.Participant.IsIntensiveSupport;
+                var catalogueItem = catalogueItems.FirstOrDefault(i => i.DayType == group.DayType && i.IsIntensive == isIntensive)
+                    ?? catalogueItems.FirstOrDefault(i => i.DayType == group.DayType); // fallback if no matching intensity
                 if (catalogueItem == null)
                     continue;
 

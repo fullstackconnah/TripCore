@@ -12,6 +12,7 @@ public class SupportCatalogueItem
     public string Description { get; set; } = string.Empty;
     public string Unit { get; set; } = "H";
     public ClaimDayType DayType { get; set; }
+    public bool IsIntensive { get; set; }
 
     public decimal PriceLimit_ACT { get; set; }
     public decimal PriceLimit_NSW { get; set; }

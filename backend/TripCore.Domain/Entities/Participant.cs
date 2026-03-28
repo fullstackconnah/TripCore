@@ -26,6 +26,7 @@ public class Participant : ITenantEntity
     public bool IsActive { get; set; } = true;
     public bool WheelchairRequired { get; set; }
     public bool IsHighSupport { get; set; }
+    public bool IsIntensiveSupport { get; set; }
     public bool RequiresOvernightSupport { get; set; }
     public bool HasRestrictivePracticeFlag { get; set; }
     public SupportRatio SupportRatio { get; set; }

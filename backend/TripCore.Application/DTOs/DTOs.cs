@@ -21,6 +21,7 @@ public record ParticipantListDto
     public bool IsActive { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public SupportRatio SupportRatio { get; init; }
 }
 
@@ -60,6 +61,7 @@ public record CreateParticipantDto
     public bool IsRepeatClient { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public bool RequiresOvernightSupport { get; init; }
     public bool HasRestrictivePracticeFlag { get; init; }
     public SupportRatio SupportRatio { get; init; }

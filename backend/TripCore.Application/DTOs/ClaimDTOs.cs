@@ -139,6 +139,7 @@ public record SupportCatalogueItemDto
     public string Description { get; init; } = string.Empty;
     public string Unit { get; init; } = string.Empty;
     public ClaimDayType DayType { get; init; }
+    public bool IsIntensive { get; init; }
     public decimal PriceLimit_ACT { get; init; }
     public decimal PriceLimit_NSW { get; init; }
     public decimal PriceLimit_NT { get; init; }
@@ -194,6 +195,7 @@ public record CatalogueImportRowDto
     public string ItemNumber { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public ClaimDayType DayType { get; init; }
+    public bool IsIntensive { get; init; }
     public decimal PriceLimit_ACT { get; init; }
     public decimal PriceLimit_NSW { get; init; }
     public decimal PriceLimit_NT { get; init; }

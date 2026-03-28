@@ -53,7 +53,7 @@ public class CatalogueImportService
         {
             var existing = existingItems.FirstOrDefault(i => i.ItemNumber == row.ItemNumber);
             var isNew = existing == null;
-            var priceChanged = existing != null && existing.PriceLimit_VIC != row.PriceLimit_VIC;
+            var priceChanged = existing != null && (existing.PriceLimit_VIC != row.PriceLimit_VIC || existing.IsIntensive != row.IsIntensive);
 
             previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
         }
@@ -113,6 +113,7 @@ public class CatalogueImportService
                 Description = row.Description,
                 Unit = "H",
                 DayType = row.DayType,
+                IsIntensive = row.IsIntensive,
                 PriceLimit_ACT = row.PriceLimit_ACT,
                 PriceLimit_NSW = row.PriceLimit_NSW,
                 PriceLimit_NT  = row.PriceLimit_NT,
@@ -210,6 +211,7 @@ public class CatalogueImportService
                 continue;
 
             var dayType = prefixMatch.Value;
+            var isIntensive = itemNumber.StartsWith("04_45");
 
             decimal Price(int col) => col > 0 &&
                 decimal.TryParse(
@@ -225,6 +227,7 @@ public class CatalogueImportService
                 ItemNumber = itemNumber,
                 Description = colDescription > 0 ? ws.Cell(r, colDescription).GetString().Trim() : itemNumber,
                 DayType = dayType,
+                IsIntensive = isIntensive,
                 PriceLimit_ACT = Price(colACT),
                 PriceLimit_NSW = Price(colNSW),
                 PriceLimit_NT  = Price(colNT),

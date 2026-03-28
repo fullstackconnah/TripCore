@@ -172,7 +172,7 @@ function ProviderSettingsTab() {
       onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
       onError: (err: any) => {
         const status = err?.response?.status
-        const msg = err?.response?.data?.message
+        const msg = err?.response?.data?.errors?.[0] || err?.response?.data?.message
         if (status === 403) setError('Admin role is required to update provider settings. Ask an Admin to make this change.')
         else if (status === 400) setError(msg || 'Validation failed — check Registration Number, ABN, Organisation Name and Address are filled in.')
         else setError(msg || 'Failed to save. Please try again.')

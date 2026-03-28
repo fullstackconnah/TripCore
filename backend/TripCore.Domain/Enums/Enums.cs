@@ -253,67 +253,82 @@ public enum PaymentStatus
 
 public enum ContactType
 {
-    Primary,
-    Secondary,
-    Emergency,
-    Other
+    General = 0,
+    Guardian = 1,
+    EmergencyContact = 2,
+    PlanManager = 3,
+    SupportCoordinator = 4,
+    Primary = 5,
+    Secondary = 6,
+    Other = 7
 }
 
 public enum TripClaimStatus
 {
-    Draft,
-    Submitted,
-    Approved,
-    Rejected,
-    Paid,
-    Cancelled
+    Draft = 0,
+    Ready = 1,
+    Submitted = 2,
+    Approved = 3,
+    Paid = 4,
+    PartiallyPaid = 5,
+    Rejected = 6,
+    Cancelled = 7
 }
 
 public enum ClaimLineItemStatus
 {
-    Draft,
-    Submitted,
-    Approved,
-    Rejected,
-    Paid,
-    PartiallyPaid
+    Draft = 0,
+    Submitted = 1,
+    Approved = 2,
+    Paid = 3,
+    PartiallyPaid = 4,
+    Rejected = 5
 }
 
 public enum ClaimDayType
 {
-    Weekday,
-    Weekend,
-    PublicHoliday,
-    ShortNotice
+    Weekday = 0,
+    Saturday = 1,
+    Sunday = 2,
+    Weekend = 3,
+    PublicHoliday = 4,
+    ShortNotice = 5
 }
 
 public enum ClaimType
 {
-    Standard,
-    Variation,
-    Adjustment
+    Standard = 0,
+    Cancellation = 1,
+    Variation = 2,
+    Adjustment = 3
 }
 
 public enum GSTCode
 {
-    GST,
-    NoGST,
-    Exempt
+    P1 = 0,
+    P2 = 1,
+    P5 = 2,
+    GST = 3,
+    NoGST = 4,
+    Exempt = 5
 }
 
 public enum ClaimStatus
 {
-    Draft,
-    Submitted,
-    Approved,
-    Rejected,
-    Paid
+    NotClaimed = 0,
+    InClaim = 1,
+    Draft = 2,
+    Submitted = 3,
+    Approved = 4,
+    Paid = 5,
+    Rejected = 6
 }
 
 public enum OvernightSupportType
 {
-    PassiveNight,
-    ActiveNight,
-    SleepoverSupport,
-    None
+    None = 0,
+    ActiveNight = 1,
+    PassiveNight = 2,
+    Sleepover = 3,
+    SleepoverSupport = 4
 }

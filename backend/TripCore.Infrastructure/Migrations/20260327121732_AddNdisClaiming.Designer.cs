@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TripCore.Infrastructure.Data;
@@ -11,9 +12,11 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Infrastructure.Migrations
 {
     [DbContext(typeof(TripCoreDbContext))]
-    partial class TripCoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260327121732_AddNdisClaiming")]
+    partial class AddNdisClaiming
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,9 +114,6 @@ namespace TripCore.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -128,8 +128,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("IsWheelchairAccessible");
 
                     b.HasIndex("Region");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("AccommodationProperties");
                 });
@@ -256,19 +254,13 @@ namespace TripCore.Infrastructure.Migrations
 
             modelBuilder.Entity("TripCore.Domain.Entities.AppSettings", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("QualificationWarningDays")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("AppSettings");
                 });
@@ -542,9 +534,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int?>("StandardDurationDays")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("TypicalActivities")
                         .HasColumnType("text");
 
@@ -560,8 +549,6 @@ namespace TripCore.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("IsActive");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("EventTemplates");
                 });
@@ -779,9 +766,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("SupportRatio")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("TransportRequirements")
                         .HasColumnType("text");
 
@@ -802,8 +786,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("Region");
 
                     b.HasIndex("SupportRatio");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("Participants");
                 });
@@ -1157,9 +1139,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -1170,8 +1149,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("Region");
 
                     b.HasIndex("Role");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("Staff");
                 });
@@ -1432,34 +1409,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("SupportProfiles");
                 });
 
-            modelBuilder.Entity("TripCore.Domain.Entities.Tenant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("EmailDomain")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmailDomain")
-                        .IsUnique();
-
-                    b.ToTable("Tenants");
-                });
-
             modelBuilder.Entity("TripCore.Domain.Entities.TripClaim", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1674,9 +1623,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("TripCode")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -1702,8 +1648,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("StartDate");
 
                     b.HasIndex("Status");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("TripCode")
                         .IsUnique()
@@ -1753,9 +1697,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<Guid?>("StaffId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -1772,8 +1713,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.HasIndex("StaffId");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -1815,9 +1754,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<DateOnly?>("ServiceDueDate")
                         .HasColumnType("date");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("TotalSeats")
                         .HasColumnType("integer");
 
@@ -1838,8 +1774,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsActive");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("VehicleType");
 
@@ -1904,17 +1838,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("VehicleAssignments");
                 });
 
-            modelBuilder.Entity("TripCore.Domain.Entities.AccommodationProperty", b =>
-                {
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("TripCore.Domain.Entities.AccommodationReservation", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.AccommodationProperty", "AccommodationProperty")
@@ -1942,17 +1865,6 @@ namespace TripCore.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("EventTemplate");
-                });
-
-            modelBuilder.Entity("TripCore.Domain.Entities.AppSettings", b =>
-                {
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.BookingTask", b =>
@@ -2020,17 +1932,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("TripClaim");
                 });
 
-            modelBuilder.Entity("TripCore.Domain.Entities.EventTemplate", b =>
-                {
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("TripCore.Domain.Entities.IncidentReport", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.Participant", "InvolvedParticipant")
@@ -2081,15 +1982,7 @@ namespace TripCore.Infrastructure.Migrations
                         .HasForeignKey("PlanManagerContactId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("PlanManagerContact");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.ParticipantBooking", b =>
@@ -2146,17 +2039,6 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Activity");
 
                     b.Navigation("TripDay");
-                });
-
-            modelBuilder.Entity("TripCore.Domain.Entities.Staff", b =>
-                {
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.StaffAssignment", b =>
@@ -2275,19 +2157,11 @@ namespace TripCore.Infrastructure.Migrations
                         .HasForeignKey("LeadCoordinatorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("DefaultActivityGroup");
 
                     b.Navigation("EventTemplate");
 
                     b.Navigation("LeadCoordinator");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.User", b =>
@@ -2297,26 +2171,7 @@ namespace TripCore.Infrastructure.Migrations
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("Users")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Staff");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("TripCore.Domain.Entities.Vehicle", b =>
-                {
-                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.VehicleAssignment", b =>
@@ -2403,11 +2258,6 @@ namespace TripCore.Infrastructure.Migrations
             modelBuilder.Entity("TripCore.Domain.Entities.SupportActivityGroup", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("TripCore.Domain.Entities.Tenant", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.TripClaim", b =>

@@ -163,6 +163,33 @@ public class TripsController : ControllerBase
                     $"Pre-departure gate failed: {string.Join("; ", gateErrors)}"));
         }
 
+        // Auto-create GenerateNdisClaims task when trip moves to Completed
+        if (dto.Status.HasValue && dto.Status.Value == TripStatus.Completed && t.Status != TripStatus.Completed)
+        {
+            var hasProviderSettings = await _db.ProviderSettings.AnyAsync(ct);
+            var taskTitle = hasProviderSettings
+                ? $"Generate NDIS claims for {t.TripName}"
+                : $"Generate NDIS claims for {t.TripName} — configure Provider Settings first";
+
+            var alreadyExists = await _db.BookingTasks.AnyAsync(bt =>
+                bt.TripInstanceId == id && bt.TaskType == TaskType.GenerateNdisClaims, ct);
+
+            if (!alreadyExists)
+            {
+                _db.BookingTasks.Add(new BookingTask
+                {
+                    Id = Guid.NewGuid(),
+                    TripInstanceId = id,
+                    TaskType = TaskType.GenerateNdisClaims,
+                    Title = taskTitle,
+                    Priority = TaskPriority.High,
+                    Status = TaskItemStatus.NotStarted,
+                    DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
+                    OwnerId = t.LeadCoordinatorId
+                });
+            }
+        }
+
         if (dto.Status.HasValue) t.Status = dto.Status.Value;
         t.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);

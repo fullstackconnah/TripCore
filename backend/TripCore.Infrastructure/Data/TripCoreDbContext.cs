@@ -43,6 +43,12 @@ public class TripCoreDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<TripClaim> TripClaims => Set<TripClaim>();
+    public DbSet<ClaimLineItem> ClaimLineItems => Set<ClaimLineItem>();
+    public DbSet<SupportActivityGroup> SupportActivityGroups => Set<SupportActivityGroup>();
+    public DbSet<SupportCatalogueItem> SupportCatalogueItems => Set<SupportCatalogueItem>();
+    public DbSet<ProviderSettings> ProviderSettings => Set<ProviderSettings>();
+    public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -457,6 +463,132 @@ public class TripCoreDbContext : DbContext
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.IsActive);
         });
+
+        // ── TripClaim ─────────────────────────────────────────────
+        modelBuilder.Entity<TripClaim>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ClaimReference).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalApprovedAmount).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(2000);
+
+            entity.HasOne(e => e.TripInstance)
+                .WithMany(t => t.TripClaims)
+                .HasForeignKey(e => e.TripInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.AuthorisedByStaff)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorisedByStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.ClaimReference).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.TripInstanceId);
+        });
+
+        // ── ClaimLineItem ─────────────────────────────────────────
+        modelBuilder.Entity<ClaimLineItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SupportItemCode).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Hours).HasPrecision(18, 2);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            entity.Property(e => e.PaidAmount).HasPrecision(18, 2);
+            entity.Property(e => e.RejectionReason).HasMaxLength(1000);
+
+            entity.HasOne(e => e.TripClaim)
+                .WithMany(c => c.LineItems)
+                .HasForeignKey(e => e.TripClaimId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.ParticipantBooking)
+                .WithMany()
+                .HasForeignKey(e => e.ParticipantBookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.TripClaimId);
+            entity.HasIndex(e => e.ParticipantBookingId);
+            entity.HasIndex(e => e.Status);
+        });
+
+        // ── SupportActivityGroup ──────────────────────────────────
+        modelBuilder.Entity<SupportActivityGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.GroupCode).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.DisplayName).HasMaxLength(200).IsRequired();
+
+            entity.HasIndex(e => e.GroupCode).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+        });
+
+        // ── SupportCatalogueItem ──────────────────────────────────
+        modelBuilder.Entity<SupportCatalogueItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ItemNumber).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.Unit).HasMaxLength(10);
+            entity.Property(e => e.CatalogueVersion).HasMaxLength(20);
+            entity.Property(e => e.PriceLimit_Standard).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_1to2).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_1to3).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_1to4).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_1to5).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_Remote).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_VeryRemote).HasPrecision(18, 2);
+
+            entity.HasOne(e => e.ActivityGroup)
+                .WithMany(g => g.Items)
+                .HasForeignKey(e => e.ActivityGroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.ItemNumber, e.CatalogueVersion });
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.DayType);
+        });
+
+        // ── ProviderSettings ──────────────────────────────────────
+        modelBuilder.Entity<ProviderSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RegistrationNumber).HasMaxLength(20);
+            entity.Property(e => e.ABN).HasMaxLength(20);
+            entity.Property(e => e.OrganisationName).HasMaxLength(200);
+            entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.BankAccountName).HasMaxLength(200);
+            entity.Property(e => e.BSB).HasMaxLength(10);
+            entity.Property(e => e.AccountNumber).HasMaxLength(20);
+            entity.Property(e => e.InvoiceFooterNotes).HasMaxLength(2000);
+        });
+
+        // ── PublicHoliday ─────────────────────────────────────────
+        modelBuilder.Entity<PublicHoliday>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.State).HasMaxLength(10);
+
+            entity.HasIndex(e => e.Date);
+            entity.HasIndex(e => new { e.Date, e.State });
+        });
+
+        // ── TripInstance — new FK to SupportActivityGroup ─────────
+        modelBuilder.Entity<TripInstance>()
+            .HasOne(t => t.DefaultActivityGroup)
+            .WithMany()
+            .HasForeignKey(t => t.DefaultActivityGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // ── Participant — new FK to Contact (PlanManager) ─────────
+        modelBuilder.Entity<Participant>()
+            .HasOne(p => p.PlanManagerContact)
+            .WithMany()
+            .HasForeignKey(p => p.PlanManagerContactId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // ── Multi-Tenancy Query Filters ─────────────────────────────────────────────
         // Applied to all root aggregate entities. SuperAdmin bypasses all filters.

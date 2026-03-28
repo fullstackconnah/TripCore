@@ -490,6 +490,140 @@ public static class DbSeeder
         await context.SaveChangesAsync(ct);
     }
 
+    public static async Task SeedNdisDataAsync(TripCoreDbContext context, CancellationToken ct = default)
+    {
+        if (await context.SupportActivityGroups.AnyAsync(ct))
+            return;
+
+        var groupId = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        var group = new SupportActivityGroup
+        {
+            Id = groupId,
+            GroupCode = "GRP_COMMUNITY_ACCESS",
+            DisplayName = "Group Community Access",
+            SupportCategory = 4,
+            IsActive = true
+        };
+        context.SupportActivityGroups.Add(group);
+
+        var items = new List<SupportCatalogueItem>
+        {
+            new()
+            {
+                Id = Guid.Parse("d0000000-0000-0000-0000-000000000001"),
+                ActivityGroupId = groupId,
+                ItemNumber = "04_210_0125_6_1",
+                Description = "Group Activities - Standard - Weekday Daytime - TTP",
+                Unit = "H",
+                DayType = ClaimDayType.Weekday,
+                PriceLimit_Standard = 67.56m,
+                PriceLimit_1to2 = 40.32m,
+                PriceLimit_1to3 = 29.97m,
+                PriceLimit_1to4 = 24.81m,
+                PriceLimit_1to5 = 21.72m,
+                PriceLimit_Remote = 94.58m,
+                PriceLimit_VeryRemote = 101.34m,
+                CatalogueVersion = "2024-25",
+                EffectiveFrom = new DateOnly(2024, 7, 1),
+                IsActive = true
+            },
+            new()
+            {
+                Id = Guid.Parse("d0000000-0000-0000-0000-000000000002"),
+                ActivityGroupId = groupId,
+                ItemNumber = "04_212_0125_6_1",
+                Description = "Group Activities - Standard - Saturday - TTP",
+                Unit = "H",
+                DayType = ClaimDayType.Saturday,
+                PriceLimit_Standard = 94.91m,
+                PriceLimit_1to2 = 56.18m,
+                PriceLimit_1to3 = 41.54m,
+                PriceLimit_1to4 = 34.21m,
+                PriceLimit_1to5 = 29.81m,
+                PriceLimit_Remote = 132.87m,
+                PriceLimit_VeryRemote = 142.37m,
+                CatalogueVersion = "2024-25",
+                EffectiveFrom = new DateOnly(2024, 7, 1),
+                IsActive = true
+            },
+            new()
+            {
+                Id = Guid.Parse("d0000000-0000-0000-0000-000000000003"),
+                ActivityGroupId = groupId,
+                ItemNumber = "04_213_0125_6_1",
+                Description = "Group Activities - Standard - Sunday - TTP",
+                Unit = "H",
+                DayType = ClaimDayType.Sunday,
+                PriceLimit_Standard = 122.25m,
+                PriceLimit_1to2 = 71.88m,
+                PriceLimit_1to3 = 53.10m,
+                PriceLimit_1to4 = 43.72m,
+                PriceLimit_1to5 = 37.91m,
+                PriceLimit_Remote = 171.15m,
+                PriceLimit_VeryRemote = 183.38m,
+                CatalogueVersion = "2024-25",
+                EffectiveFrom = new DateOnly(2024, 7, 1),
+                IsActive = true
+            },
+            new()
+            {
+                Id = Guid.Parse("d0000000-0000-0000-0000-000000000004"),
+                ActivityGroupId = groupId,
+                ItemNumber = "04_214_0125_6_1",
+                Description = "Group Activities - Standard - Public Holiday - TTP",
+                Unit = "H",
+                DayType = ClaimDayType.PublicHoliday,
+                PriceLimit_Standard = 149.60m,
+                PriceLimit_1to2 = 87.58m,
+                PriceLimit_1to3 = 64.65m,
+                PriceLimit_1to4 = 53.21m,
+                PriceLimit_1to5 = 46.07m,
+                PriceLimit_Remote = 209.44m,
+                PriceLimit_VeryRemote = 224.40m,
+                CatalogueVersion = "2024-25",
+                EffectiveFrom = new DateOnly(2024, 7, 1),
+                IsActive = true
+            }
+        };
+        context.SupportCatalogueItems.AddRange(items);
+
+        if (!await context.PublicHolidays.AnyAsync(ct))
+        {
+            var holidays = new List<PublicHoliday>
+            {
+                // National 2025
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 1, 1),  Name = "New Year's Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 1, 27), Name = "Australia Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 18), Name = "Good Friday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 19), Name = "Easter Saturday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 20), Name = "Easter Sunday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 21), Name = "Easter Monday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 25), Name = "ANZAC Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 12, 25), Name = "Christmas Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 12, 26), Name = "Boxing Day" },
+                // VIC-specific 2025
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 6, 9),  Name = "King's Birthday", State = "VIC" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 11, 4),  Name = "Melbourne Cup Day", State = "VIC" },
+                // National 2026
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 1, 1),  Name = "New Year's Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 1, 26), Name = "Australia Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 3),  Name = "Good Friday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 4),  Name = "Easter Saturday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 5),  Name = "Easter Sunday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 6),  Name = "Easter Monday" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 25), Name = "ANZAC Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 12, 25), Name = "Christmas Day" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 12, 26), Name = "Boxing Day" },
+                // VIC-specific 2026
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 6, 8),  Name = "King's Birthday", State = "VIC" },
+                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 11, 3),  Name = "Melbourne Cup Day", State = "VIC" },
+            };
+            context.PublicHolidays.AddRange(holidays);
+        }
+
+        await context.SaveChangesAsync(ct);
+    }
+
     /// <summary>
     /// Clears all data in FK-safe order then re-seeds fresh data.
     /// </summary>

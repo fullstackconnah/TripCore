@@ -52,6 +52,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// ── NDIS Claiming Services ────────────────────────────────────
+builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.BprCsvService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
+
 // ── Rate Limiting ────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
 {
@@ -157,7 +163,8 @@ using (var scope = app.Services.CreateScope())
             ('20260320104626_AddIncidentReports'),
             ('20260320133223_AddScheduledActivityTrackingFields'),
             ('20260321093551_AddInsuranceTracking'),
-            ('20260327084507_AddPaymentStatusToBooking')
+            ('20260327084507_AddPaymentStatusToBooking'),
+            ('20260327121732_AddNdisClaiming')
         ) AS m("MigrationId")
         WHERE EXISTS (
             SELECT 1 FROM pg_catalog.pg_class c
@@ -202,6 +209,7 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
         """);
     await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedNdisDataAsync(db);
 }
 
 // ── Middleware pipeline ──────────────────────────────────────

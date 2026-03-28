@@ -132,6 +132,7 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
         null => null,
         DateTime dt => dt.ToString("O"),
         DateTimeOffset dto => dto.ToString("O"),
+        Enum e => e.ToString(),
         _ => value.ToString()
     };
 }

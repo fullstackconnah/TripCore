@@ -649,3 +649,36 @@ export function useUpdateSettings() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
   })
 }
+
+
+// ── Audit ────────────────────────────────────────────────────────────────────
+
+export interface AuditChange {
+  field: string;
+  old: string | null;
+  new: string | null;
+}
+
+export interface AuditEntry {
+  id: string;
+  action: 'Created' | 'Updated' | 'Deleted';
+  changedAt: string;
+  changedByName: string | null;
+  changes: AuditChange[];
+}
+
+export interface AuditHistoryResponse {
+  entries: AuditEntry[];
+  total: number;
+}
+
+export function useAuditHistory(entityType: string, entityId: string | undefined) {
+  return useQuery<AuditHistoryResponse>({
+    queryKey: ['audit', entityType, entityId],
+    queryFn: () =>
+      apiClient
+        .get<AuditHistoryResponse>(`/audit/${entityType}/${entityId}`)
+        .then((r) => r.data),
+    enabled: !!entityId,
+  });
+}

@@ -90,12 +90,8 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentStatus",
-                table: "ParticipantBookings",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+            // PaymentStatus was already added by AddPaymentStatusToBooking which ran directly on the DB
+            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "PaymentStatus" integer NOT NULL DEFAULT 0;""");
 
             migrationBuilder.AddColumn<int>(
                 name: "ContactType",

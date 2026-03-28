@@ -15,9 +15,7 @@ namespace TripCore.Infrastructure.Migrations
                 name: "FK_IncidentReports_TripInstances_TripInstanceId",
                 table: "IncidentReports");
 
-            migrationBuilder.DropColumn(
-                name: "OopPaymentStatus",
-                table: "ParticipantBookings");
+            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" DROP COLUMN IF EXISTS "OopPaymentStatus";""");
 
             migrationBuilder.AddColumn<decimal>(
                 name: "ActiveHoursPerDay",

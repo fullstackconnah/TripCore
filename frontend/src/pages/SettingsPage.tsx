@@ -1,5 +1,7 @@
-import { useEventTemplates, useActivities, useSettings, useUpdateSettings } from '@/api/hooks'
+import { useEventTemplates, useActivities, useSettings, useUpdateSettings, useProviderSettings, useUpsertProviderSettings, useSupportCatalogue, usePublicHolidays, useCreatePublicHoliday, useDeletePublicHoliday } from '@/api/hooks'
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/api/client'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -50,7 +52,7 @@ function QualificationSettingsTab() {
 }
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications'>('templates')
+  const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications' | 'provider' | 'catalogue' | 'holidays'>('templates')
   const { data: templates = [] } = useEventTemplates()
   const { data: activities = [] } = useActivities()
 
@@ -58,6 +60,9 @@ export default function SettingsPage() {
     { key: 'templates' as const, label: 'Event Templates' },
     { key: 'activities' as const, label: 'Activity Library' },
     { key: 'qualifications' as const, label: 'Qualification Warnings' },
+    { key: 'provider' as const, label: 'Provider Settings' },
+    { key: 'catalogue' as const, label: 'Support Catalogue' },
+    { key: 'holidays' as const, label: 'Public Holidays' },
   ]
 
   return (
@@ -135,6 +140,311 @@ export default function SettingsPage() {
       )}
 
       {tab === 'qualifications' && <QualificationSettingsTab />}
+      {tab === 'provider' && <ProviderSettingsTab />}
+      {tab === 'catalogue' && <SupportCatalogueTab />}
+      {tab === 'holidays' && <PublicHolidaysTab />}
+    </div>
+  )
+}
+
+function ProviderSettingsTab() {
+  const { data: settings } = useProviderSettings()
+  const upsert = useUpsertProviderSettings()
+  const [form, setForm] = useState<any>({})
+  const [init, setInit] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  if (settings && !init) { setForm(settings); setInit(true) }
+
+  const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
+  const labelClass = 'block text-xs font-medium text-[#43493a] mb-1'
+
+  const f = (field: string) => ({
+    value: form[field] ?? '',
+    onChange: (e: any) => setForm((p: any) => ({ ...p, [field]: e.target.value })),
+    className: inputClass,
+  })
+
+  function handleSave() {
+    upsert.mutate(form, {
+      onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+    })
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h2 className="font-semibold text-[#1b1c1a] mb-1">Organisation Details</h2>
+        <p className="text-sm text-[#43493a] mb-4">Used on NDIS claims, BPR CSV files, and invoices.</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className={labelClass}>Registration Number</label><input {...f('registrationNumber')} /></div>
+          <div><label className={labelClass}>ABN</label><input {...f('abn')} /></div>
+          <div className="col-span-2"><label className={labelClass}>Organisation Name</label><input {...f('organisationName')} /></div>
+          <div className="col-span-2"><label className={labelClass}>Address</label><input {...f('address')} /></div>
+          <div className="flex items-center gap-3">
+            <input type="checkbox" checked={form.gstRegistered ?? false} onChange={e => setForm((p: any) => ({ ...p, gstRegistered: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="gst" />
+            <label htmlFor="gst" className="text-sm text-[#43493a]">GST Registered</label>
+          </div>
+          <div className="flex items-center gap-3">
+            <input type="checkbox" checked={form.isPaceProvider ?? false} onChange={e => setForm((p: any) => ({ ...p, isPaceProvider: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="pace" />
+            <label htmlFor="pace" className="text-sm text-[#43493a]">PACE Provider <span className="text-xs text-[#43493a]/60">(15-col BPR CSV)</span></label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2 className="font-semibold text-[#1b1c1a] mb-4">Bank Details</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div><label className={labelClass}>Account Name</label><input {...f('bankAccountName')} /></div>
+          <div><label className={labelClass}>BSB</label><input {...f('bsb')} /></div>
+          <div><label className={labelClass}>Account Number</label><input {...f('accountNumber')} /></div>
+        </div>
+      </div>
+      <div>
+        <h2 className="font-semibold text-[#1b1c1a] mb-2">Invoice Footer Notes</h2>
+        <textarea {...f('invoiceFooterNotes')} rows={3} className={inputClass + ' resize-none'} placeholder="e.g. All services delivered in accordance with the NDIS Code of Conduct..." />
+      </div>
+      <button onClick={handleSave} disabled={upsert.isPending} className="px-6 py-2.5 bg-[#396200] text-white rounded-full font-semibold text-sm hover:bg-[#294800] transition-all disabled:opacity-50">
+        {upsert.isPending ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
+      </button>
+    </div>
+  )
+}
+
+function SupportCatalogueTab() {
+  const { data: groups = [] } = useSupportCatalogue()
+  const [importing, setImporting] = useState(false)
+  const [previewStep, setPreviewStep] = useState<'upload' | 'preview' | null>(null)
+  const [preview, setPreview] = useState<any>(null)
+  const [version, setVersion] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const qc = useQueryClient()
+
+  const allItems = (groups as any[]).flatMap((g: any) => g.items ?? [])
+
+  const dayTypeColor = (dt: string) => {
+    switch(dt) {
+      case 'Weekday': return 'bg-blue-100 text-blue-700'
+      case 'Saturday': return 'bg-amber-100 text-amber-700'
+      case 'Sunday': return 'bg-orange-100 text-orange-700'
+      case 'PublicHoliday': return 'bg-red-100 text-red-700'
+      default: return 'bg-gray-100 text-gray-600'
+    }
+  }
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const { data } = await apiClient.post('/support-catalogue/import/preview', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setPreview(data.data)
+      setVersion(data.data?.detectedVersion || '')
+      setPreviewStep('preview')
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleConfirm() {
+    if (!preview) return
+    setConfirming(true)
+    try {
+      await apiClient.post('/support-catalogue/import/confirm', { catalogueVersion: version, rows: preview.rows })
+      qc.invalidateQueries({ queryKey: ['support-catalogue'] })
+      setPreviewStep(null)
+      setPreview(null)
+      setImporting(false)
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Confirm failed')
+    } finally {
+      setConfirming(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-[#1b1c1a]">Support Catalogue</h2>
+          <p className="text-sm text-[#43493a]">NDIS price limits for Category 04 — Group Access.</p>
+        </div>
+        <button onClick={() => { setImporting(true); setPreviewStep('upload') }} className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all">
+          Import Catalogue
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-[#f5f3ef]">
+              <tr>
+                {['Item Number', 'Description', 'Day Type', '1:1', '1:2', '1:3', '1:4', '1:5', 'Effective From'].map(h => (
+                  <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a] whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#f5f3ef]">
+              {allItems.map((item: any) => (
+                <tr key={item.id} className="hover:bg-[#fbf9f5] transition-colors">
+                  <td className="p-3 font-mono text-xs">{item.itemNumber}</td>
+                  <td className="p-3 text-[#43493a]">{item.description}</td>
+                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${dayTypeColor(item.dayType)}`}>{item.dayType}</span></td>
+                  <td className="p-3 text-right">${item.priceLimit_Standard?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_1to2?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_1to3?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_1to4?.toFixed(2)}</td>
+                  <td className="p-3 text-right">${item.priceLimit_1to5?.toFixed(2)}</td>
+                  <td className="p-3 text-xs text-[#43493a]">{item.effectiveFrom}</td>
+                </tr>
+              ))}
+              {allItems.length === 0 && (
+                <tr><td colSpan={9} className="p-6 text-center text-[#43493a]">No catalogue items. Import the NDIS Support Catalogue XLSX.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Import modal */}
+      {importing && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-[#1b1c1a]">Import NDIS Support Catalogue</h3>
+              <button onClick={() => { setImporting(false); setPreviewStep(null); setPreview(null) }} className="text-[#43493a] hover:text-[#1b1c1a]">✕</button>
+            </div>
+
+            {previewStep === 'upload' && (
+              <div className="space-y-4">
+                <p className="text-sm text-[#43493a]">Upload the NDIA Support Catalogue .xlsx file to preview changes.</p>
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-[#c3c9b6] rounded-2xl p-8 cursor-pointer hover:border-[#396200] transition-colors">
+                  <span className="text-[#43493a] text-sm mb-2">{uploading ? 'Uploading...' : 'Drop .xlsx here or click to browse'}</span>
+                  <input type="file" accept=".xlsx" onChange={handleUpload} className="hidden" disabled={uploading} />
+                </label>
+              </div>
+            )}
+
+            {previewStep === 'preview' && preview && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">New items</p><p className="text-xl font-bold text-[#396200]">{preview.itemsToAdd}</p></div>
+                  <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">Updated</p><p className="text-xl font-bold text-amber-600">{(preview.rows ?? []).filter((r: any) => r.priceChanged).length}</p></div>
+                  <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">To deactivate</p><p className="text-xl font-bold text-red-500">{preview.itemsToDeactivate}</p></div>
+                </div>
+                {(preview.warnings ?? []).length > 0 && (
+                  <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-700 space-y-1">
+                    {preview.warnings.map((w: string, i: number) => <p key={i}>&#9888; {w}</p>)}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-medium text-[#43493a] mb-1">Catalogue Version</label>
+                  <input value={version} onChange={e => setVersion(e.target.value)} className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all" />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setPreviewStep('upload')} className="px-4 py-2 rounded-full border border-[#c3c9b6] text-sm text-[#43493a] hover:bg-[#f5f3ef]">Back</button>
+                  <button onClick={handleConfirm} disabled={confirming} className="px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] disabled:opacity-50">
+                    {confirming ? 'Importing...' : 'Confirm Import'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PublicHolidaysTab() {
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [state, setState] = useState('VIC')
+  const { data: holidays = [] } = usePublicHolidays(year, state)
+  const createHoliday = useCreatePublicHoliday()
+  const deleteHoliday = useDeletePublicHoliday()
+  const [adding, setAdding] = useState(false)
+  const [newForm, setNewForm] = useState({ date: '', name: '', state: 'VIC' })
+
+  const inputClass = 'px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
+
+  function handleAdd() {
+    createHoliday.mutate(newForm, {
+      onSuccess: () => { setAdding(false); setNewForm({ date: '', name: '', state: 'VIC' }) }
+    })
+  }
+
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i)
+  const states = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="font-semibold text-[#1b1c1a]">Public Holidays</h2>
+          <p className="text-sm text-[#43493a]">Used to determine NDIS public holiday rates on claims.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <select value={year} onChange={e => setYear(Number(e.target.value))} className={inputClass}>
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <select value={state} onChange={e => setState(e.target.value)} className={inputClass}>
+            {states.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <button onClick={() => setAdding(true)} className="px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all">
+            + Add Holiday
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-[#f5f3ef]">
+            <tr>
+              {['Date', 'Name', 'State', ''].map(h => (
+                <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a]">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#f5f3ef]">
+            {adding && (
+              <tr className="bg-[#fbf9f5]">
+                <td className="p-3"><input type="date" value={newForm.date} onChange={e => setNewForm(p => ({ ...p, date: e.target.value }))} className={inputClass + ' w-full'} /></td>
+                <td className="p-3"><input value={newForm.name} onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} placeholder="Holiday name" className={inputClass + ' w-full'} /></td>
+                <td className="p-3">
+                  <select value={newForm.state} onChange={e => setNewForm(p => ({ ...p, state: e.target.value }))} className={inputClass}>
+                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </td>
+                <td className="p-3">
+                  <div className="flex gap-2">
+                    <button onClick={handleAdd} disabled={createHoliday.isPending} className="px-3 py-1.5 rounded-full bg-[#396200] text-white text-xs font-medium hover:bg-[#294800] disabled:opacity-50">Save</button>
+                    <button onClick={() => setAdding(false)} className="px-3 py-1.5 rounded-full border border-[#c3c9b6] text-xs text-[#43493a] hover:bg-[#f5f3ef]">Cancel</button>
+                  </div>
+                </td>
+              </tr>
+            )}
+            {(holidays as any[]).map((h: any) => (
+              <tr key={h.id} className="hover:bg-[#fbf9f5] transition-colors">
+                <td className="p-3 font-medium text-[#1b1c1a]">{h.date}</td>
+                <td className="p-3 text-[#43493a]">{h.name}</td>
+                <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full bg-[#f5f3ef] text-[#43493a]">{h.state || 'All'}</span></td>
+                <td className="p-3">
+                  <button onClick={() => deleteHoliday.mutate(h.id)} className="text-xs text-red-500 hover:text-red-700 hover:underline">Delete</button>
+                </td>
+              </tr>
+            ))}
+            {(holidays as any[]).length === 0 && !adding && (
+              <tr><td colSpan={4} className="p-6 text-center text-[#43493a]">No holidays found for {year} in {state}.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

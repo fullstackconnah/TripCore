@@ -656,3 +656,97 @@ export function useAdminTenants() {
     queryFn: () => apiClient.get('/admin/tenants').then(r => r.data),
   })
 }
+
+// ── NDIS Claiming ────────────────────────────────────────────
+
+export function useTripClaims(tripId: string | undefined) {
+  return useQuery({
+    queryKey: ['trip-claims', tripId],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>(`/trips/${tripId}/claims`).then(r => r.data.data ?? []),
+    enabled: !!tripId,
+  })
+}
+
+export function useClaim(claimId: string | undefined) {
+  return useQuery({
+    queryKey: ['claim', claimId],
+    queryFn: () => apiClient.get<ApiResponse<any>>(`/claims/${claimId}`).then(r => r.data.data),
+    enabled: !!claimId,
+  })
+}
+
+export function useGenerateClaim() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (tripId: string) => apiClient.post<ApiResponse<any>>(`/trips/${tripId}/claims`).then(r => r.data.data),
+    onSuccess: (_, tripId) => { qc.invalidateQueries({ queryKey: ['trip-claims', tripId] }) },
+  })
+}
+
+export function useUpdateClaim() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ claimId, data }: { claimId: string; data: any }) =>
+      apiClient.put<ApiResponse<boolean>>(`/claims/${claimId}`, data).then(r => r.data),
+    onSuccess: (_, { claimId }) => { qc.invalidateQueries({ queryKey: ['claim', claimId] }) },
+  })
+}
+
+export function useUpdateClaimLineItem() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ claimId, itemId, data }: { claimId: string; itemId: string; data: any }) =>
+      apiClient.patch<ApiResponse<boolean>>(`/claims/${claimId}/line-items/${itemId}`, data).then(r => r.data),
+    onSuccess: (_, { claimId }) => { qc.invalidateQueries({ queryKey: ['claim', claimId] }) },
+  })
+}
+
+export function useProviderSettings() {
+  return useQuery({
+    queryKey: ['provider-settings'],
+    queryFn: () => apiClient.get<ApiResponse<any>>('/provider-settings').then(r => r.data.data),
+  })
+}
+
+export function useUpsertProviderSettings() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.put<ApiResponse<any>>('/provider-settings', data).then(r => r.data.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['provider-settings'] }) },
+  })
+}
+
+export function useSupportCatalogue() {
+  return useQuery({
+    queryKey: ['support-catalogue'],
+    queryFn: () => apiClient.get<ApiResponse<any[]>>('/support-catalogue').then(r => r.data.data ?? []),
+  })
+}
+
+export function usePublicHolidays(year?: number, state?: string) {
+  return useQuery({
+    queryKey: ['public-holidays', year, state],
+    queryFn: () => {
+      const params: Record<string, any> = {}
+      if (year) params.year = year
+      if (state) params.state = state
+      return apiClient.get<ApiResponse<any[]>>('/public-holidays', { params }).then(r => r.data.data ?? [])
+    },
+  })
+}
+
+export function useCreatePublicHoliday() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: any) => apiClient.post<ApiResponse<any>>('/public-holidays', data).then(r => r.data.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['public-holidays'] }) },
+  })
+}
+
+export function useDeletePublicHoliday() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/public-holidays/${id}`).then(r => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['public-holidays'] }) },
+  })
+}

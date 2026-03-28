@@ -7,6 +7,7 @@ COPY TripCore.Domain/TripCore.Domain.csproj TripCore.Domain/
 COPY TripCore.Application/TripCore.Application.csproj TripCore.Application/
 COPY TripCore.Infrastructure/TripCore.Infrastructure.csproj TripCore.Infrastructure/
 COPY TripCore.Api/TripCore.Api.csproj TripCore.Api/
+COPY TripCore.Tests/TripCore.Tests.csproj TripCore.Tests/
 
 # Restore dependencies
 RUN dotnet restore

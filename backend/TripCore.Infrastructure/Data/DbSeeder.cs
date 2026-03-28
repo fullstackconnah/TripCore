@@ -31,6 +31,28 @@ public static class DbSeeder
             await context.SaveChangesAsync(ct);
         }
 
+        // Ensure SuperAdmin user exists for Connah tenant
+        var connahTenantId = new Guid("00000000-0000-0000-0000-000000000001");
+        var superAdminExists = await context.Users
+            .IgnoreQueryFilters()
+            .AnyAsync(u => u.Email == "info@connah.com.au" && u.TenantId == connahTenantId, ct);
+        if (!superAdminExists)
+        {
+            context.Users.Add(new User
+            {
+                Id = Guid.NewGuid(),
+                TenantId = connahTenantId,
+                Username = "superadmin",
+                Email = "info@connah.com.au",
+                PasswordHash = BCryptHash("Admin123!"),
+                FirstName = "Super",
+                LastName = "Admin",
+                Role = UserRole.SuperAdmin,
+                IsActive = true,
+            });
+            await context.SaveChangesAsync(ct);
+        }
+
         if (hasParticipants)
             return;
 

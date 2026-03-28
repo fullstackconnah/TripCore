@@ -166,7 +166,8 @@ using (var scope = app.Services.CreateScope())
             ('20260320104626_AddIncidentReports'),
             ('20260320133223_AddScheduledActivityTrackingFields'),
             ('20260321093551_AddInsuranceTracking'),
-            ('20260327084507_AddPaymentStatusToBooking')
+            ('20260327084507_AddPaymentStatusToBooking'),
+            ('20260328020237_AddAuditLog')
         ) AS m("MigrationId")
         WHERE EXISTS (
             SELECT 1 FROM pg_catalog.pg_class c

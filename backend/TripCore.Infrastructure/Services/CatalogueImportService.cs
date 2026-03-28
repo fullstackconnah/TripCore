@@ -13,14 +13,22 @@ public class CatalogueImportService
 
     public CatalogueImportService(TripCoreDbContext db) => _db = db;
 
-    // Item number prefixes that identify day type for Category 04 / Reg Group 0125 access items
-    // Based on NDIS Support Catalogue 2025-26: 04_102=PH, 04_104=Weekday, 04_105=Sat, 04_106=Sun
+    // Item number prefixes → day type for Category 04 / Reg Group 0125 items
+    // Standard access (04_10x) and Intensive/Complex Behaviour (04_45x) — NDIS 2025-26
     private static readonly Dictionary<string, ClaimDayType> ItemPrefixToDayType = new()
     {
+        // Standard community access
         { "04_104_", ClaimDayType.Weekday },
+        { "04_103_", ClaimDayType.WeekdayEvening },
         { "04_105_", ClaimDayType.Saturday },
         { "04_106_", ClaimDayType.Sunday },
-        { "04_102_", ClaimDayType.PublicHoliday }
+        { "04_102_", ClaimDayType.PublicHoliday },
+        // Intensive and Complex Behaviour Supports
+        { "04_450_", ClaimDayType.Weekday },
+        { "04_451_", ClaimDayType.WeekdayEvening },
+        { "04_452_", ClaimDayType.Saturday },
+        { "04_453_", ClaimDayType.Sunday },
+        { "04_454_", ClaimDayType.PublicHoliday },
     };
 
     /// <summary>
@@ -194,10 +202,6 @@ public class CatalogueImportService
 
             // Only Category 04 Registration Group 0125 access items
             if (!itemNumber.StartsWith("04_") || !itemNumber.Contains("_0125_"))
-                continue;
-
-            // Skip evening items (04_103) — not a distinct day type in our model
-            if (itemNumber.StartsWith("04_103_"))
                 continue;
 
             // Skip items whose prefix doesn't map to a known day type

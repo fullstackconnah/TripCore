@@ -147,12 +147,14 @@ public class ClaimsController : ControllerBase
             if (dto.Status.Value == ClaimLineItemStatus.Rejected) item.RejectionReason = dto.RejectionReason;
         }
 
-        // Recalculate claim total
-        var allItems = await _db.ClaimLineItems.Where(l => l.TripClaimId == claimId).ToListAsync(ct);
-        item.TripClaim.TotalAmount = allItems.Sum(l => l.TotalAmount);
+        // Recalculate claim total — fetch all OTHER items from DB, then add this item's updated amount
+        var otherItems = await _db.ClaimLineItems
+            .Where(l => l.TripClaimId == claimId && l.Id != id)
+            .ToListAsync(ct);
+        item.TripClaim.TotalAmount = otherItems.Sum(l => l.TotalAmount) + item.TotalAmount;
 
         // Auto-update claim status based on line item statuses
-        var statuses = allItems.Select(l => l.Status).ToList();
+        var statuses = otherItems.Select(l => l.Status).Append(item.Status).ToList();
         if (statuses.All(s => s == ClaimLineItemStatus.Paid))
             item.TripClaim.Status = TripClaimStatus.Paid;
         else if (statuses.All(s => s == ClaimLineItemStatus.Rejected))

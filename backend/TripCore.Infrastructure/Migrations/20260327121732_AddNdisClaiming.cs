@@ -51,29 +51,13 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "DriverLicenceExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "FirstAidExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "ManualHandlingExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "MedicationCompetencyExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
+            // These columns were already added by Program.cs raw SQL on pre-migration databases
+            // (via AddPaymentStatusToBooking which was pre-populated as applied but never ran).
+            // Use IF NOT EXISTS to handle both old DBs (columns exist) and fresh DBs (need to add them).
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "FirstAidExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;""");
 
             migrationBuilder.AddColumn<DateOnly>(
                 name: "PlanEndDate",

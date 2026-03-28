@@ -46,7 +46,10 @@ public class CatalogueImportService
             var isNew = existing == null;
             var priceChanged = existing != null && (
                 existing.PriceLimit_Standard != row.PriceLimit_Standard ||
-                existing.PriceLimit_1to3 != row.PriceLimit_1to3);
+                existing.PriceLimit_1to2 != row.PriceLimit_1to2 ||
+                existing.PriceLimit_1to3 != row.PriceLimit_1to3 ||
+                existing.PriceLimit_1to4 != row.PriceLimit_1to4 ||
+                existing.PriceLimit_1to5 != row.PriceLimit_1to5);
 
             previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
         }
@@ -192,8 +195,12 @@ public class CatalogueImportService
             if (itemNumber.StartsWith("04_211_"))
                 continue;
 
-            var dayType = ItemPrefixToDayType
-                .FirstOrDefault(kv => itemNumber.StartsWith(kv.Key)).Value;
+            // Skip items whose prefix doesn't map to a known day type
+            var prefixMatch = ItemPrefixToDayType.FirstOrDefault(kv => itemNumber.StartsWith(kv.Key));
+            if (prefixMatch.Key == null)
+                continue;
+
+            var dayType = prefixMatch.Value;
 
             decimal Price(int col) => col > 0 &&
                 decimal.TryParse(

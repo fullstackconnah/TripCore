@@ -11,11 +11,16 @@ namespace TripCore.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports");
+            // Already applied by AddPaymentStatusToBooking on prod — guard with IF EXISTS to be idempotent
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""IncidentReports""
+                    DROP CONSTRAINT IF EXISTS ""FK_IncidentReports_TripInstances_TripInstanceId"";
+            ");
 
-            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" DROP COLUMN IF EXISTS "OopPaymentStatus";""");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""ParticipantBookings""
+                    DROP COLUMN IF EXISTS ""OopPaymentStatus"";
+            ");
 
             migrationBuilder.AddColumn<decimal>(
                 name: "ActiveHoursPerDay",
@@ -51,13 +56,14 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            // These columns were already added by Program.cs raw SQL on pre-migration databases
-            // (via AddPaymentStatusToBooking which was pre-populated as applied but never ran).
-            // Use IF NOT EXISTS to handle both old DBs (columns exist) and fresh DBs (need to add them).
-            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;""");
-            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "FirstAidExpiryDate" date;""");
-            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;""");
-            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;""");
+            // Already applied by AddPaymentStatusToBooking on prod — guard with IF NOT EXISTS to be idempotent
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Staff""
+                    ADD COLUMN IF NOT EXISTS ""DriverLicenceExpiryDate"" date NULL,
+                    ADD COLUMN IF NOT EXISTS ""FirstAidExpiryDate"" date NULL,
+                    ADD COLUMN IF NOT EXISTS ""ManualHandlingExpiryDate"" date NULL,
+                    ADD COLUMN IF NOT EXISTS ""MedicationCompetencyExpiryDate"" date NULL;
+            ");
 
             migrationBuilder.AddColumn<DateOnly>(
                 name: "PlanEndDate",
@@ -90,8 +96,11 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            // PaymentStatus was already added by AddPaymentStatusToBooking which ran directly on the DB
-            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "PaymentStatus" integer NOT NULL DEFAULT 0;""");
+            // Already applied by AddPaymentStatusToBooking on prod — guard with IF NOT EXISTS to be idempotent
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""ParticipantBookings""
+                    ADD COLUMN IF NOT EXISTS ""PaymentStatus"" integer NOT NULL DEFAULT 0;
+            ");
 
             migrationBuilder.AddColumn<int>(
                 name: "ContactType",
@@ -100,17 +109,18 @@ namespace TripCore.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: 0);
 
-            migrationBuilder.CreateTable(
-                name: "AppSettings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    QualificationWarningDays = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AppSettings", x => x.Id);
-                });
+            // AppSettings was originally created here with int Id (singleton pattern).
+            // AddTenants (which runs before this migration) already dropped the old AppSettings
+            // and recreated it with Guid Id + TenantId FK. On prod the table therefore already
+            // exists when this migration runs — skip creation entirely using IF NOT EXISTS so
+            // both fresh-DB (CI) and prod paths succeed.
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS ""AppSettings"" (
+                    ""Id"" integer NOT NULL,
+                    ""QualificationWarningDays"" integer NOT NULL,
+                    CONSTRAINT ""PK_AppSettings"" PRIMARY KEY (""Id"")
+                );
+            ");
 
             migrationBuilder.CreateTable(
                 name: "ProviderSettings",
@@ -353,13 +363,21 @@ namespace TripCore.Infrastructure.Migrations
                 table: "TripClaims",
                 column: "TripInstanceId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_IncidentReports_TripInstances_TripInstanceId",
-                table: "IncidentReports",
-                column: "TripInstanceId",
-                principalTable: "TripInstances",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+            // Already re-added by AddPaymentStatusToBooking on prod — guard with DO $$ to be idempotent
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conname = 'FK_IncidentReports_TripInstances_TripInstanceId'
+                    ) THEN
+                        ALTER TABLE ""IncidentReports""
+                            ADD CONSTRAINT ""FK_IncidentReports_TripInstances_TripInstanceId""
+                            FOREIGN KEY (""TripInstanceId"")
+                            REFERENCES ""TripInstances"" (""Id"")
+                            ON DELETE RESTRICT;
+                    END IF;
+                END $$;
+            ");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Participants_Contacts_PlanManagerContactId",

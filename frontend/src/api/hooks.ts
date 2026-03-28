@@ -650,6 +650,13 @@ export function useUpdateSettings() {
   })
 }
 
+export function useAdminTenants() {
+  return useQuery({
+    queryKey: ['admin-tenants'],
+    queryFn: () => apiClient.get('/admin/tenants').then(r => r.data),
+  })
+}
+
 // ── NDIS Claiming ────────────────────────────────────────────
 
 export function useTripClaims(tripId: string | undefined) {

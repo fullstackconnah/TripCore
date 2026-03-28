@@ -4,6 +4,7 @@ import {
   ListChecks, Settings, LogOut, Menu, X, ClipboardList, AlertTriangle, Plus
 } from 'lucide-react'
 import { useState } from 'react'
+import TenantSwitcher from '@/components/layout/TenantSwitcher'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard' },
@@ -27,6 +28,7 @@ export default function AppLayout() {
   const handleLogout = () => {
     localStorage.removeItem('tripcore_token')
     localStorage.removeItem('tripcore_user')
+    localStorage.removeItem('tripcore_viewing_tenant')
     window.location.href = '/login'
   }
 
@@ -114,6 +116,7 @@ export default function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {user.role === 'SuperAdmin' && <TenantSwitcher />}
               <button className="p-2 rounded-full hover:bg-[#efeeea] transition-colors">
                 <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '22px' }}>notifications</span>
               </button>

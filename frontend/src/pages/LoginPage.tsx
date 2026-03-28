@@ -24,6 +24,9 @@ export default function LoginPage() {
         }
         localStorage.setItem('tripcore_token', res.data.token)
         localStorage.setItem('tripcore_user', JSON.stringify(userToStore))
+        if (res.data.tenantId) {
+          localStorage.setItem('tripcore_viewing_tenant', res.data.tenantId)
+        }
         navigate('/')
       } else {
         setError(res.errors?.[0] || 'Login failed')

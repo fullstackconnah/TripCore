@@ -1048,6 +1048,7 @@ public record AuthResponseDto
     public string FullName { get; init; } = string.Empty;
     public string Role { get; init; } = string.Empty;
     public string? TenantName { get; init; }
+    public Guid? TenantId { get; init; }
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -18,7 +18,12 @@ public class CurrentTenantTests
         else
         {
             var mockContext = new Mock<HttpContext>();
+            var mockRequest = new Mock<HttpRequest>();
+            var mockHeaders = new Mock<IHeaderDictionary>();
+            mockHeaders.Setup(h => h["X-View-As-Tenant"]).Returns((string?)null);
+            mockRequest.Setup(r => r.Headers).Returns(mockHeaders.Object);
             mockContext.Setup(c => c.User).Returns(principal);
+            mockContext.Setup(c => c.Request).Returns(mockRequest.Object);
             mockAccessor.Setup(a => a.HttpContext).Returns(mockContext.Object);
         }
         return new CurrentTenant(mockAccessor.Object);
@@ -81,4 +86,54 @@ public class CurrentTenantTests
         var sut = Build(principal);
         Assert.Null(sut.TenantId);
     }
+
+    private static CurrentTenant BuildWithHeader(ClaimsPrincipal principal, string? headerValue)
+    {
+        var mockAccessor = new Mock<IHttpContextAccessor>();
+        var mockContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new Mock<IHeaderDictionary>();
+        
+        // Setup headers to return the headerValue when accessed
+        mockHeaders
+            .Setup(h => h["X-View-As-Tenant"])
+            .Returns(() => headerValue);
+        
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders.Object);
+        mockContext.Setup(c => c.User).Returns(principal);
+        mockContext.Setup(c => c.Request).Returns(mockRequest.Object);
+        mockAccessor.Setup(a => a.HttpContext).Returns(mockContext.Object);
+        return new CurrentTenant(mockAccessor.Object);
+    }
+
+    [Fact]
+    public void SuperAdmin_WithValidHeader_ScopedToOverrideTenant_IsSuperAdminFalse()
+    {
+        var overrideId = Guid.NewGuid();
+        var principal = Principal([new Claim("tenant_id", Guid.NewGuid().ToString())], role: "SuperAdmin");
+        var sut = BuildWithHeader(principal, overrideId.ToString());
+        Assert.Equal(overrideId, sut.TenantId);
+        Assert.False(sut.IsSuperAdmin);
+    }
+
+    [Fact]
+    public void SuperAdmin_WithInvalidHeader_RemainsUnscoped_IsSuperAdminTrue()
+    {
+        var ownId = Guid.NewGuid();
+        var principal = Principal([new Claim("tenant_id", ownId.ToString())], role: "SuperAdmin");
+        var sut = BuildWithHeader(principal, "not-a-guid");
+        Assert.Equal(ownId, sut.TenantId);
+        Assert.True(sut.IsSuperAdmin);
+    }
+
+    [Fact]
+    public void SuperAdmin_WithNoHeader_RemainsUnscoped_IsSuperAdminTrue()
+    {
+        var ownId = Guid.NewGuid();
+        var principal = Principal([new Claim("tenant_id", ownId.ToString())], role: "SuperAdmin");
+        var sut = BuildWithHeader(principal, null);
+        Assert.Equal(ownId, sut.TenantId);
+        Assert.True(sut.IsSuperAdmin);
+    }
+
 }

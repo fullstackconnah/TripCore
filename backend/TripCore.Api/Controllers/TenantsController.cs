@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TripCore.Application.Common;
 using TripCore.Application.DTOs;
 using TripCore.Domain.Entities;
 using TripCore.Infrastructure.Data;
@@ -24,7 +25,7 @@ public class TenantsController : ControllerBase
             .OrderBy(t => t.Name)
             .Select(t => new TenantDto(t.Id, t.Name, t.EmailDomain, t.IsActive, t.CreatedAt))
             .ToListAsync();
-        return Ok(tenants);
+        return Ok(ApiResponse<List<TenantDto>>.Ok(tenants));
     }
 
     // POST api/v1/admin/tenants

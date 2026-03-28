@@ -164,8 +164,7 @@ using (var scope = app.Services.CreateScope())
             ('20260320104626_AddIncidentReports'),
             ('20260320133223_AddScheduledActivityTrackingFields'),
             ('20260321093551_AddInsuranceTracking'),
-            ('20260327084507_AddPaymentStatusToBooking'),
-            ('20260327121732_AddNdisClaiming')
+            ('20260327084507_AddPaymentStatusToBooking')
         ) AS m("MigrationId")
         WHERE EXISTS (
             SELECT 1 FROM pg_catalog.pg_class c
@@ -173,6 +172,20 @@ using (var scope = app.Services.CreateScope())
             WHERE n.nspname = 'public' AND c.relname = 'AccommodationProperties'
         )
         ON CONFLICT DO NOTHING;
+        """);
+
+    // Repair: if AddNdisClaiming was falsely marked as applied by the pre-population
+    // block but the tables don't actually exist, remove the false history entry so
+    // MigrateAsync re-runs the migration and creates the tables properly.
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        DELETE FROM "__EFMigrationsHistory"
+        WHERE "MigrationId" = '20260327121732_AddNdisClaiming'
+        AND NOT EXISTS (
+            SELECT 1 FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = 'SupportActivityGroups'
+        );
         """);
 
     // Apply pending EF Core migrations automatically on startup
@@ -210,21 +223,7 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
         """);
     await DbSeeder.SeedAsync(db);
-    // TODO: Remove try-catch once AddNdisClaiming migration has been applied to all environments.
-    // SeedNdisDataAsync queries SupportActivityGroups; if the migration hasn't run yet the table
-    // won't exist and the app would crash (Postgres error 42P01 / relation does not exist).
-    try
-    {
-        await DbSeeder.SeedNdisDataAsync(db);
-    }
-    catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
-    {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogWarning(
-            "Skipped NDIS seed data: table not found ({SqlState}). " +
-            "Run the AddNdisClaiming migration to resolve this.",
-            ex.SqlState);
-    }
+    await DbSeeder.SeedNdisDataAsync(db);
 }
 
 // ── Middleware pipeline ──────────────────────────────────────

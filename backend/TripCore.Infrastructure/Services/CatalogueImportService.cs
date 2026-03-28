@@ -13,13 +13,14 @@ public class CatalogueImportService
 
     public CatalogueImportService(TripCoreDbContext db) => _db = db;
 
-    // Item number prefixes that identify day type for Category 04 group access items
+    // Item number prefixes that identify day type for Category 04 / Reg Group 0125 access items
+    // Based on NDIS Support Catalogue 2025-26: 04_102=PH, 04_104=Weekday, 04_105=Sat, 04_106=Sun
     private static readonly Dictionary<string, ClaimDayType> ItemPrefixToDayType = new()
     {
-        { "04_210_", ClaimDayType.Weekday },
-        { "04_212_", ClaimDayType.Saturday },
-        { "04_213_", ClaimDayType.Sunday },
-        { "04_214_", ClaimDayType.PublicHoliday }
+        { "04_104_", ClaimDayType.Weekday },
+        { "04_105_", ClaimDayType.Saturday },
+        { "04_106_", ClaimDayType.Sunday },
+        { "04_102_", ClaimDayType.PublicHoliday }
     };
 
     /// <summary>
@@ -44,12 +45,7 @@ public class CatalogueImportService
         {
             var existing = existingItems.FirstOrDefault(i => i.ItemNumber == row.ItemNumber);
             var isNew = existing == null;
-            var priceChanged = existing != null && (
-                existing.PriceLimit_Standard != row.PriceLimit_Standard ||
-                existing.PriceLimit_1to2 != row.PriceLimit_1to2 ||
-                existing.PriceLimit_1to3 != row.PriceLimit_1to3 ||
-                existing.PriceLimit_1to4 != row.PriceLimit_1to4 ||
-                existing.PriceLimit_1to5 != row.PriceLimit_1to5);
+            var priceChanged = existing != null && existing.PriceLimit_Standard != row.PriceLimit_Standard;
 
             previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
         }
@@ -172,11 +168,8 @@ public class CatalogueImportService
 
         var colItemNumber = ColIdx("Support Item Number", "SupportItemNumber", "Item Number");
         var colDescription = ColIdx("Support Item Name", "SupportItemName", "Item Name", "Description");
-        var col11 = ColIdx("1:1", "1 to 1", "Standard");
-        var col12 = ColIdx("1:2", "1 to 2");
-        var col13 = ColIdx("1:3", "1 to 3");
-        var col14 = ColIdx("1:4", "1 to 4");
-        var col15 = ColIdx("1:5", "1 to 5");
+        // Real NDIS catalogue uses per-state columns — VIC is the price limit for Victorian providers
+        var colVic = ColIdx("VIC", "Vic");
 
         if (colItemNumber == 0)
             return results;
@@ -187,12 +180,12 @@ public class CatalogueImportService
         {
             var itemNumber = ws.Cell(r, colItemNumber).GetString().Trim();
 
-            // Only Category 04 Registration Group 0125 group access items
+            // Only Category 04 Registration Group 0125 access items
             if (!itemNumber.StartsWith("04_") || !itemNumber.Contains("_0125_"))
                 continue;
 
-            // Skip evening (04_211) — not a distinct day type in our model
-            if (itemNumber.StartsWith("04_211_"))
+            // Skip evening items (04_103) — not a distinct day type in our model
+            if (itemNumber.StartsWith("04_103_"))
                 continue;
 
             // Skip items whose prefix doesn't map to a known day type
@@ -207,16 +200,20 @@ public class CatalogueImportService
                     ws.Cell(r, col).GetString().Replace("$", "").Trim(),
                     out var v) ? v : 0m;
 
+            var vicPrice = Price(colVic);
+            if (vicPrice == 0)
+                continue; // Skip quote-only items with no listed price
+
             results.Add(new CatalogueImportRowDto
             {
                 ItemNumber = itemNumber,
                 Description = colDescription > 0 ? ws.Cell(r, colDescription).GetString().Trim() : itemNumber,
                 DayType = dayType,
-                PriceLimit_Standard = Price(col11),
-                PriceLimit_1to2 = Price(col12),
-                PriceLimit_1to3 = Price(col13),
-                PriceLimit_1to4 = Price(col14),
-                PriceLimit_1to5 = Price(col15)
+                PriceLimit_Standard = vicPrice,
+                PriceLimit_1to2 = vicPrice,
+                PriceLimit_1to3 = vicPrice,
+                PriceLimit_1to4 = vicPrice,
+                PriceLimit_1to5 = vicPrice
             });
         }
 

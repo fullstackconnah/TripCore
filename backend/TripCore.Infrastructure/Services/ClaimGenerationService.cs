@@ -32,8 +32,15 @@ public class ClaimGenerationService
         var settings = await _db.ProviderSettings.FirstOrDefaultAsync(ct)
             ?? throw new InvalidOperationException("Provider settings are not configured. Please configure them in Settings before generating claims.");
 
-        if (trip.DefaultActivityGroupId == null)
-            throw new InvalidOperationException("Trip has no default activity group set. Please set one before generating claims.");
+        // Resolve activity group — use trip's default, or fall back to GRP_COMMUNITY_ACCESS
+        var activityGroupId = trip.DefaultActivityGroupId;
+        if (activityGroupId == null)
+        {
+            var defaultGroup = await _db.SupportActivityGroups
+                .FirstOrDefaultAsync(g => g.GroupCode == "GRP_COMMUNITY_ACCESS", ct)
+                ?? throw new InvalidOperationException("No activity group is configured. Please import the support catalogue in Settings first.");
+            activityGroupId = defaultGroup.Id;
+        }
 
         var confirmedBookings = trip.Bookings
             .Where(b => b.BookingStatus == BookingStatus.Confirmed)
@@ -52,8 +59,11 @@ public class ClaimGenerationService
 
         // Load active catalogue items for this activity group
         var catalogueItems = await _db.SupportCatalogueItems
-            .Where(i => i.ActivityGroupId == trip.DefaultActivityGroupId && i.IsActive)
+            .Where(i => i.ActivityGroupId == activityGroupId && i.IsActive)
             .ToListAsync(ct);
+
+        if (!catalogueItems.Any())
+            throw new InvalidOperationException("No support catalogue items found. Please import the NDIS Support Catalogue in Settings before generating claims.");
 
         var claimReference = BuildClaimReference(trip);
         var claim = new TripClaim

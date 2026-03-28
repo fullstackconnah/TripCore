@@ -33,7 +33,7 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
       onSuccess: () => setGenerating(false),
       onError: (err: any) => {
         setGenerating(false)
-        setError(err?.response?.data?.message || 'Failed to generate claim. Check provider settings and confirm the trip has confirmed bookings.')
+        setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to generate claim. Check provider settings and confirm the trip has confirmed bookings.')
       },
     })
   }

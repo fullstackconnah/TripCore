@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TripCore.Infrastructure.Audit;
 using TripCore.Infrastructure.Data;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -14,8 +15,14 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")
     ?? "Host=localhost;Port=5432;Database=tripcore;Username=postgres;Password=postgres";
 
-builder.Services.AddDbContext<TripCoreDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<AuditInterceptor>();
+
+builder.Services.AddDbContext<TripCoreDbContext>((sp, options) =>
+{
+    options.UseNpgsql(connectionString);
+    options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+});
 
 // ── JWT Authentication ───────────────────────────────────────
 var jwtSecret = builder.Configuration["Jwt:Secret"];

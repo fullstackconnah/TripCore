@@ -34,6 +34,7 @@ public class TripCoreDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -447,6 +448,22 @@ public class TripCoreDbContext : DbContext
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.IsActive);
+        });
+
+        // ── AuditLog ─────────────────────────────────────────────
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Changes).IsRequired();
+            entity.Property(e => e.Action)
+                  .HasConversion<string>()
+                  .HasMaxLength(20)
+                  .IsRequired();
+            entity.Property(e => e.ChangedByName).HasMaxLength(200);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.ChangedAt);
+            // No FK constraint on ChangedById — audit records must survive user deletion
         });
     }
 }

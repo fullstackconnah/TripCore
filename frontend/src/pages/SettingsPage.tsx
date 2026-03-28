@@ -153,6 +153,7 @@ function ProviderSettingsTab() {
   const [form, setForm] = useState<any>({})
   const [init, setInit] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (settings && !init) { setForm(settings); setInit(true) }
 
@@ -166,8 +167,16 @@ function ProviderSettingsTab() {
   })
 
   function handleSave() {
+    setError(null)
     upsert.mutate(form, {
-      onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) }
+      onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
+      onError: (err: any) => {
+        const status = err?.response?.status
+        const msg = err?.response?.data?.message
+        if (status === 403) setError('Admin role is required to update provider settings. Ask an Admin to make this change.')
+        else if (status === 400) setError(msg || 'Validation failed — check Registration Number, ABN, Organisation Name and Address are filled in.')
+        else setError(msg || 'Failed to save. Please try again.')
+      },
     })
   }
 
@@ -203,6 +212,12 @@ function ProviderSettingsTab() {
         <h2 className="font-semibold text-[#1b1c1a] mb-2">Invoice Footer Notes</h2>
         <textarea {...f('invoiceFooterNotes')} rows={3} className={inputClass + ' resize-none'} placeholder="e.g. All services delivered in accordance with the NDIS Code of Conduct..." />
       </div>
+      {error && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+          <span className="mt-0.5">⚠</span>
+          <span>{error}</span>
+        </div>
+      )}
       <button onClick={handleSave} disabled={upsert.isPending} className="px-6 py-2.5 bg-[#396200] text-white rounded-full font-semibold text-sm hover:bg-[#294800] transition-all disabled:opacity-50">
         {upsert.isPending ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
       </button>

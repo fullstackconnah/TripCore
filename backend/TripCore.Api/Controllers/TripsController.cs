@@ -97,7 +97,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Create a new trip instance.</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Create([FromBody] CreateTripDto dto, CancellationToken ct)
     {
         var trip = new TripInstance
@@ -118,7 +118,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Update a trip instance.</summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Update(Guid id, [FromBody] UpdateTripDto dto, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -138,7 +138,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Partially update a trip (e.g. status only).</summary>
     [HttpPatch("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Patch(Guid id, [FromBody] PatchTripDto dto, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -198,7 +198,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Soft-delete (archive) a trip.</summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);

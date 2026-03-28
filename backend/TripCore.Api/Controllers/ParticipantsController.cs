@@ -73,7 +73,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Create a new participant.</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ParticipantDetailDto>>> Create([FromBody] CreateParticipantDto dto, CancellationToken ct)
     {
         var participant = new Participant
@@ -95,7 +95,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Update an existing participant.</summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ParticipantDetailDto>>> Update(Guid id, [FromBody] UpdateParticipantDto dto, CancellationToken ct)
     {
         var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -170,7 +170,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Archive (soft-delete) a participant.</summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);

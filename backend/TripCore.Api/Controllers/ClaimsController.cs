@@ -30,7 +30,7 @@ public class ClaimsController : ControllerBase
 
     // POST /api/v1/trips/{tripId}/claims
     [HttpPost("trips/{tripId:guid}/claims")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<TripClaimListDto>>> GenerateClaim(Guid tripId, CancellationToken ct)
     {
         try
@@ -106,7 +106,7 @@ public class ClaimsController : ControllerBase
 
     // PUT /api/v1/claims/{claimId}
     [HttpPut("claims/{claimId:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateClaim(Guid claimId, [FromBody] UpdateClaimDto dto, CancellationToken ct)
     {
         var c = await _db.TripClaims.FirstOrDefaultAsync(x => x.Id == claimId, ct);
@@ -127,7 +127,7 @@ public class ClaimsController : ControllerBase
 
     // PATCH /api/v1/claims/{claimId}/line-items/{id}
     [HttpPatch("claims/{claimId:guid}/line-items/{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateLineItem(Guid claimId, Guid id, [FromBody] UpdateClaimLineItemDto dto, CancellationToken ct)
     {
         var item = await _db.ClaimLineItems

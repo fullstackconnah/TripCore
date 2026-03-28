@@ -14,9 +14,11 @@ public static class DbSeeder
         var hasParticipants = await context.Participants.IgnoreQueryFilters().AnyAsync(ct);
 
         // ── Tenant ───────────────────────────────────────────────
+        // Always ensure the TripCore tenant exists (runs unconditionally on every startup)
         var tenantId = Guid.Parse("a0000000-0000-0000-0000-000000000001");
-        var hasTenant = await context.Tenants.AnyAsync(ct);
-        if (!hasTenant)
+        var tripCoreTenant = await context.Tenants
+            .FirstOrDefaultAsync(t => t.EmailDomain == "tripcore.com.au", ct);
+        if (tripCoreTenant is null)
         {
             context.Tenants.Add(new Tenant
             {
@@ -29,10 +31,7 @@ public static class DbSeeder
         }
         else
         {
-            tenantId = await context.Tenants
-                .Where(t => t.EmailDomain == "tripcore.com.au")
-                .Select(t => t.Id)
-                .FirstOrDefaultAsync(ct);
+            tenantId = tripCoreTenant.Id;
         }
 
         // Seed fixed-ID users — guard each individually so this is safe on redeploy.
@@ -90,7 +89,7 @@ public static class DbSeeder
             .IgnoreQueryFilters()
             .Where(u => u.TenantId == Guid.Empty)
             .ToListAsync(ct);
-        if (orphanedUsers.Any())
+        if (orphanedUsers.Count > 0)
         {
             foreach (var u in orphanedUsers) u.TenantId = tenantId;
             await context.SaveChangesAsync(ct);

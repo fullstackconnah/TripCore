@@ -13,6 +13,7 @@ type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 't
 function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] }) {
   const generateClaim = useGenerateClaim()
   const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const claimStatusColor = (status: string) => {
     switch (status) {
@@ -26,10 +27,14 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
   }
 
   function handleGenerate() {
+    setError(null)
     setGenerating(true)
     generateClaim.mutate(tripId, {
       onSuccess: () => setGenerating(false),
-      onError: () => setGenerating(false),
+      onError: (err: any) => {
+        setGenerating(false)
+        setError(err?.response?.data?.message || 'Failed to generate claim. Check provider settings and confirm the trip has confirmed bookings.')
+      },
     })
   }
 
@@ -42,9 +47,16 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
           disabled={generating || generateClaim.isPending}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
         >
-          + Generate Claim
+          {generating || generateClaim.isPending ? 'Generating...' : '+ Generate Claim'}
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+          <span className="mt-0.5">⚠</span>
+          <span>{error}</span>
+        </div>
+      )}
 
       {claims.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center text-[#43493a]">

@@ -167,3 +167,37 @@ public record CreatePublicHolidayDto
     [StringLength(10)]
     public string? State { get; init; }
 }
+
+// ══════════════════════════════════════════════════════════════
+// CATALOGUE IMPORT DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record CatalogueImportPreviewDto
+{
+    public string DetectedVersion { get; init; } = string.Empty;
+    public int ItemsToAdd { get; init; }
+    public int ItemsToDeactivate { get; init; }
+    public List<CatalogueImportRowDto> Rows { get; init; } = new();
+    public List<string> Warnings { get; init; } = new();
+}
+
+public record CatalogueImportRowDto
+{
+    public string ItemNumber { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public ClaimDayType DayType { get; init; }
+    public decimal PriceLimit_Standard { get; init; }
+    public decimal PriceLimit_1to2 { get; init; }
+    public decimal PriceLimit_1to3 { get; init; }
+    public decimal PriceLimit_1to4 { get; init; }
+    public decimal PriceLimit_1to5 { get; init; }
+    public bool IsNew { get; init; }
+    public bool PriceChanged { get; init; }
+}
+
+public record ConfirmCatalogueImportDto
+{
+    [Required, StringLength(20)]
+    public string CatalogueVersion { get; init; } = string.Empty;
+    public List<CatalogueImportRowDto> Rows { get; init; } = new();
+}

@@ -61,6 +61,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.BprCsvService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
 
 // ── Rate Limiting ────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>

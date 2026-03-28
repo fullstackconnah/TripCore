@@ -59,7 +59,7 @@ public class ClaimsController : ControllerBase
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => new TripClaimListDto
             {
-                Id = c.Id, TripInstanceId = c.TripInstanceId, TripName = c.TripInstance?.TripName ?? string.Empty,
+                Id = c.Id, TripInstanceId = c.TripInstanceId, TripName = c.TripInstance.TripName,
                 Status = c.Status, ClaimReference = c.ClaimReference,
                 TotalAmount = c.TotalAmount, CreatedAt = c.CreatedAt, SubmittedDate = c.SubmittedDate
             }).ToListAsync(ct);

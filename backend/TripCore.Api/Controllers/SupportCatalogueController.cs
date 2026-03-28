@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
 using TripCore.Application.DTOs;
 using TripCore.Infrastructure.Data;
+using TripCore.Infrastructure.Services;
 
 namespace TripCore.Api.Controllers;
 
@@ -40,5 +41,47 @@ public class SupportCatalogueController : ControllerBase
         }).ToList();
 
         return Ok(ApiResponse<List<SupportActivityGroupDto>>.Ok(result));
+    }
+
+    [HttpPost("import/preview")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<CatalogueImportPreviewDto>>> PreviewImport(
+        IFormFile file, [FromServices] CatalogueImportService importer, CancellationToken ct)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail("No file uploaded."));
+
+        if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail("File must be an .xlsx file."));
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var preview = await importer.PreviewImportAsync(stream, ct);
+            return Ok(ApiResponse<CatalogueImportPreviewDto>.Ok(preview));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail(ex.Message));
+        }
+    }
+
+    [HttpPost("import/confirm")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> ConfirmImport(
+        [FromBody] ConfirmCatalogueImportDto dto, [FromServices] CatalogueImportService importer, CancellationToken ct)
+    {
+        if (dto.Rows.Count == 0)
+            return BadRequest(ApiResponse<bool>.Fail("No rows to import."));
+
+        try
+        {
+            await importer.CommitImportAsync(dto, ct);
+            return Ok(ApiResponse<bool>.Ok(true, $"Imported {dto.Rows.Count} items for catalogue version {dto.CatalogueVersion}."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<bool>.Fail(ex.Message));
+        }
     }
 }

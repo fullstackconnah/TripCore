@@ -670,6 +670,9 @@ export interface AuditEntry {
 export interface AuditHistoryResponse {
   entries: AuditEntry[];
   total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export function useAuditHistory(entityType: string, entityId: string | undefined) {

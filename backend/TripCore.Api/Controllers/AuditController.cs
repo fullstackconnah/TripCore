@@ -40,20 +40,25 @@ public class AuditController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
-        var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        var allowedTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            "TripInstance", "Participant", "ParticipantBooking",
-            "IncidentReport", "Staff", "StaffAssignment", "VehicleAssignment"
+            ["TripInstance"] = "TripInstance",
+            ["Participant"] = "Participant",
+            ["ParticipantBooking"] = "ParticipantBooking",
+            ["IncidentReport"] = "IncidentReport",
+            ["Staff"] = "Staff",
+            ["StaffAssignment"] = "StaffAssignment",
+            ["VehicleAssignment"] = "VehicleAssignment",
         };
 
-        if (!allowedTypes.Contains(entityType))
+        if (!allowedTypes.TryGetValue(entityType, out var canonicalEntityType))
             return BadRequest(new { error = "Invalid entity type." });
 
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 50;
 
         var query = _db.AuditLogs
-            .Where(a => a.EntityType == entityType && a.EntityId == entityId)
+            .Where(a => a.EntityType == canonicalEntityType && a.EntityId == entityId)
             .OrderByDescending(a => a.ChangedAt);
 
         var total = await query.CountAsync(ct);
@@ -78,7 +83,7 @@ public class AuditController : ControllerBase
             Action = a.Action.ToString(),
             a.ChangedAt,
             a.ChangedByName,
-            Changes = JsonSerializer.Deserialize<JsonElement>(a.Changes)
+            Changes = DeserializeChanges(a.Changes)
         }).ToList();
 
         return Ok(new
@@ -89,5 +94,17 @@ public class AuditController : ControllerBase
             pageSize,
             totalPages = (total + pageSize - 1) / pageSize
         });
+    }
+
+    private static JsonElement DeserializeChanges(string json)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<JsonElement>(json);
+        }
+        catch (JsonException)
+        {
+            return JsonSerializer.Deserialize<JsonElement>("[]");
+        }
     }
 }

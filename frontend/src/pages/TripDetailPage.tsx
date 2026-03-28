@@ -1,14 +1,85 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, FileText } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities'
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims'
+
+function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] }) {
+  const generateClaim = useGenerateClaim()
+  const [generating, setGenerating] = useState(false)
+
+  const claimStatusColor = (status: string) => {
+    switch (status) {
+      case 'Draft': return 'bg-gray-100 text-gray-600'
+      case 'Submitted': return 'bg-blue-100 text-blue-700'
+      case 'Paid': return 'bg-[#bff285] text-[#294800]'
+      case 'Rejected': return 'bg-red-100 text-red-700'
+      case 'PartiallyPaid': return 'bg-amber-100 text-amber-700'
+      default: return 'bg-gray-100 text-gray-600'
+    }
+  }
+
+  function handleGenerate() {
+    setGenerating(true)
+    generateClaim.mutate(tripId, {
+      onSuccess: () => setGenerating(false),
+      onError: () => setGenerating(false),
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-[#1b1c1a]">NDIS Claims</h2>
+        <button
+          onClick={handleGenerate}
+          disabled={generating || generateClaim.isPending}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
+        >
+          + Generate Claim
+        </button>
+      </div>
+
+      {claims.length === 0 ? (
+        <div className="bg-white rounded-2xl p-8 text-center text-[#43493a]">
+          No claims yet. Generate a claim once the trip is complete.
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-[#f5f3ef]">
+              <tr>
+                {['Reference', 'Status', 'Total Amount', 'Created', 'Submitted', ''].map(h => (
+                  <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a]">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#f5f3ef]">
+              {claims.map((c: any) => (
+                <tr key={c.id} className="hover:bg-[#fbf9f5] transition-colors">
+                  <td className="p-3 font-medium font-mono text-sm">{c.claimReference}</td>
+                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${claimStatusColor(c.status)}`}>{c.status}</span></td>
+                  <td className="p-3 font-medium">${c.totalAmount?.toFixed(2)}</td>
+                  <td className="p-3 text-[#43493a]">{c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-AU') : '—'}</td>
+                  <td className="p-3 text-[#43493a]">{c.submittedDate ? new Date(c.submittedDate).toLocaleDateString('en-AU') : '—'}</td>
+                  <td className="p-3">
+                    <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function TripDetailPage() {
   const { id } = useParams()
@@ -41,6 +112,7 @@ export default function TripDetailPage() {
   const { data: staff = [] } = useTripStaff(id)
   const { data: tasks = [] } = useTripTasks(id)
   const { data: schedule = [] } = useTripSchedule(id)
+  const { data: claims = [] } = useTripClaims(id)
   const { data: participants = [] } = useParticipants()
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
@@ -496,6 +568,7 @@ export default function TripDetailPage() {
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
     { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
+    { key: 'claims', label: 'Claims', icon: FileText, count: claims.length },
   ]
 
   return (
@@ -2379,6 +2452,10 @@ export default function TripDetailPage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'claims' && (
+          <ClaimsTabContent tripId={id!} claims={claims} />
         )}
 
       </div>

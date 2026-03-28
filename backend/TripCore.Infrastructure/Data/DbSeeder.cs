@@ -11,25 +11,35 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(TripCoreDbContext context, CancellationToken ct = default)
     {
-        var hasParticipants = await context.Participants.AnyAsync(ct);
-        var hasUsers = await context.Users.AnyAsync(ct);
+        var hasParticipants = await context.Participants.IgnoreQueryFilters().AnyAsync(ct);
 
-        if (!hasUsers)
+        // Seed fixed-ID users — guard each individually so this is safe on redeploy.
+        // Use IgnoreQueryFilters() so global tenant filters don't cause a false-negative.
+        var existingStaff = await context.Staff.IgnoreQueryFilters().ToListAsync(ct);
+
+        var seedUsers = new[]
         {
-            var existingStaff = await context.Staff.ToListAsync(ct);
-            var users = new List<User>
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : (Guid?)null }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000001"), Username = "rachel.thompson", Email = "rachel.thompson@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Rachel", LastName = "Thompson", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 4 ? existingStaff[4].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000002"), Username = "emily.nguyen", Email = "emily.nguyen@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Emily", LastName = "Nguyen", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 2 ? existingStaff[2].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000003"), Username = "daniel.williams", Email = "daniel.williams@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Daniel", LastName = "Williams", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 3 ? existingStaff[3].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000004"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000004"), Username = "coordinator.read", Email = "readonly@tripcore.com.au", PasswordHash = BCryptHash("Read123!"), FirstName = "Read", LastName = "Only", Role = UserRole.ReadOnly }),
+        };
+
+        var usersAdded = false;
+        foreach (var (id, user) in seedUsers)
+        {
+            var exists = await context.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == id, ct);
+            if (!exists)
             {
-                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.Admin },
-                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), Username = "sarah.mitchell", Email = "sarah.mitchell@tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : null },
-                new() { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), Username = "james.obrien", Email = "james.obrien@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : null },
-                new() { Id = Guid.Parse("b2000000-0000-0000-0000-000000000001"), Username = "rachel.thompson", Email = "rachel.thompson@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Rachel", LastName = "Thompson", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 4 ? existingStaff[4].Id : null },
-                new() { Id = Guid.Parse("b2000000-0000-0000-0000-000000000002"), Username = "emily.nguyen", Email = "emily.nguyen@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Emily", LastName = "Nguyen", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 2 ? existingStaff[2].Id : null },
-                new() { Id = Guid.Parse("b2000000-0000-0000-0000-000000000003"), Username = "daniel.williams", Email = "daniel.williams@tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Daniel", LastName = "Williams", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 3 ? existingStaff[3].Id : null },
-                new() { Id = Guid.Parse("b2000000-0000-0000-0000-000000000004"), Username = "coordinator.read", Email = "readonly@tripcore.com.au", PasswordHash = BCryptHash("Read123!"), FirstName = "Read", LastName = "Only", Role = UserRole.ReadOnly },
-            };
-            context.Users.AddRange(users);
-            await context.SaveChangesAsync(ct);
+                context.Users.Add(user);
+                usersAdded = true;
+            }
         }
+        if (usersAdded)
+            await context.SaveChangesAsync(ct);
 
         // Ensure SuperAdmin user exists for Connah tenant
         var connahTenantId = new Guid("00000000-0000-0000-0000-000000000001");
@@ -74,7 +84,7 @@ public static class DbSeeder
         context.Staff.AddRange(staff);
 
         // Link existing users to staff
-        var existingUsers = await context.Users.ToListAsync(ct);
+        var existingUsers = await context.Users.IgnoreQueryFilters().ToListAsync(ct);
         void LinkUser(string username, Guid staffId)
         {
             var u = existingUsers.FirstOrDefault(x => x.Username == username);

@@ -174,7 +174,7 @@ public class ClaimGenerationService
 
     private static decimal GetPriceForRatio(SupportCatalogueItem item, SupportRatio ratio)
     {
-        return ratio switch
+        var price = ratio switch
         {
             SupportRatio.OneToTwo => item.PriceLimit_1to2,
             SupportRatio.OneToThree => item.PriceLimit_1to3,
@@ -182,6 +182,7 @@ public class ClaimGenerationService
             SupportRatio.OneToFive => item.PriceLimit_1to5,
             _ => item.PriceLimit_Standard
         };
+        return price > 0 ? price : item.PriceLimit_Standard;
     }
 
     private class DayGroup

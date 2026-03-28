@@ -20,8 +20,9 @@ builder.Services.AddDbContext<TripCoreDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ── JWT Authentication ───────────────────────────────────────
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? Environment.GetEnvironmentVariable("JWT_SECRET");
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrEmpty(jwtSecret))
+    jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
 if (string.IsNullOrEmpty(jwtSecret) || jwtSecret == "TripCore-Dev-Only-Secret-Min32Characters!!")
     throw new InvalidOperationException(

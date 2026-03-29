@@ -48,7 +48,7 @@ export default function TripCreatePage() {
     if (tpl) {
       if (tpl.defaultDestination) setValue('destination', tpl.defaultDestination)
       if (tpl.defaultRegion) setValue('region', tpl.defaultRegion)
-      if (tpl.defaultDurationDays) setValue('durationDays', tpl.defaultDurationDays)
+      if (tpl.standardDurationDays) setValue('durationDays', tpl.standardDurationDays)
     }
   }
 

@@ -14,6 +14,8 @@ export interface ParticipantListDto {
   wheelchairRequired: boolean
   isHighSupport: boolean
   isIntensiveSupport: boolean
+  requiresOvernightSupport?: boolean
+  hasRestrictivePracticeFlag?: boolean
   supportRatio: SupportRatio
 }
 

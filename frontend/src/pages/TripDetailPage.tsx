@@ -8,6 +8,7 @@ import AddActivityModal from '@/components/AddActivityModal'
 import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
+import type { TripClaimStatus, BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims'
 
@@ -81,7 +82,7 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
                     <Dropdown
                       variant="pill"
                       value={c.status}
-                      onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val } })}
+                      onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val as TripClaimStatus } })}
                       colorClass={CLAIM_STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-600'}
                       items={CLAIM_STATUS_ITEMS}
                     />
@@ -334,12 +335,12 @@ export default function TripDetailPage() {
     createStaffAssignment.mutate({
       tripInstanceId: id,
       staffId: selectedStaffId,
-      assignmentRole: staffAssignmentRole || null,
-      assignmentStart: staffAssignmentStart || null,
-      assignmentEnd: staffAssignmentEnd || null,
+      assignmentRole: staffAssignmentRole || undefined,
+      assignmentStart: staffAssignmentStart,
+      assignmentEnd: staffAssignmentEnd,
       isDriver: staffIsDriver,
-      sleepoverType: staffSleepoverType,
-      shiftNotes: staffShiftNotes || null,
+      sleepoverType: staffSleepoverType as SleepoverType,
+      shiftNotes: staffShiftNotes || undefined,
     }, {
       onSuccess: () => {
         setShowAddStaff(false)
@@ -421,11 +422,11 @@ export default function TripDetailPage() {
       accommodationPropertyId: propertyId,
       checkInDate: accommForm.checkInDate,
       checkOutDate: accommForm.checkOutDate,
-      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : null,
-      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : null,
-      cost: accommForm.cost ? parseFloat(accommForm.cost) : null,
+      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : undefined,
+      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : undefined,
+      cost: accommForm.cost ? parseFloat(accommForm.cost) : undefined,
       reservationStatus: accommForm.reservationStatus,
-      comments: accommForm.comments || null,
+      comments: accommForm.comments || undefined,
     }, {
       onSuccess: () => {
         setShowAddAccommodation(false)
@@ -440,11 +441,14 @@ export default function TripDetailPage() {
       if (!newPropertyForm.propertyName) return
       createAccommodation.mutate({
         propertyName: newPropertyForm.propertyName,
-        location: newPropertyForm.location || null,
-        region: newPropertyForm.region || null,
-        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : null,
-        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : null,
-        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : null,
+        location: newPropertyForm.location || undefined,
+        region: newPropertyForm.region || undefined,
+        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : undefined,
+        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : undefined,
+        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : undefined,
+        isFullyModified: false,
+        isSemiModified: false,
+        isWheelchairAccessible: false,
         isActive: true,
       }, {
         onSuccess: (res: any) => {
@@ -539,13 +543,22 @@ export default function TripDetailPage() {
   const handleUpdateBooking = () => {
     if (!editingBooking) return
     updateBooking.mutate({ id: editingBooking.id, data: {
-      ...editForm,
-      supportRatioOverride: editForm.supportRatioOverride || null,
-      insuranceStatus: editForm.insuranceStatus,
-      insuranceProvider: editForm.insuranceProvider || null,
-      insurancePolicyNumber: editForm.insurancePolicyNumber || null,
-      insuranceCoverageStart: editForm.insuranceCoverageStart || null,
-      insuranceCoverageEnd: editForm.insuranceCoverageEnd || null,
+      tripInstanceId: editingBooking.tripInstanceId,
+      participantId: editingBooking.participantId,
+      bookingStatus: editForm.bookingStatus as BookingStatus,
+      wheelchairRequired: editForm.wheelchairRequired,
+      highSupportRequired: editForm.highSupportRequired,
+      nightSupportRequired: editForm.nightSupportRequired,
+      hasRestrictivePracticeFlag: editForm.hasRestrictivePracticeFlag,
+      paymentStatus: editingBooking.paymentStatus as PaymentStatus,
+      actionRequired: editingBooking.actionRequired ?? false,
+      supportRatioOverride: (editForm.supportRatioOverride || undefined) as SupportRatio | undefined,
+      insuranceStatus: editForm.insuranceStatus as InsuranceStatus,
+      insuranceProvider: editForm.insuranceProvider || undefined,
+      insurancePolicyNumber: editForm.insurancePolicyNumber || undefined,
+      insuranceCoverageStart: editForm.insuranceCoverageStart || undefined,
+      insuranceCoverageEnd: editForm.insuranceCoverageEnd || undefined,
+      bookingNotes: editForm.bookingNotes || undefined,
     }}, {
       onSuccess: () => setEditingBooking(null),
     })
@@ -572,14 +585,14 @@ export default function TripDetailPage() {
     createBooking.mutate({
       tripInstanceId: id,
       participantId: selectedParticipantId,
-      bookingStatus,
+      bookingStatus: bookingStatus as BookingStatus,
       wheelchairRequired,
       highSupportRequired,
       nightSupportRequired,
       hasRestrictivePracticeFlag,
-      ...(supportRatioOverride ? { supportRatioOverride } : {}),
+      ...(supportRatioOverride ? { supportRatioOverride: supportRatioOverride as SupportRatio } : {}),
       ...(bookingNotes ? { bookingNotes } : {}),
-      insuranceStatus,
+      insuranceStatus: insuranceStatus as InsuranceStatus,
       ...(insuranceProvider ? { insuranceProvider } : {}),
       ...(insurancePolicyNumber ? { insurancePolicyNumber } : {}),
       ...(insuranceCoverageStart ? { insuranceCoverageStart } : {}),
@@ -1100,7 +1113,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.bookingStatus}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val as BookingStatus } })}
                           colorClass={getStatusColor(b.bookingStatus)}
                           items={[
                             { value: 'Enquiry', label: 'Enquiry' },
@@ -1122,7 +1135,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.insuranceStatus || 'None'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val as InsuranceStatus } })}
                           colorClass={getStatusColor(b.insuranceStatus || 'none')}
                           items={[
                             { value: 'None', label: 'None' },
@@ -1137,7 +1150,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.paymentStatus || 'NotInvoiced'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
                           colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
                           items={PAYMENT_STATUS_ITEMS}
                           disabled={isReadOnly}
@@ -2452,7 +2465,7 @@ export default function TripDetailPage() {
               <AddActivityModal
                 tripDayId={addActivityDayId}
                 editingActivity={editingScheduledActivity}
-                eventTemplateId={trip?.eventTemplateId}
+                eventTemplateId={trip?.eventTemplateId ?? undefined}
                 onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
               />
             )}

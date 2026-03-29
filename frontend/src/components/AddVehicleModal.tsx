@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Search } from 'lucide-react'
 import { useVehicles, useCreateVehicleAssignment, useCreateVehicle } from '@/api/hooks'
+import type { VehicleType } from '@/api/types'
 
 interface AddVehicleModalProps {
   tripInstanceId: string
@@ -55,8 +56,8 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
     try {
       const res = await createVehicle.mutateAsync({
         vehicleName,
-        registration: registration || null,
-        vehicleType,
+        registration: registration || undefined,
+        vehicleType: vehicleType as VehicleType,
         totalSeats: Number(totalSeats),
         wheelchairPositions: Number(wheelchairPositions),
         isInternal,

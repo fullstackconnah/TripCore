@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useClaim, useUpdateClaim, useUpdateClaimLineItem } from '@/api/hooks'
+import type { TripClaimStatus } from '@/api/types'
 import { Download, Check, DollarSign, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { apiClient } from '@/api/client'
@@ -83,7 +84,7 @@ export default function ClaimDetailPage() {
 
   function handleStatusChange(status: string) {
     if (!id) return
-    updateClaim.mutate({ claimId: id, data: { status } })
+    updateClaim.mutate({ claimId: id, data: { status: status as TripClaimStatus } })
   }
 
   return (

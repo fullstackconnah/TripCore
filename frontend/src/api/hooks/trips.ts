@@ -6,7 +6,6 @@ import type {
   CreateTripDto,
   UpdateTripDto,
   PatchTripDto,
-  ApiResponse,
 } from '../types'
 
 export function useTrips(params?: Record<string, string>) {

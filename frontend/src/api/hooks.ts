@@ -688,7 +688,10 @@ export function useUpdateClaim() {
   return useMutation({
     mutationFn: ({ claimId, data }: { claimId: string; data: any }) =>
       apiClient.put<ApiResponse<boolean>>(`/claims/${claimId}`, data).then(r => r.data),
-    onSuccess: (_, { claimId }) => { qc.invalidateQueries({ queryKey: ['claim', claimId] }) },
+    onSuccess: (_, { claimId }) => {
+      qc.invalidateQueries({ queryKey: ['claim', claimId] })
+      qc.invalidateQueries({ queryKey: ['trip-claims'] })
+    },
   })
 }
 

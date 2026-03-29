@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useDeleteClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, FileText } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -10,9 +10,26 @@ import { Dropdown } from '@/components/Dropdown'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims'
 
+const CLAIM_STATUS_ITEMS = [
+  { value: 'Draft', label: 'Draft' },
+  { value: 'Submitted', label: 'Submitted' },
+  { value: 'Paid', label: 'Paid' },
+  { value: 'Rejected', label: 'Rejected' },
+  { value: 'PartiallyPaid', label: 'Partially Paid' },
+]
+
+const CLAIM_STATUS_COLORS: Record<string, string> = {
+  Draft: 'bg-gray-100 text-gray-600',
+  Submitted: 'bg-blue-100 text-blue-700',
+  Paid: 'bg-[#bff285] text-[#294800]',
+  Rejected: 'bg-red-100 text-red-700',
+  PartiallyPaid: 'bg-amber-100 text-amber-700',
+}
+
 function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] }) {
   const generateClaim = useGenerateClaim()
   const deleteClaim = useDeleteClaim()
+  const updateClaim = useUpdateClaim()
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,17 +38,6 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
     deleteClaim.mutate(claimId, {
       onError: (err: any) => setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to delete claim.'),
     })
-  }
-
-  const claimStatusColor = (status: string) => {
-    switch (status) {
-      case 'Draft': return 'bg-gray-100 text-gray-600'
-      case 'Submitted': return 'bg-blue-100 text-blue-700'
-      case 'Paid': return 'bg-[#bff285] text-[#294800]'
-      case 'Rejected': return 'bg-red-100 text-red-700'
-      case 'PartiallyPaid': return 'bg-amber-100 text-amber-700'
-      default: return 'bg-gray-100 text-gray-600'
-    }
   }
 
   function handleGenerate() {
@@ -84,7 +90,15 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
               {claims.map((c: any) => (
                 <tr key={c.id} className="hover:bg-[#fbf9f5] transition-colors">
                   <td className="p-3 font-medium font-mono text-sm">{c.claimReference}</td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${claimStatusColor(c.status)}`}>{c.status}</span></td>
+                  <td className="p-3">
+                    <Dropdown
+                      variant="pill"
+                      value={c.status}
+                      onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val } })}
+                      colorClass={CLAIM_STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-600'}
+                      items={CLAIM_STATUS_ITEMS}
+                    />
+                  </td>
                   <td className="p-3 font-medium">${c.totalAmount?.toFixed(2)}</td>
                   <td className="p-3 text-[#43493a]">{c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-AU') : '—'}</td>
                   <td className="p-3 text-[#43493a]">{c.submittedDate ? new Date(c.submittedDate).toLocaleDateString('en-AU') : '—'}</td>

@@ -76,6 +76,7 @@ public class TripsController : ControllerBase
             RequiredWheelchairCapacity = t.RequiredWheelchairCapacity, RequiredBeds = t.RequiredBeds,
             RequiredBedrooms = t.RequiredBedrooms, MinStaffRequired = t.MinStaffRequired,
             CalculatedStaffRequired = t.CalculatedStaffRequired, Notes = t.Notes,
+            ActiveHoursPerDay = t.ActiveHoursPerDay, DepartureTime = t.DepartureTime, ReturnTime = t.ReturnTime,
             CurrentParticipantCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Confirmed),
             WaitlistCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Waitlist),
             HighSupportCount = t.Bookings.Count(b => b.HighSupportRequired && b.BookingStatus == BookingStatus.Confirmed),
@@ -131,6 +132,8 @@ public class TripsController : ControllerBase
         t.MaxParticipants = dto.MaxParticipants; t.RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity;
         t.RequiredBeds = dto.RequiredBeds; t.RequiredBedrooms = dto.RequiredBedrooms;
         t.MinStaffRequired = dto.MinStaffRequired; t.Notes = dto.Notes; t.UpdatedAt = DateTime.UtcNow;
+        if (dto.DepartureTime.HasValue) t.DepartureTime = dto.DepartureTime;
+        if (dto.ReturnTime.HasValue) t.ReturnTime = dto.ReturnTime;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<TripDetailDto>.Ok(new TripDetailDto { Id = t.Id, TripName = t.TripName, Status = t.Status }));

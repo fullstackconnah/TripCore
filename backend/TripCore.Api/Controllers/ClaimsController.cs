@@ -28,14 +28,32 @@ public class ClaimsController : ControllerBase
         _invoiceService = invoiceService;
     }
 
-    // POST /api/v1/trips/{tripId}/claims
-    [HttpPost("trips/{tripId:guid}/claims")]
+    // POST /api/v1/trips/{tripId}/claims/preview
+    [HttpPost("trips/{tripId:guid}/claims/preview")]
     [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<TripClaimListDto>>> GenerateClaim(Guid tripId, CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<ClaimPreviewResponseDto>>> PreviewClaim(
+        Guid tripId, [FromBody] ClaimPreviewRequestDto dto, CancellationToken ct)
     {
         try
         {
-            var claim = await _generator.GenerateDraftClaimAsync(tripId, ct);
+            var preview = await _generator.PreviewClaimAsync(tripId, dto, ct);
+            return Ok(ApiResponse<ClaimPreviewResponseDto>.Ok(preview));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<ClaimPreviewResponseDto>.Fail(ex.Message));
+        }
+    }
+
+    // POST /api/v1/trips/{tripId}/claims
+    [HttpPost("trips/{tripId:guid}/claims")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<TripClaimListDto>>> GenerateClaim(
+        Guid tripId, [FromBody] GenerateClaimRequestDto? dto, CancellationToken ct)
+    {
+        try
+        {
+            var claim = await _generator.GenerateDraftClaimAsync(tripId, dto, ct);
             return Ok(ApiResponse<TripClaimListDto>.Ok(new TripClaimListDto
             {
                 Id = claim.Id, TripInstanceId = claim.TripInstanceId,

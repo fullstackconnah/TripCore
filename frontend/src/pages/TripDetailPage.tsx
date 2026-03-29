@@ -1,10 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useGenerateClaim, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, FileText } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
+import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
 
@@ -26,11 +27,10 @@ const CLAIM_STATUS_COLORS: Record<string, string> = {
   PartiallyPaid: 'bg-amber-100 text-amber-700',
 }
 
-function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] }) {
-  const generateClaim = useGenerateClaim()
+function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: any[]; trip: any }) {
   const deleteClaim = useDeleteClaim()
   const updateClaim = useUpdateClaim()
-  const [generating, setGenerating] = useState(false)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   function handleDelete(claimId: string) {
@@ -40,28 +40,15 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
     })
   }
 
-  function handleGenerate() {
-    setError(null)
-    setGenerating(true)
-    generateClaim.mutate(tripId, {
-      onSuccess: () => setGenerating(false),
-      onError: (err: any) => {
-        setGenerating(false)
-        setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to generate claim. Check provider settings and confirm the trip has confirmed bookings.')
-      },
-    })
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-[#1b1c1a]">NDIS Claims</h2>
         <button
-          onClick={handleGenerate}
-          disabled={generating || generateClaim.isPending}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
+          onClick={() => setShowGenerateModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all"
         >
-          {generating || generateClaim.isPending ? 'Generating...' : '+ Generate Claim'}
+          + Generate Claim
         </button>
       </div>
 
@@ -116,6 +103,15 @@ function ClaimsTabContent({ tripId, claims }: { tripId: string; claims: any[] })
             </tbody>
           </table>
         </div>
+      )}
+
+      {showGenerateModal && (
+        <GenerateClaimModal
+          tripId={tripId}
+          trip={trip}
+          onClose={() => setShowGenerateModal(false)}
+          onSuccess={() => setShowGenerateModal(false)}
+        />
       )}
     </div>
   )
@@ -2495,7 +2491,7 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'claims' && (
-          <ClaimsTabContent tripId={id!} claims={claims} />
+          <ClaimsTabContent tripId={id!} claims={claims} trip={trip} />
         )}
 
       </div>

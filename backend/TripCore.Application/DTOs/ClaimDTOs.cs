@@ -75,6 +75,50 @@ public record UpdateClaimLineItemDto
 }
 
 // ══════════════════════════════════════════════════════════════
+// CLAIM PREVIEW / GENERATION DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record ClaimPreviewRequestDto
+{
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
+    public decimal? ActiveHoursPerDay { get; init; }
+}
+
+public record GenerateClaimRequestDto
+{
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
+    public decimal? ActiveHoursPerDay { get; init; }
+}
+
+public record ClaimPreviewResponseDto
+{
+    public TimeOnly DepartureTime { get; init; }
+    public TimeOnly ReturnTime { get; init; }
+    public decimal ActiveHoursPerDay { get; init; }
+    public int StaffCount { get; init; }
+    public string State { get; init; } = string.Empty;
+    public int ConfirmedParticipantCount { get; init; }
+    public List<ClaimPreviewLineItemDto> LineItems { get; init; } = new();
+    public decimal TotalAmount { get; init; }
+}
+
+public record ClaimPreviewLineItemDto
+{
+    public string ParticipantName { get; init; } = string.Empty;
+    public string NdisNumber { get; init; } = string.Empty;
+    public string SupportItemCode { get; init; } = string.Empty;
+    public string DayTypeLabel { get; init; } = string.Empty;
+    public ClaimDayType DayType { get; init; }
+    public DateOnly SupportsDeliveredFrom { get; init; }
+    public DateOnly SupportsDeliveredTo { get; init; }
+    public decimal Hours { get; init; }
+    public decimal UnitPrice { get; init; }
+    public decimal TotalAmount { get; init; }
+}
+
+// ══════════════════════════════════════════════════════════════
 // PROVIDER SETTINGS DTOs
 // ══════════════════════════════════════════════════════════════
 

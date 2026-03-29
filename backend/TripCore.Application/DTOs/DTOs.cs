@@ -170,6 +170,9 @@ public record TripDetailDto : TripListDto
     public int OutstandingTaskCount { get; init; }
     public int InsuranceConfirmedCount { get; init; }
     public int InsuranceOutstandingCount { get; init; }
+    public decimal ActiveHoursPerDay { get; init; }
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -209,6 +212,8 @@ public record CreateTripDto
 public record UpdateTripDto : CreateTripDto
 {
     public TripStatus Status { get; init; } = TripStatus.Draft;
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
 }
 
 public record PatchTripDto

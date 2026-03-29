@@ -678,8 +678,16 @@ export function useClaim(claimId: string | undefined) {
 export function useGenerateClaim() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (tripId: string) => apiClient.post<ApiResponse<any>>(`/trips/${tripId}/claims`).then(r => r.data.data),
-    onSuccess: (_, tripId) => { qc.invalidateQueries({ queryKey: ['trip-claims', tripId] }) },
+    mutationFn: ({ tripId, data }: { tripId: string; data?: any }) =>
+      apiClient.post<ApiResponse<any>>(`/trips/${tripId}/claims`, data ?? {}).then(r => r.data.data),
+    onSuccess: (_, { tripId }) => { qc.invalidateQueries({ queryKey: ['trip-claims', tripId] }) },
+  })
+}
+
+export function usePreviewClaim() {
+  return useMutation({
+    mutationFn: ({ tripId, data }: { tripId: string; data: any }) =>
+      apiClient.post<ApiResponse<any>>(`/trips/${tripId}/claims/preview`, data).then(r => r.data.data),
   })
 }
 

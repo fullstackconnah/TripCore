@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { usePreviewClaim, useGenerateClaim } from '@/api/hooks'
+import { DataTable } from '@/components/DataTable'
 
 interface GenerateClaimModalProps {
   tripId: string
@@ -194,33 +195,31 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
             {/* Line items table */}
             <div className="mb-5">
               <h4 className="text-sm font-medium text-[var(--color-muted-foreground)] mb-3">Line Items</h4>
-              <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-[var(--color-surface)]">
-                    <tr>
-                      {['Participant', 'Day Type', 'Dates', 'Hours', 'Amount'].map(h => (
-                        <th key={h} className="text-left p-3 text-xs font-medium text-[var(--color-muted-foreground)]">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--color-border)]">
-                    {previewData.lineItems?.map((item: any, i: number) => (
-                      <tr key={i} className="hover:bg-[var(--color-surface)]/50 transition-colors">
-                        <td className="p-3">{item.participantName}</td>
-                        <td className="p-3">{item.dayTypeLabel || dayTypeLabel(item.dayType)}</td>
-                        <td className="p-3 text-[var(--color-muted-foreground)]">
-                          {item.supportsDeliveredFrom ? new Date(item.supportsDeliveredFrom).toLocaleDateString('en-AU') : '—'}
-                          {item.supportsDeliveredTo && item.supportsDeliveredTo !== item.supportsDeliveredFrom
-                            ? ` – ${new Date(item.supportsDeliveredTo).toLocaleDateString('en-AU')}`
-                            : ''}
-                        </td>
-                        <td className="p-3">{item.hours}</td>
-                        <td className="p-3 font-medium">${item.totalAmount?.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable
+                data={(previewData.lineItems ?? []).map((item: any, i: number) => ({ ...item, _idx: i }))}
+                keyField="_idx"
+                columns={[
+                  { key: 'participantName', header: 'Participant' },
+                  {
+                    key: 'dayType',
+                    header: 'Day Type',
+                    render: (item: any) => item.dayTypeLabel || dayTypeLabel(item.dayType),
+                  },
+                  {
+                    key: 'supportsDeliveredFrom',
+                    header: 'Dates',
+                    render: (item: any) => {
+                      const from = item.supportsDeliveredFrom ? new Date(item.supportsDeliveredFrom).toLocaleDateString('en-AU') : '—'
+                      const to = item.supportsDeliveredTo && item.supportsDeliveredTo !== item.supportsDeliveredFrom
+                        ? ` – ${new Date(item.supportsDeliveredTo).toLocaleDateString('en-AU')}`
+                        : ''
+                      return from + to
+                    },
+                  },
+                  { key: 'hours', header: 'Hours' },
+                  { key: 'totalAmount', header: 'Amount', type: 'currency' as const, className: 'font-medium' },
+                ]}
+              />
             </div>
 
             {/* Actions */}

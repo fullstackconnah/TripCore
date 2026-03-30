@@ -564,6 +564,11 @@ public class TripCoreDbContext : DbContext
             entity.Property(e => e.BSB).HasMaxLength(10);
             entity.Property(e => e.AccountNumber).HasMaxLength(20);
             entity.Property(e => e.InvoiceFooterNotes).HasMaxLength(2000);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── PublicHoliday ─────────────────────────────────────────
@@ -632,6 +637,11 @@ public class TripCoreDbContext : DbContext
         modelBuilder.Entity<AppSettings>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
         modelBuilder.Entity<AppSettings>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<ProviderSettings>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<ProviderSettings>()
             .HasIndex(e => e.TenantId);
 
         // Tenants table — unique index on EmailDomain

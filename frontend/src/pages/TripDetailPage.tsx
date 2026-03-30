@@ -7,6 +7,7 @@ import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
+import TemplateFormPanel from '@/components/TemplateFormPanel'
 import { Dropdown } from '@/components/Dropdown'
 import type { TripClaimStatus, BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types'
 
@@ -124,6 +125,7 @@ export default function TripDetailPage() {
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [showAddActivity, setShowAddActivity] = useState(false)
+  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false)
   const [editingScheduledActivity, setEditingScheduledActivity] = useState<any>(null)
   const [addActivityDayId, setAddActivityDayId] = useState('')
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set())
@@ -652,6 +654,15 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
+          {!trip?.eventTemplateId && (
+            <button
+              onClick={() => setShowSaveAsTemplate(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#f5f3ef] text-[#43493a] text-sm font-medium hover:bg-[#ede9e3] transition-all"
+            >
+              <FileText className="w-4 h-4" />
+              Save as Template
+            </button>
+          )}
           <button
             onClick={handleOpenTripEdit}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all"
@@ -2686,6 +2697,14 @@ export default function TripDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {trip && (
+        <TemplateFormPanel
+          isOpen={showSaveAsTemplate}
+          onClose={() => setShowSaveAsTemplate(false)}
+          initialTrip={trip}
+        />
       )}
     </div>
   )

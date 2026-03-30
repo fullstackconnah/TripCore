@@ -1,8 +1,12 @@
+using TripCore.Domain.Interfaces;
+
 namespace TripCore.Domain.Entities;
 
-public class ProviderSettings
+public class ProviderSettings : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string RegistrationNumber { get; set; } = string.Empty;
     public string ABN { get; set; } = string.Empty;
     public string OrganisationName { get; set; } = string.Empty;

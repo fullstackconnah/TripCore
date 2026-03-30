@@ -1,4 +1,4 @@
-import { useEventTemplates, useActivities, useSettings, useUpdateSettings, useProviderSettings, useUpsertProviderSettings, useSupportCatalogue, usePublicHolidays, useCreatePublicHoliday, useDeletePublicHoliday } from '@/api/hooks'
+import { useEventTemplates, useActivities, useSettings, useUpdateSettings, useProviderSettings, useUpsertProviderSettings, useSupportCatalogue, usePublicHolidays, useCreatePublicHoliday, useDeletePublicHoliday, useSyncHolidays } from '@/api/hooks'
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
@@ -400,8 +400,13 @@ function PublicHolidaysTab() {
   const { data: holidays = [] } = usePublicHolidays(year, state)
   const createHoliday = useCreatePublicHoliday()
   const deleteHoliday = useDeletePublicHoliday()
+  const syncHolidays = useSyncHolidays()
   const [adding, setAdding] = useState(false)
   const [newForm, setNewForm] = useState({ date: '', name: '', state: 'VIC' })
+  const [showSyncAdvanced, setShowSyncAdvanced] = useState(false)
+  const [syncFromYear, setSyncFromYear] = useState<number | undefined>(undefined)
+  const [syncToYear, setSyncToYear] = useState<number | undefined>(undefined)
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const inputClass = 'px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 
@@ -409,6 +414,23 @@ function PublicHolidaysTab() {
     createHoliday.mutate(newForm, {
       onSuccess: () => { setAdding(false); setNewForm({ date: '', name: '', state: 'VIC' }) }
     })
+  }
+
+  function handleSync() {
+    setSyncMessage(null)
+    syncHolidays.mutate(
+      { fromYear: syncFromYear, toYear: syncToYear },
+      {
+        onSuccess: (result) => {
+          setSyncMessage({ type: 'success', text: `Sync complete: ${result.holidaysAdded} added, ${result.holidaysUpdated} updated` })
+          setTimeout(() => setSyncMessage(null), 4000)
+        },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message || err?.message || 'Sync failed. Please try again.'
+          setSyncMessage({ type: 'error', text: msg })
+        },
+      }
+    )
   }
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i)
@@ -476,6 +498,57 @@ function PublicHolidaysTab() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Holiday Sync */}
+      <div className="pt-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSync}
+            disabled={syncHolidays.isPending}
+            className="px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {syncHolidays.isPending ? 'Syncing...' : 'Sync Holidays'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSyncAdvanced(v => !v)}
+            className="text-sm text-[#43493a] hover:text-[#1b1c1a] underline"
+          >
+            {showSyncAdvanced ? 'Hide advanced' : 'Advanced'}
+          </button>
+        </div>
+
+        {showSyncAdvanced && (
+          <div className="flex items-center gap-3 mt-3">
+            <label className="text-sm text-[#43493a]">From year</label>
+            <input
+              type="number"
+              value={syncFromYear ?? ''}
+              onChange={e => setSyncFromYear(e.target.value ? Number(e.target.value) : undefined)}
+              placeholder={String(new Date().getFullYear())}
+              className="w-24 px-3 py-1.5 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all"
+            />
+            <label className="text-sm text-[#43493a]">To year</label>
+            <input
+              type="number"
+              value={syncToYear ?? ''}
+              onChange={e => setSyncToYear(e.target.value ? Number(e.target.value) : undefined)}
+              placeholder={String(new Date().getFullYear() + 1)}
+              className="w-24 px-3 py-1.5 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all"
+            />
+          </div>
+        )}
+
+        {syncMessage && (
+          <div className={`mt-3 px-4 py-2.5 rounded-2xl text-sm ${
+            syncMessage.type === 'success'
+              ? 'bg-green-50 text-green-700'
+              : 'bg-red-50 text-red-700'
+          }`}>
+            {syncMessage.text}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -46,6 +46,7 @@ public record ClaimLineItemDto
     public decimal TotalAmount { get; init; }
     public GSTCode GSTCode { get; init; }
     public ClaimType ClaimType { get; init; }
+    public string? CancellationReason { get; init; }
     public bool ParticipantApproved { get; init; }
     public ClaimLineItemStatus Status { get; init; }
     public string? RejectionReason { get; init; }
@@ -67,6 +68,7 @@ public record UpdateClaimLineItemDto
     [StringLength(50)]
     public string? SupportItemCode { get; init; }
     public ClaimType? ClaimType { get; init; }
+    public string? CancellationReason { get; init; }
     public bool? ParticipantApproved { get; init; }
     public ClaimLineItemStatus? Status { get; init; }
     [StringLength(1000)]

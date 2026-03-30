@@ -823,40 +823,6 @@ public static class DbSeeder
         };
         context.SupportCatalogueItems.AddRange(items);
 
-        if (!await context.PublicHolidays.AnyAsync(ct))
-        {
-            var holidays = new List<PublicHoliday>
-            {
-                // National 2025
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 1, 1),  Name = "New Year's Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 1, 27), Name = "Australia Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 18), Name = "Good Friday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 19), Name = "Easter Saturday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 20), Name = "Easter Sunday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 21), Name = "Easter Monday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 4, 25), Name = "ANZAC Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 12, 25), Name = "Christmas Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 12, 26), Name = "Boxing Day" },
-                // VIC-specific 2025
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 6, 9),  Name = "King's Birthday", State = "VIC" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2025, 11, 4),  Name = "Melbourne Cup Day", State = "VIC" },
-                // National 2026
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 1, 1),  Name = "New Year's Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 1, 26), Name = "Australia Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 3),  Name = "Good Friday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 4),  Name = "Easter Saturday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 5),  Name = "Easter Sunday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 6),  Name = "Easter Monday" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 4, 25), Name = "ANZAC Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 12, 25), Name = "Christmas Day" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 12, 26), Name = "Boxing Day" },
-                // VIC-specific 2026
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 6, 8),  Name = "King's Birthday", State = "VIC" },
-                new() { Id = Guid.NewGuid(), Date = new DateOnly(2026, 11, 3),  Name = "Melbourne Cup Day", State = "VIC" },
-            };
-            context.PublicHolidays.AddRange(holidays);
-        }
-
         await context.SaveChangesAsync(ct);
     }
 

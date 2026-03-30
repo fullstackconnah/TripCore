@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "EijxJhi8H2w=",
+  "dgSpecHash": "rJQx/lsXe6o=",
   "success": true,
-  "projectFilePath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\TripCore.Application.csproj",
+  "projectFilePath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Application\\TripCore.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Work\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

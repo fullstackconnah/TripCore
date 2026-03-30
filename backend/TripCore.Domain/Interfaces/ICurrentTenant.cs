@@ -1,4 +1,4 @@
-namespace TripCore.Application.Services;
+namespace TripCore.Domain.Interfaces;
 
 /// <summary>
 /// Provides the tenant context for the current HTTP request.

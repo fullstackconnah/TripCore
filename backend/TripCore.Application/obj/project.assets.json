@@ -476,11 +476,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\TripCore.Application.csproj",
+      "projectUniqueName": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Application\\TripCore.Application.csproj",
       "projectName": "TripCore.Application",
-      "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\TripCore.Application.csproj",
+      "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Application\\TripCore.Application.csproj",
       "packagesPath": "C:\\Users\\Work\\.nuget\\packages\\",
-      "outputPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Application\\obj\\",
+      "outputPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "F:\\VS2022\\Shared\\NuGetPackages"
@@ -501,8 +501,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
-              "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature-multi-tenancy\\backend\\TripCore.Domain\\TripCore.Domain.csproj"
+            "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Domain\\TripCore.Domain.csproj": {
+              "projectPath": "F:\\Projects\\personal\\Trip Planner\\.worktrees\\feature\\public-holidays-sync\\backend\\TripCore.Domain\\TripCore.Domain.csproj"
             }
           }
         }

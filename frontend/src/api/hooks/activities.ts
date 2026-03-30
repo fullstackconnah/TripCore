@@ -3,6 +3,8 @@ import { apiGet, apiPostRaw, apiPutRaw, apiDeleteRaw } from '../client'
 import type {
   ActivityDto,
   EventTemplateDto,
+  CreateEventTemplateDto,
+  UpdateEventTemplateDto,
   TripDayDto,
   CreateScheduledActivityDto,
   UpdateScheduledActivityDto,
@@ -62,6 +64,38 @@ export function useDeleteScheduledActivity() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trip-schedule'] })
       qc.invalidateQueries({ queryKey: ['trip-itinerary'] })
+    },
+  })
+}
+
+export function useCreateEventTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateEventTemplateDto) =>
+      apiPostRaw<EventTemplateDto>('/event-templates', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event-templates'] })
+    },
+  })
+}
+
+export function useUpdateEventTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateEventTemplateDto }) =>
+      apiPutRaw<EventTemplateDto>(`/event-templates/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event-templates'] })
+    },
+  })
+}
+
+export function useDeactivateEventTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiDeleteRaw<boolean>(`/event-templates/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event-templates'] })
     },
   })
 }

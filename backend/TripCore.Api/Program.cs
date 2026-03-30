@@ -5,7 +5,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TripCore.Application.Services;
+using TripCore.Domain.Interfaces;
 using TripCore.Infrastructure.Data;
 using TripCore.Infrastructure.Services;
 

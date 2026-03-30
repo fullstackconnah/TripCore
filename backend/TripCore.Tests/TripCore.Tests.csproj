@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TripCore.Application\TripCore.Application.csproj" />
+    <ProjectReference Include="..\TripCore.Domain\TripCore.Domain.csproj" />
     <ProjectReference Include="..\TripCore.Infrastructure\TripCore.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

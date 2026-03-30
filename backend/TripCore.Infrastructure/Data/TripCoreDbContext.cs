@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TripCore.Application.Services;
 using TripCore.Domain.Entities;
 using TripCore.Domain.Enums;
 using TripCore.Domain.Interfaces;

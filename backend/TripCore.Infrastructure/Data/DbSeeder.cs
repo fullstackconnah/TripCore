@@ -62,14 +62,14 @@ public static class DbSeeder
         var seedUsers = new[]
         {
             // Real SuperAdmin — stays on TripCore tenant
-            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), TenantId = tenantId, Username = "admin", Email = "admin@tripcore.com.au", PasswordHash = BCryptHash("Admin123!"), FirstName = "System", LastName = "Admin", Role = UserRole.SuperAdmin }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000001"), TenantId = tenantId, Username = "admin", Email = "admin@tripcore.com.au", FirstName = "System", LastName = "Admin", Role = UserRole.SuperAdmin }),
             // Demo users — assigned to the Demo tenant
-            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), TenantId = demoTenantId, Username = "sarah.mitchell", Email = "sarah.mitchell@demo.tripcore.com.au", PasswordHash = BCryptHash("Coord123!"), FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : (Guid?)null }),
-            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), TenantId = demoTenantId, Username = "james.obrien", Email = "james.obrien@demo.tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : (Guid?)null }),
-            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000001"), TenantId = demoTenantId, Username = "rachel.thompson", Email = "rachel.thompson@demo.tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Rachel", LastName = "Thompson", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 4 ? existingStaff[4].Id : (Guid?)null }),
-            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000002"), TenantId = demoTenantId, Username = "emily.nguyen", Email = "emily.nguyen@demo.tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Emily", LastName = "Nguyen", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 2 ? existingStaff[2].Id : (Guid?)null }),
-            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000003"), TenantId = demoTenantId, Username = "daniel.williams", Email = "daniel.williams@demo.tripcore.com.au", PasswordHash = BCryptHash("Staff123!"), FirstName = "Daniel", LastName = "Williams", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 3 ? existingStaff[3].Id : (Guid?)null }),
-            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000004"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000004"), TenantId = demoTenantId, Username = "coordinator.read", Email = "readonly@demo.tripcore.com.au", PasswordHash = BCryptHash("Read123!"), FirstName = "Read", LastName = "Only", Role = UserRole.ReadOnly }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000002"), TenantId = demoTenantId, Username = "sarah.mitchell", Email = "sarah.mitchell@demo.tripcore.com.au", FirstName = "Sarah", LastName = "Mitchell", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 0 ? existingStaff[0].Id : (Guid?)null }),
+            (Id: Guid.Parse("b1000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b1000000-0000-0000-0000-000000000003"), TenantId = demoTenantId, Username = "james.obrien", Email = "james.obrien@demo.tripcore.com.au", FirstName = "James", LastName = "O'Brien", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 1 ? existingStaff[1].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000001"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000001"), TenantId = demoTenantId, Username = "rachel.thompson", Email = "rachel.thompson@demo.tripcore.com.au", FirstName = "Rachel", LastName = "Thompson", Role = UserRole.Coordinator, StaffId = existingStaff.Count > 4 ? existingStaff[4].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000002"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000002"), TenantId = demoTenantId, Username = "emily.nguyen", Email = "emily.nguyen@demo.tripcore.com.au", FirstName = "Emily", LastName = "Nguyen", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 2 ? existingStaff[2].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000003"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000003"), TenantId = demoTenantId, Username = "daniel.williams", Email = "daniel.williams@demo.tripcore.com.au", FirstName = "Daniel", LastName = "Williams", Role = UserRole.SupportWorker, StaffId = existingStaff.Count > 3 ? existingStaff[3].Id : (Guid?)null }),
+            (Id: Guid.Parse("b2000000-0000-0000-0000-000000000004"), User: new User { Id = Guid.Parse("b2000000-0000-0000-0000-000000000004"), TenantId = demoTenantId, Username = "coordinator.read", Email = "readonly@demo.tripcore.com.au", FirstName = "Read", LastName = "Only", Role = UserRole.ReadOnly }),
         };
 
         var usersAdded = false;
@@ -98,7 +98,6 @@ public static class DbSeeder
                 TenantId = connahTenantId,
                 Username = "superadmin",
                 Email = "info@connah.com.au",
-                PasswordHash = BCryptHash("Admin123!"),
                 FirstName = "Super",
                 LastName = "Admin",
                 Role = UserRole.SuperAdmin,
@@ -891,6 +890,4 @@ public static class DbSeeder
         await SeedAsync(context, ct);
     }
 
-    private static string BCryptHash(string password)
-        => BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
 }

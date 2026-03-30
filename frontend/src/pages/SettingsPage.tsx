@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { Pencil } from 'lucide-react'
+import { Dropdown } from '@/components/Dropdown'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
 import type { EventTemplateDto } from '@/api/types'
 import type { AxiosError } from 'axios'
@@ -34,15 +35,13 @@ function QualificationSettingsTab() {
           Staff qualifications expiring within this window will appear as warnings on the
           Qualifications page and Dashboard.
         </p>
-        <select
-          value={warningDays}
-          onChange={e => setWarningDays(Number(e.target.value))}
-          className="w-full border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-sm bg-[var(--color-card)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-        >
-          {[7, 14, 30, 60, 90].map(d => (
-            <option key={d} value={d}>{d} days</option>
-          ))}
-        </select>
+        <Dropdown
+          variant="form"
+          value={String(warningDays)}
+          onChange={v => setWarningDays(Number(v))}
+          items={[7, 14, 30, 60, 90].map(d => ({ value: String(d), label: `${d} days` }))}
+          label="Select warning window"
+        />
       </div>
       <button
         onClick={handleSave}
@@ -219,15 +218,13 @@ function ProviderSettingsTab() {
           <div className="col-span-2"><label className={labelClass}>Address</label><input {...f('address')} /></div>
           <div>
             <label className={labelClass}>State</label>
-            <select
+            <Dropdown
+              variant="form"
               value={form.state ?? 'VIC'}
-              onChange={e => setForm((p: any) => ({ ...p, state: e.target.value }))}
-              className={inputClass}
-            >
-              {['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'].map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+              onChange={v => setForm((p: any) => ({ ...p, state: v }))}
+              items={['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'].map(s => ({ value: s, label: s }))}
+              label="Select state"
+            />
           </div>
           <div className="flex items-center gap-3">
             <input type="checkbox" checked={form.gstRegistered ?? false} onChange={e => setForm((p: any) => ({ ...p, gstRegistered: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="gst" />
@@ -473,12 +470,20 @@ function PublicHolidaysTab() {
           <p className="text-sm text-[#43493a]">Used to determine NDIS public holiday rates on claims.</p>
         </div>
         <div className="flex items-center gap-2">
-          <select value={year} onChange={e => setYear(Number(e.target.value))} className={inputClass}>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <select value={state} onChange={e => setState(e.target.value)} className={inputClass}>
-            {states.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <Dropdown
+            variant="form"
+            value={String(year)}
+            onChange={v => setYear(Number(v))}
+            items={years.map(y => ({ value: String(y), label: String(y) }))}
+            label="Select year"
+          />
+          <Dropdown
+            variant="form"
+            value={state}
+            onChange={v => setState(v)}
+            items={states.map(s => ({ value: s, label: s }))}
+            label="Select state"
+          />
           <button onClick={() => setAdding(true)} className="px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all">
             + Add Holiday
           </button>
@@ -500,9 +505,13 @@ function PublicHolidaysTab() {
                 <td className="p-3"><input type="date" value={newForm.date} onChange={e => setNewForm(p => ({ ...p, date: e.target.value }))} className={inputClass + ' w-full'} /></td>
                 <td className="p-3"><input value={newForm.name} onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} placeholder="Holiday name" className={inputClass + ' w-full'} /></td>
                 <td className="p-3">
-                  <select value={newForm.state} onChange={e => setNewForm(p => ({ ...p, state: e.target.value }))} className={inputClass}>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  <Dropdown
+                    variant="form"
+                    value={newForm.state}
+                    onChange={v => setNewForm(p => ({ ...p, state: v }))}
+                    items={states.map(s => ({ value: s, label: s }))}
+                    label="Select state"
+                  />
                 </td>
                 <td className="p-3">
                   <div className="flex gap-2">

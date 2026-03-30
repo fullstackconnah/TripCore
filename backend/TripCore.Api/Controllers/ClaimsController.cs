@@ -156,7 +156,14 @@ public class ClaimsController : ControllerBase
         if (dto.Hours.HasValue) { item.Hours = dto.Hours.Value; item.TotalAmount = item.Hours * item.UnitPrice; }
         if (dto.UnitPrice.HasValue) { item.UnitPrice = dto.UnitPrice.Value; item.TotalAmount = item.Hours * item.UnitPrice; }
         if (dto.SupportItemCode != null) item.SupportItemCode = dto.SupportItemCode;
-        if (dto.ClaimType.HasValue) item.ClaimType = dto.ClaimType.Value;
+        if (dto.ClaimType.HasValue)
+        {
+            item.ClaimType = dto.ClaimType.Value;
+            if (dto.ClaimType.Value != ClaimType.Cancellation)
+                item.CancellationReason = null;
+        }
+        if (dto.CancellationReason != null && item.ClaimType == ClaimType.Cancellation)
+            item.CancellationReason = dto.CancellationReason;
         if (dto.ParticipantApproved.HasValue) item.ParticipantApproved = dto.ParticipantApproved.Value;
         if (dto.Status.HasValue)
         {

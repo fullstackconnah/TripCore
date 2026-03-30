@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -74,6 +74,8 @@ export default function TemplateFormPanel({
   const deactivateMutation = useDeactivateEventTemplate()
   const { data: trips = [] } = useTrips()
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const [selectedTripId, setSelectedTripId] = useState('')
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
   const [accessibilityExpanded, setAccessibilityExpanded] = useState(false)
@@ -119,6 +121,14 @@ export default function TemplateFormPanel({
     }
   }, [isOpen, template, initialTrip, reset])
 
+  // Clear the auto-close timer on unmount to prevent state updates on an
+  // unmounted component (e.g. user closes the panel before the 1500 ms elapses).
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
   function handleTripSelect(tripId: string) {
     setSelectedTripId(tripId)
     if (!tripId) return
@@ -146,7 +156,7 @@ export default function TemplateFormPanel({
         await createMutation.mutateAsync(payload as any)
         setSuccessMessage('Template created')
       }
-      setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         setSuccessMessage(null)
         onClose()
       }, 1500)

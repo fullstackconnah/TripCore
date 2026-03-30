@@ -118,7 +118,7 @@ export default function TripCreatePage() {
                   label="None"
                   items={[
                     { value: '', label: 'None' },
-                    ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                    ...templates.map((t: any) => ({ value: String(t.id), label: t.eventName })),
                   ]}
                 />
               )}

@@ -86,7 +86,7 @@ export default function TemplateFormPanel({
     register,
     handleSubmit,
     reset,
-    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -135,9 +135,7 @@ export default function TemplateFormPanel({
     const trip = trips.find(t => t.id === tripId)
     if (!trip) return
     const mapped = mapTripToTemplate(trip)
-    Object.entries(mapped).forEach(([key, val]) => {
-      setValue(key as keyof FormValues, val as any, { shouldDirty: true })
-    })
+    reset({ ...getValues(), ...mapped })
   }
 
   async function onSubmit(values: FormValues) {
@@ -185,7 +183,7 @@ export default function TemplateFormPanel({
   const labelClass = 'block text-xs font-medium text-[var(--color-muted-foreground)] mb-1'
 
   const isBusy =
-    isSubmitting || createMutation.isPending || updateMutation.isPending
+    isSubmitting || createMutation.isPending || updateMutation.isPending || deactivateMutation.isPending
 
   if (!isOpen) return null
 

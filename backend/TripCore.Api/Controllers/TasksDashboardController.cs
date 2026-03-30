@@ -211,14 +211,14 @@ public class EventTemplatesController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<bool>>> Deactivate(Guid id, CancellationToken ct)
+    public async Task<ActionResult> Deactivate(Guid id, CancellationToken ct)
     {
         var e = await _db.EventTemplates.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (e == null) return NotFound(ApiResponse<bool>.Fail("Template not found"));
         e.IsActive = false;
         e.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return Ok(ApiResponse<bool>.Ok(true));
+        return NoContent();
     }
 }
 

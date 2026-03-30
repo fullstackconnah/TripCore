@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { Pencil } from 'lucide-react'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
+import type { EventTemplateDto } from '@/api/types'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -57,7 +58,7 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications' | 'provider' | 'catalogue' | 'holidays'>('templates')
   const { data: templates = [] } = useEventTemplates()
   const [panelOpen, setPanelOpen] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState<any>(undefined)
+  const [editingTemplate, setEditingTemplate] = useState<EventTemplateDto | undefined>(undefined)
   const { data: activities = [] } = useActivities()
 
   const tabs = [
@@ -103,7 +104,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {templates.filter((t: any) => t.isActive).map((t: any) => (
+            {templates.filter((t) => t.isActive).map((t) => (
               <div key={t.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 group">
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -129,7 +130,7 @@ export default function SettingsPage() {
 
           <TemplateFormPanel
             isOpen={panelOpen}
-            onClose={() => setPanelOpen(false)}
+            onClose={() => { setPanelOpen(false); setEditingTemplate(undefined) }}
             template={editingTemplate}
           />
         </div>

@@ -208,7 +208,7 @@ function ProviderSettingsTab() {
           </div>
           <div className="flex items-center gap-3">
             <input type="checkbox" checked={form.isPaceProvider ?? false} onChange={e => setForm((p: any) => ({ ...p, isPaceProvider: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="pace" />
-            <label htmlFor="pace" className="text-sm text-[#43493a]">PACE Provider <span className="text-xs text-[#43493a]/60">(15-col BPR CSV)</span></label>
+            <label htmlFor="pace" className="text-sm text-[#43493a]">PACE Provider <span className="text-xs text-[#43493a]/60">(16-col BPR CSV)</span></label>
           </div>
         </div>
       </div>

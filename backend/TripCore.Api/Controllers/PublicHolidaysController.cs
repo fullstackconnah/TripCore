@@ -25,10 +25,11 @@ public class PublicHolidaysController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<PublicHolidayDto>>>> GetAll(
-        [FromQuery] int? year, CancellationToken ct)
+        [FromQuery] int? year, [FromQuery] string? state, CancellationToken ct)
     {
         var query = _db.PublicHolidays.AsQueryable();
         if (year.HasValue) query = query.Where(h => h.Date.Year == year.Value);
+        if (!string.IsNullOrEmpty(state)) query = query.Where(h => h.State == null || h.State == state);
 
         var items = await query.OrderBy(h => h.Date)
             .Select(h => new PublicHolidayDto { Id = h.Id, Date = h.Date, Name = h.Name, State = h.State })

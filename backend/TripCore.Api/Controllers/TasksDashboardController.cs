@@ -155,7 +155,7 @@ public class EventTemplatesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<EventTemplateDto>>>> GetAll(CancellationToken ct)
     {
-        var items = await _db.EventTemplates.OrderBy(e => e.EventName)
+        var items = await _db.EventTemplates.Where(e => e.IsActive).OrderBy(e => e.EventName)
             .Select(e => new EventTemplateDto
             {
                 Id = e.Id, EventCode = e.EventCode, EventName = e.EventName,
@@ -207,6 +207,18 @@ public class EventTemplatesController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<EventTemplateDto>.Ok(new EventTemplateDto { Id = e.Id, EventName = e.EventName }));
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult> Deactivate(Guid id, CancellationToken ct)
+    {
+        var e = await _db.EventTemplates.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (e == null) return NotFound(ApiResponse<bool>.Fail("Template not found"));
+        e.IsActive = false;
+        e.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return NoContent();
     }
 }
 

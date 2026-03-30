@@ -2,6 +2,9 @@ import { useEventTemplates, useActivities, useSettings, useUpdateSettings, usePr
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
+import { Pencil } from 'lucide-react'
+import TemplateFormPanel from '@/components/TemplateFormPanel'
+import type { EventTemplateDto } from '@/api/types'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -54,6 +57,8 @@ function QualificationSettingsTab() {
 export default function SettingsPage() {
   const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications' | 'provider' | 'catalogue' | 'holidays'>('templates')
   const { data: templates = [] } = useEventTemplates()
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState<EventTemplateDto | undefined>(undefined)
   const { data: activities = [] } = useActivities()
 
   const tabs = [
@@ -88,25 +93,46 @@ export default function SettingsPage() {
       </div>
 
       {tab === 'templates' && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {templates.map((t: any) => (
-            <div key={t.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-semibold">{t.eventName}</h3>
-                  <span className="text-xs text-[var(--color-muted-foreground)] font-mono">{t.eventCode}</span>
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <button
+              onClick={() => { setEditingTemplate(undefined); setPanelOpen(true) }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition-all"
+            >
+              + New Template
+            </button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {templates.filter((t) => t.isActive).map((t) => (
+              <div key={t.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 group">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold">{t.eventName}</h3>
+                    <span className="text-xs text-[var(--color-muted-foreground)] font-mono">{t.eventCode}</span>
+                  </div>
+                  <button
+                    onClick={() => { setEditingTemplate(t); setPanelOpen(true) }}
+                    className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-[var(--color-accent)] transition-all"
+                    title="Edit template"
+                  >
+                    <Pencil className="w-4 h-4 text-[var(--color-muted-foreground)]" />
+                  </button>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${t.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
-                  {t.isActive ? 'Active' : 'Inactive'}
-                </span>
+                <div className="text-sm text-[var(--color-muted-foreground)] space-y-1">
+                  <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">location_on</span> {t.defaultDestination || '—'} · {t.defaultRegion || '—'}</p>
+                  {t.standardDurationDays && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">schedule</span> {t.standardDurationDays} days</p>}
+                  {t.preferredTimeOfYear && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">calendar_today</span> {t.preferredTimeOfYear}</p>}
+                </div>
               </div>
-              <div className="text-sm text-[var(--color-muted-foreground)] space-y-1">
-                <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">location_on</span> {t.defaultDestination || '—'} · {t.defaultRegion || '—'}</p>
-                {t.standardDurationDays && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">schedule</span> {t.standardDurationDays} days</p>}
-                {t.preferredTimeOfYear && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">calendar_today</span> {t.preferredTimeOfYear}</p>}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <TemplateFormPanel
+            isOpen={panelOpen}
+            onClose={() => { setPanelOpen(false); setEditingTemplate(undefined) }}
+            template={editingTemplate}
+          />
         </div>
       )}
 

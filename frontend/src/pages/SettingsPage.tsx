@@ -507,7 +507,7 @@ function PublicHolidaysTab() {
         className={adding ? 'relative bg-[var(--color-card)] rounded-b-2xl border border-t-0 border-[var(--color-border)] overflow-x-auto' : undefined}
         sortable
         columns={[
-          { key: 'date', header: 'Date', sortable: true, className: 'font-medium' },
+          { key: 'date', header: 'Date', type: 'date' as const, sortable: true, className: 'font-medium' },
           { key: 'name', header: 'Name', sortable: true },
           {
             key: 'state',

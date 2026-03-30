@@ -178,7 +178,7 @@ export function DataTable<T>({
                 <th
                   key={col.key}
                   className={`${alignClass} ${cellPadding} text-xs font-medium text-[var(--color-muted-foreground)] whitespace-nowrap ${isSortable ? 'cursor-pointer select-none' : ''}`}
-                  aria-sort={isSorted ? (activeSort!.direction === 'asc' ? 'ascending' : 'descending') : undefined}
+                  aria-sort={isSortable ? (isSorted ? (activeSort!.direction === 'asc' ? 'ascending' : 'descending') : 'none') : undefined}
                   onClick={isSortable ? () => handleSort(col.key) : undefined}
                   onKeyDown={isSortable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort(col.key) } } : undefined}
                   tabIndex={isSortable ? 0 : undefined}
@@ -230,7 +230,7 @@ export function DataTable<T>({
                 onClick={isClickable ? () => onRowClick(row) : undefined}
                 onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick!(row) } } : undefined}
                 tabIndex={isClickable ? 0 : undefined}
-                role={isClickable ? 'link' : undefined}
+                role={isClickable ? 'button' : undefined}
               >
                 {visibleColumns.map(col => {
                   const alignClass = col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''

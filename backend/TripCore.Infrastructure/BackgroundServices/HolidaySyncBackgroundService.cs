@@ -33,7 +33,14 @@ public class HolidaySyncBackgroundService : BackgroundService
 
             try
             {
-                await Task.Delay(nextRun - DateTime.UtcNow, stoppingToken);
+                // Task.Delay max is ~24.8 days; poll in 6-hour chunks until the target time
+                var maxChunk = TimeSpan.FromHours(6);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    var remaining = nextRun - DateTime.UtcNow;
+                    if (remaining <= TimeSpan.Zero) break;
+                    await Task.Delay(remaining < maxChunk ? remaining : maxChunk, stoppingToken);
+                }
             }
             catch (OperationCanceledException)
             {

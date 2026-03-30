@@ -103,7 +103,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(templates as any[]).filter((t: any) => t.isActive).map((t: any) => (
+            {templates.filter((t: any) => t.isActive).map((t: any) => (
               <div key={t.id} className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 group">
                 <div className="flex items-start justify-between mb-2">
                   <div>

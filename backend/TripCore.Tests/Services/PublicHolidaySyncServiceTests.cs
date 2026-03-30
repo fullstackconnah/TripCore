@@ -28,7 +28,7 @@ public class PublicHolidaySyncServiceTests
     {
         using var db = CreateDb();
         var provider = new Mock<IHolidayProvider>();
-        provider.Setup(p => p.GetHolidays(2025, "AU")).Returns([
+        provider.Setup(p => p.GetHolidaysAsync(2025, "AU")).ReturnsAsync([
             new HolidayRecord(new DateOnly(2025, 1, 1), "New Year's Day", []),
             new HolidayRecord(new DateOnly(2025, 12, 25), "Christmas Day", []),
             new HolidayRecord(new DateOnly(2025, 11, 4), "Melbourne Cup Day", ["AU-VIC"]),
@@ -54,7 +54,7 @@ public class PublicHolidaySyncServiceTests
     {
         using var db = CreateDb();
         var provider = new Mock<IHolidayProvider>();
-        provider.Setup(p => p.GetHolidays(2025, "AU")).Returns([
+        provider.Setup(p => p.GetHolidaysAsync(2025, "AU")).ReturnsAsync([
             new HolidayRecord(new DateOnly(2025, 6, 9), "King's Birthday", ["AU-VIC", "AU-NSW"]),
         ]);
 
@@ -82,7 +82,7 @@ public class PublicHolidaySyncServiceTests
         await db.SaveChangesAsync();
 
         var provider = new Mock<IHolidayProvider>();
-        provider.Setup(p => p.GetHolidays(2025, "AU")).Returns([
+        provider.Setup(p => p.GetHolidaysAsync(2025, "AU")).ReturnsAsync([
             new HolidayRecord(new DateOnly(2025, 1, 1), "New Year's Day", []),
         ]);
 
@@ -108,7 +108,7 @@ public class PublicHolidaySyncServiceTests
         await db.SaveChangesAsync();
 
         var provider = new Mock<IHolidayProvider>();
-        provider.Setup(p => p.GetHolidays(2025, "AU")).Returns([
+        provider.Setup(p => p.GetHolidaysAsync(2025, "AU")).ReturnsAsync([
             new HolidayRecord(new DateOnly(2025, 1, 27), "Australian National Day", []),
         ]);
 
@@ -126,9 +126,9 @@ public class PublicHolidaySyncServiceTests
     {
         using var db = CreateDb();
         var provider = new Mock<IHolidayProvider>();
-        provider.Setup(p => p.GetHolidays(2025, "AU"))
-            .Throws(new InvalidOperationException("API unavailable"));
-        provider.Setup(p => p.GetHolidays(2026, "AU")).Returns([
+        provider.Setup(p => p.GetHolidaysAsync(2025, "AU"))
+            .ThrowsAsync(new InvalidOperationException("API unavailable"));
+        provider.Setup(p => p.GetHolidaysAsync(2026, "AU")).ReturnsAsync([
             new HolidayRecord(new DateOnly(2026, 1, 1), "New Year's Day", []),
         ]);
 

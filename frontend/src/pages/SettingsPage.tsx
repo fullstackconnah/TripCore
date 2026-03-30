@@ -433,7 +433,7 @@ function PublicHolidaysTab() {
   const [showSyncAdvanced, setShowSyncAdvanced] = useState(false)
   const [syncFromYear, setSyncFromYear] = useState<number | undefined>(undefined)
   const [syncToYear, setSyncToYear] = useState<number | undefined>(undefined)
-  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'warning' | 'error'; text: string } | null>(null)
 
   const inputClass = 'px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 
@@ -449,7 +449,8 @@ function PublicHolidaysTab() {
       { fromYear: syncFromYear, toYear: syncToYear },
       {
         onSuccess: (result) => {
-          setSyncMessage({ type: 'success', text: `Sync complete: ${result.holidaysAdded} added, ${result.holidaysUpdated} updated` })
+          const errSuffix = result.errors?.length > 0 ? ` (${result.errors.length} error${result.errors.length > 1 ? 's' : ''} — check server logs)` : ''
+          setSyncMessage({ type: result.errors?.length > 0 ? 'warning' : 'success', text: `Sync complete: ${result.holidaysAdded} added, ${result.holidaysUpdated} updated${errSuffix}` })
           setTimeout(() => setSyncMessage(null), 4000)
         },
         onError: (error: Error) => {
@@ -572,6 +573,8 @@ function PublicHolidaysTab() {
           <div className={`mt-3 px-4 py-2.5 rounded-2xl text-sm ${
             syncMessage.type === 'success'
               ? 'bg-green-50 text-green-700'
+              : syncMessage.type === 'warning'
+              ? 'bg-yellow-50 text-yellow-700'
               : 'bg-red-50 text-red-700'
           }`}>
             {syncMessage.text}

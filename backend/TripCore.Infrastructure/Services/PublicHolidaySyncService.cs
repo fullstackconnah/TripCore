@@ -44,7 +44,8 @@ public class PublicHolidaySyncService : IPublicHolidaySyncService
 
     private async Task<(int Added, int Updated)> SyncYearAsync(int year, CancellationToken ct)
     {
-        var incoming = _provider.GetHolidays(year, "AU")
+        var holidays = await _provider.GetHolidaysAsync(year, "AU");
+        var incoming = holidays
             .SelectMany(h => h.Counties.Length == 0
                 ? (IEnumerable<DomainHoliday>)[new DomainHoliday { Date = h.Date, Name = h.Name, State = null }]
                 : h.Counties.Select(c => new DomainHoliday { Date = h.Date, Name = h.Name, State = c.StartsWith("AU-") ? c[3..] : c }))

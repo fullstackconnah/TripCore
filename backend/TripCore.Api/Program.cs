@@ -75,6 +75,7 @@ builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
 
 // ── Public Holiday Sync ───────────────────────────────────────
+builder.Services.AddHttpClient<TripCore.Infrastructure.Services.NagerHolidayProvider>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.IHolidayProvider, TripCore.Infrastructure.Services.NagerHolidayProvider>();
 builder.Services.AddScoped<TripCore.Application.Interfaces.IPublicHolidaySyncService, TripCore.Infrastructure.Services.PublicHolidaySyncService>();
 builder.Services.AddHostedService<TripCore.Infrastructure.BackgroundServices.HolidaySyncBackgroundService>();

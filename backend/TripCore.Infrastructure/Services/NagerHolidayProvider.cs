@@ -1,5 +1,5 @@
-using Nager.Date;
-using Nager.Date.Models;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace TripCore.Infrastructure.Services;
 
@@ -7,21 +7,31 @@ public record HolidayRecord(DateOnly Date, string Name, string[] Counties);
 
 public interface IHolidayProvider
 {
-    IEnumerable<HolidayRecord> GetHolidays(int year, string countryCode);
+    Task<IEnumerable<HolidayRecord>> GetHolidaysAsync(int year, string countryCode);
 }
 
 public class NagerHolidayProvider : IHolidayProvider
 {
-    public IEnumerable<HolidayRecord> GetHolidays(int year, string countryCode)
-    {
-        if (!Enum.TryParse<CountryCode>(countryCode, out var code))
-            return [];
+    private readonly HttpClient _http;
 
-        return HolidaySystem.GetHolidays(year, code)
-            .Select(h => new HolidayRecord(
-                DateOnly.FromDateTime(h.Date),
-                h.LocalName,
-                h.SubdivisionCodes?.ToArray() ?? []
-            ));
+    public NagerHolidayProvider(HttpClient http) => _http = http;
+
+    public async Task<IEnumerable<HolidayRecord>> GetHolidaysAsync(int year, string countryCode)
+    {
+        var url = $"https://date.nager.at/api/v3/PublicHolidays/{year}/{countryCode}";
+        var items = await _http.GetFromJsonAsync<NagerHolidayDto[]>(url);
+        if (items is null) return [];
+        return items.Select(h => new HolidayRecord(
+            DateOnly.Parse(h.Date),
+            h.LocalName,
+            h.Counties?.ToArray() ?? []
+        ));
+    }
+
+    private sealed class NagerHolidayDto
+    {
+        [JsonPropertyName("date")] public string Date { get; set; } = "";
+        [JsonPropertyName("localName")] public string LocalName { get; set; } = "";
+        [JsonPropertyName("counties")] public string[]? Counties { get; set; }
     }
 }

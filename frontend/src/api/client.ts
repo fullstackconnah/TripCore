@@ -23,8 +23,29 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  async (error) => {
+    const config = error.config as typeof error.config & { _retried?: boolean }
+    if (error.response?.status === 401 && !config._retried) {
+      try {
+        const { auth } = await import('../lib/firebase')
+        const currentUser = auth.currentUser
+        if (currentUser) {
+          const idToken = await currentUser.getIdToken(true)
+          const exchangeRes = await apiClient.post<ApiResponse<{ token: string }>>(
+            '/auth/exchange',
+            { idToken }
+          )
+          const newToken = exchangeRes.data.data?.token
+          if (newToken) {
+            localStorage.setItem('tripcore_token', newToken)
+            config._retried = true
+            config.headers.Authorization = `Bearer ${newToken}`
+            return apiClient(config)
+          }
+        }
+      } catch {
+        // Firebase refresh failed — fall through to logout
+      }
       localStorage.removeItem('tripcore_token')
       localStorage.removeItem('tripcore_user')
       localStorage.removeItem('tripcore_viewing_tenant')

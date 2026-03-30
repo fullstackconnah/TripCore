@@ -47,7 +47,7 @@ public class PublicHolidaySyncService : IPublicHolidaySyncService
         var incoming = _provider.GetHolidays(year, "AU")
             .SelectMany(h => h.Counties.Length == 0
                 ? (IEnumerable<DomainHoliday>)[new DomainHoliday { Date = h.Date, Name = h.Name, State = null }]
-                : h.Counties.Select(c => new DomainHoliday { Date = h.Date, Name = h.Name, State = c.Replace("AU-", "") }))
+                : h.Counties.Select(c => new DomainHoliday { Date = h.Date, Name = h.Name, State = c.StartsWith("AU-") ? c[3..] : c }))
             .ToList();
 
         var existing = await _db.PublicHolidays

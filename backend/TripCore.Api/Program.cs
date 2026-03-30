@@ -56,9 +56,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ── Firebase Admin SDK ───────────────────────────────────────
-var firebaseServiceAccount = builder.Configuration["Firebase:ServiceAccountJson"]
-    ?? Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
-
+var firebaseServiceAccount = builder.Configuration["Firebase:ServiceAccountJson"];
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    firebaseServiceAccount = Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
 if (string.IsNullOrEmpty(firebaseServiceAccount))
     throw new InvalidOperationException(
         "Firebase:ServiceAccountJson or FIREBASE_SERVICE_ACCOUNT_JSON env var must be set.");

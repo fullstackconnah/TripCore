@@ -5,7 +5,7 @@
 
 ## Problem
 
-The Trip Planner frontend has 12 inline HTML tables spread across 8 pages. They share no common component, leading to:
+The Trip Planner frontend has 16+ inline HTML tables spread across 10+ pages. They share no common component, leading to:
 
 - **Visual inconsistency** — two style families: CSS-variable pages vs hardcoded-hex TripDetailPage tables
 - **Duplicated markup** — container, header, body, empty-state, hover logic repeated per table
@@ -24,7 +24,7 @@ A single generic `DataTable<T>` component at `frontend/src/components/DataTable.
 
 ## Scope
 
-### In scope (12 tables)
+### In scope (16 tables)
 
 | # | Page | Key Features |
 |---|------|-------------|
@@ -40,12 +40,17 @@ A single generic `DataTable<T>` component at `frontend/src/components/DataTable.
 | 10 | TripDetailPage — Staff | Conflict indicators, edit/delete actions |
 | 11 | TripDetailPage — Tasks | Read-only with priority/status badges |
 | 12 | ClaimDetailPage | Footer totals, plan type badges, toggles |
+| 13 | SettingsPage — Activities | Activity type management table |
+| 14 | SettingsPage — Catalogue | Catalogue items table |
+| 15 | SettingsPage — Public Holidays | Holiday dates table |
+| 16 | GenerateClaimModal | Line items summary before generation |
 
 ### Out of scope
 
-- **SchedulePage** — calendar/schedule view, not a data table
+- **SchedulePage** — uses a calendar/grid view, not a standard data table
 - **Card grids** — TripsPage, VehiclesPage, AccommodationPage, DashboardPage use card layouts
 - **Pagination** — not needed with current data volumes; can be added later
+- **Responsive column hiding** — `overflow-x-auto` is the V1 baseline; breakpoint-aware column visibility can be added later
 
 ## API Design
 
@@ -54,20 +59,31 @@ A single generic `DataTable<T>` component at `frontend/src/components/DataTable.
 ```typescript
 export type ColumnType = 'text' | 'date' | 'currency' | 'boolean' | 'badge' | 'custom'
 
-export type Column<T> = {
-  key: keyof T | string
+// Shared column properties
+type ColumnBase<T> = {
   header: string
   type?: ColumnType                // default: 'text'
   sortable?: boolean               // opt-in per column
   align?: 'left' | 'center' | 'right'  // default: 'left'
   hidden?: boolean                 // conditionally hide
-  render?: (row: T, rowIndex: number) => ReactNode
   editable?: {
-    render: (row: T, onChange: (value: any) => void) => ReactNode
+    render: (row: T, onChange: (value: unknown) => void) => ReactNode
   }
   sortFn?: (a: T, b: T) => number // custom sort comparator
   className?: string               // extra cell classes
 }
+
+// Discriminated union: render is optional when key is a real field,
+// required when key is a virtual field (e.g. 'actions')
+export type Column<T> =
+  | (ColumnBase<T> & {
+      key: keyof T & string          // real data field
+      render?: (row: T, rowIndex: number) => ReactNode
+    })
+  | (ColumnBase<T> & {
+      key: string                    // virtual field (not on T)
+      render: (row: T, rowIndex: number) => ReactNode  // required
+    })
 
 export type SortState = {
   key: string
@@ -77,13 +93,13 @@ export type SortState = {
 export type DataTableProps<T> = {
   data: T[]
   columns: Column<T>[]
-  keyField: keyof T
+  keyField: keyof T & string
 
   // Sorting
   sortable?: boolean
   defaultSort?: SortState
   sort?: SortState                 // controlled sort
-  onSortChange?: (sort: SortState) => void
+  onSortChange?: (sort: SortState | null) => void  // null = cleared
 
   // Rows
   onRowClick?: (row: T) => void
@@ -96,7 +112,7 @@ export type DataTableProps<T> = {
   // Loading
   loading?: boolean
 
-  // Editable
+  // Editable — compared against String(row[keyField])
   editingRow?: string | number | null
 
   // Styling
@@ -104,6 +120,10 @@ export type DataTableProps<T> = {
   compact?: boolean                // tighter padding
 }
 ```
+
+**`editingRow` semantics:** The value is compared against `String(row[keyField])`. This supports composite keys (e.g. `${staffId}-${qualField}` in QualificationsPage) as long as the `keyField` property on the data object contains the composite string.
+
+**`Column<T>.key` semantics:** When `key` is a property of `T`, built-in type rendering works automatically. When `key` is not a property of `T` (virtual columns like `'actions'`), a `render` function is required — TypeScript enforces this at compile time via the discriminated union. If `sortable: true` is set on a virtual column without a `sortFn`, sorting is a no-op.
 
 ### Usage Examples
 
@@ -190,13 +210,23 @@ export type DataTableProps<T> = {
 />
 ```
 
+## Prerequisites
+
+**`formatCurrency` utility** — must be added to `frontend/src/lib/utils.ts` in Phase 1:
+
+```typescript
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(amount)
+}
+```
+
 ## Built-in Column Type Behaviors
 
 | Type | Rendering | Default Sort |
 |------|-----------|-------------|
 | `text` | Raw value, `toString()` | Alphabetical (locale-aware) |
 | `date` | `formatDateAu()` from `@/lib/utils` | Chronological |
-| `currency` | AUD format: `$1,234.56` | Numeric |
+| `currency` | `formatCurrency()` from `@/lib/utils` | Numeric |
 | `boolean` | Checkmark icon when truthy, empty when falsy | Boolean (true first) |
 | `badge` | `<span>` with `getStatusColor()` | Alphabetical |
 | `custom` | Must provide `render` function | No default (use `sortFn`) |
@@ -207,9 +237,21 @@ When a column has a `render` function, the built-in type rendering is bypassed e
 
 - **Sort indicator:** Arrow icons in header cells for sortable columns (up/down/neutral)
 - **Click cycle:** neutral -> asc -> desc -> neutral
+- **Clearing sort:** when cycling back to neutral, `onSortChange` receives `null`
 - **Uncontrolled by default:** internal `useState` manages sort state
 - **Controlled mode:** when `sort` and `onSortChange` are provided, the component defers to the consumer
 - **Stable sort:** equal elements preserve their original order
+- **Virtual columns:** if `sortable: true` on a column where `key` is not a property of `T` and no `sortFn` is provided, sorting is a no-op
+
+## Accessibility
+
+The component uses semantic HTML `<table>` elements which carry implicit ARIA roles. Additional accessibility features:
+
+- **Sortable headers:** rendered as `<button>` elements inside `<th>`, keyboard-activatable via Enter/Space
+- **`aria-sort`:** set on sortable `<th>` elements — `ascending`, `descending`, or `none`
+- **Clickable rows:** when `onRowClick` is provided, rows receive `tabindex="0"`, `role="link"`, and `onKeyDown` handling for Enter/Space activation
+- **Focus management:** visible focus ring on interactive elements (headers, rows, editable cells)
+- **Screen reader:** empty state announced via `aria-live="polite"` region
 
 ## Styling
 
@@ -246,17 +288,20 @@ When a column has a `render` function, the built-in type rendering is bypassed e
 
 ### Loading State
 
-A subtle overlay with spinner, matching Dropdown's loading pattern.
+- When `loading: true` and data exists: semi-transparent overlay with spinner on top of existing rows (preserves layout)
+- When `loading: true` and data is empty: spinner replaces the empty message
+- Loading disables `onRowClick` and editable cell interactions while active
 
 ### Empty State
 
-Centered message spanning all columns: `<td colSpan={columns.length}>No data</td>`
+Centered message spanning all columns: `<td colSpan={columns.length}>No data</td>` with `aria-live="polite"`
 
 ## Migration Strategy
 
 Migrate tables in order of complexity (simple first) to validate the component API before tackling complex cases:
 
 1. **Phase 1 — Component creation + simple tables**
+   - Add `formatCurrency` to `@/lib/utils`
    - Create `DataTable.tsx`
    - Add CSS variables to theme
    - Migrate: ParticipantDetailPage, BookingsPage
@@ -264,10 +309,12 @@ Migrate tables in order of complexity (simple first) to validate the component A
 2. **Phase 2 — Medium complexity**
    - Migrate: ParticipantsPage, StaffPage, TasksPage, IncidentsPage
    - Migrate: TripDetailPage Tasks tab
+   - Migrate: SettingsPage tables (Activities, Catalogue, Public Holidays)
 
 3. **Phase 3 — Complex tables**
    - Migrate: TripDetailPage Claims, Bookings, Staff tabs
    - Migrate: ClaimDetailPage (footer)
+   - Migrate: GenerateClaimModal (summary table)
    - Migrate: QualificationsPage (editable cells, row coloring, nested)
 
 Each migration should be a self-contained change that doesn't alter behavior — only the underlying markup changes. Visual output should be identical.

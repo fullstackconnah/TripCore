@@ -10,3 +10,15 @@ export interface CreatePublicHolidayDto {
   name: string
   state?: string
 }
+
+export interface SyncHolidaysDto {
+  fromYear?: number
+  toYear?: number
+}
+
+export interface SyncResultDto {
+  yearsProcessed: number
+  holidaysAdded: number
+  holidaysUpdated: number
+  errors: string[]
+}

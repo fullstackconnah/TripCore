@@ -1232,3 +1232,19 @@ public record UpdateTenantDto(
     string Name,
     string EmailDomain,
     bool IsActive);
+
+// ── Public Holidays Sync DTOs ──────────────────────────────────────────────
+
+public record SyncHolidaysDto
+{
+    public int? FromYear { get; init; }
+    public int? ToYear { get; init; }
+}
+
+public record SyncResultDto
+{
+    public int YearsProcessed { get; init; }
+    public int HolidaysAdded { get; init; }
+    public int HolidaysUpdated { get; init; }
+    public string[] Errors { get; init; } = [];
+}

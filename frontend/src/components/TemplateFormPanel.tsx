@@ -201,8 +201,9 @@ export default function TemplateFormPanel({
           {/* Fill from trip — create mode only */}
           {!isEdit && (
             <div>
-              <label className={labelClass}>Fill from trip</label>
+              <label htmlFor="fillFromTrip" className={labelClass}>Fill from trip</label>
               <select
+                id="fillFromTrip"
                 value={selectedTripId}
                 onChange={e => handleTripSelect(e.target.value)}
                 className={inputClass}
@@ -222,8 +223,9 @@ export default function TemplateFormPanel({
 
           {/* Event Name */}
           <div>
-            <label className={labelClass}>Event Name *</label>
+            <label htmlFor="eventName" className={labelClass}>Event Name *</label>
             <input
+              id="eventName"
               {...register('eventName')}
               className={inputClass}
               placeholder="e.g. Gold Coast Beach Break"
@@ -235,8 +237,9 @@ export default function TemplateFormPanel({
 
           {/* Event Code */}
           <div>
-            <label className={labelClass}>Event Code *</label>
+            <label htmlFor="eventCode" className={labelClass}>Event Code *</label>
             <input
+              id="eventCode"
               {...register('eventCode')}
               className={`${inputClass} font-mono uppercase`}
               placeholder="e.g. GOLD-01"
@@ -249,16 +252,18 @@ export default function TemplateFormPanel({
           {/* Destination + Region */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Default Destination</label>
+              <label htmlFor="defaultDestination" className={labelClass}>Default Destination</label>
               <input
+                id="defaultDestination"
                 {...register('defaultDestination')}
                 className={inputClass}
                 placeholder="e.g. Gold Coast"
               />
             </div>
             <div>
-              <label className={labelClass}>Default Region</label>
+              <label htmlFor="defaultRegion" className={labelClass}>Default Region</label>
               <input
+                id="defaultRegion"
                 {...register('defaultRegion')}
                 className={inputClass}
                 placeholder="e.g. QLD"
@@ -269,8 +274,9 @@ export default function TemplateFormPanel({
           {/* Duration + Preferred Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Duration (days)</label>
+              <label htmlFor="standardDurationDays" className={labelClass}>Duration (days)</label>
               <input
+                id="standardDurationDays"
                 {...register('standardDurationDays')}
                 type="number"
                 min={1}
@@ -279,8 +285,9 @@ export default function TemplateFormPanel({
               />
             </div>
             <div>
-              <label className={labelClass}>Preferred Time of Year</label>
+              <label htmlFor="preferredTimeOfYear" className={labelClass}>Preferred Time of Year</label>
               <input
+                id="preferredTimeOfYear"
                 {...register('preferredTimeOfYear')}
                 className={inputClass}
                 placeholder="e.g. Winter"
@@ -290,8 +297,9 @@ export default function TemplateFormPanel({
 
           {/* Typical Activities */}
           <div>
-            <label className={labelClass}>Typical Activities</label>
+            <label htmlFor="typicalActivities" className={labelClass}>Typical Activities</label>
             <textarea
+              id="typicalActivities"
               {...register('typicalActivities')}
               rows={3}
               className={inputClass}
@@ -301,8 +309,9 @@ export default function TemplateFormPanel({
 
           {/* Accessibility Notes */}
           <div>
-            <label className={labelClass}>Accessibility Notes</label>
+            <label htmlFor="accessibilityNotes" className={labelClass}>Accessibility Notes</label>
             <textarea
+              id="accessibilityNotes"
               {...register('accessibilityNotes')}
               rows={3}
               className={inputClass}
@@ -328,24 +337,27 @@ export default function TemplateFormPanel({
             {accessibilityExpanded && (
               <div className="mt-3 space-y-3 pl-5 border-l border-[var(--color-border)]">
                 <div>
-                  <label className={labelClass}>Fully Modified Accommodation</label>
+                  <label htmlFor="fullyModifiedAccommodationNotes" className={labelClass}>Fully Modified Accommodation</label>
                   <textarea
+                    id="fullyModifiedAccommodationNotes"
                     {...register('fullyModifiedAccommodationNotes')}
                     rows={2}
                     className={inputClass}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Semi Modified Accommodation</label>
+                  <label htmlFor="semiModifiedAccommodationNotes" className={labelClass}>Semi Modified Accommodation</label>
                   <textarea
+                    id="semiModifiedAccommodationNotes"
                     {...register('semiModifiedAccommodationNotes')}
                     rows={2}
                     className={inputClass}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Wheelchair Access Notes</label>
+                  <label htmlFor="wheelchairAccessNotes" className={labelClass}>Wheelchair Access Notes</label>
                   <textarea
+                    id="wheelchairAccessNotes"
                     {...register('wheelchairAccessNotes')}
                     rows={2}
                     className={inputClass}

@@ -9,6 +9,7 @@ import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
 import { Dropdown } from '@/components/Dropdown'
+import { DataTable } from '@/components/DataTable'
 import type { TripClaimStatus, BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims'

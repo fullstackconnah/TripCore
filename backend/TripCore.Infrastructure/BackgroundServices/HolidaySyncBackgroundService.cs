@@ -24,7 +24,7 @@ public class HolidaySyncBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await RunSyncAsync(GetFromYear(), DateTime.Now.Year + 1, stoppingToken);
+        await RunSyncAsync(GetFromYear(), DateTime.UtcNow.Year + 1, stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -41,7 +41,7 @@ public class HolidaySyncBackgroundService : BackgroundService
             }
 
             if (!stoppingToken.IsCancellationRequested)
-                await RunSyncAsync(DateTime.Now.Year, DateTime.Now.Year + 1, stoppingToken);
+                await RunSyncAsync(DateTime.UtcNow.Year, DateTime.UtcNow.Year + 1, stoppingToken);
         }
     }
 

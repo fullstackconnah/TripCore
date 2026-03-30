@@ -65,8 +65,15 @@ public class PublicHolidaysController : ControllerBase
     public async Task<ActionResult<ApiResponse<SyncResultDto>>> Sync(
         [FromBody] SyncHolidaysDto dto, CancellationToken ct)
     {
-        var fromYear = dto.FromYear ?? DateTime.Now.Year;
-        var toYear = dto.ToYear ?? DateTime.Now.Year + 1;
+        var fromYear = dto.FromYear ?? DateTime.UtcNow.Year;
+        var toYear = dto.ToYear ?? DateTime.UtcNow.Year + 1;
+
+        if (fromYear < 2000)
+            return BadRequest(new { message = "fromYear must be 2000 or later." });
+        if (toYear < fromYear)
+            return BadRequest(new { message = "toYear must be greater than or equal to fromYear." });
+        if (toYear - fromYear > 9)
+            return BadRequest(new { message = "Year range must be 10 years or fewer." });
 
         var result = await _syncService.SyncAsync(fromYear, toYear, ct);
 

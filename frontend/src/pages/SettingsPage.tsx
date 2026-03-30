@@ -2,6 +2,7 @@ import { useEventTemplates, useActivities, useSettings, useUpdateSettings, usePr
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
+import type { AxiosError } from 'axios'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -425,7 +426,8 @@ function PublicHolidaysTab() {
           setSyncMessage({ type: 'success', text: `Sync complete: ${result.holidaysAdded} added, ${result.holidaysUpdated} updated` })
           setTimeout(() => setSyncMessage(null), 4000)
         },
-        onError: (err: any) => {
+        onError: (error: Error) => {
+          const err = error as AxiosError<{ message?: string }>
           const msg = err?.response?.data?.message || err?.message || 'Sync failed. Please try again.'
           setSyncMessage({ type: 'error', text: msg })
         },

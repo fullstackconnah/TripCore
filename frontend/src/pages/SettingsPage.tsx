@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { Pencil } from 'lucide-react'
+import { DataTable } from '@/components/DataTable'
 import { Dropdown } from '@/components/Dropdown'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
 import type { EventTemplateDto } from '@/api/types'
@@ -137,32 +138,26 @@ export default function SettingsPage() {
       )}
 
       {tab === 'activities' && (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Activity</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Category</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Location</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {activities.map((a: any) => (
-                <tr key={a.id} className="hover:bg-[var(--color-accent)]/50 transition-colors">
-                  <td className="p-3 font-medium">{a.activityName}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{a.category}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{a.location || '—'}</td>
-                  <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
-                      {a.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={activities}
+          keyField="id"
+          sortable
+          columns={[
+            { key: 'activityName', header: 'Activity', sortable: true, className: 'font-medium' },
+            { key: 'category', header: 'Category', sortable: true },
+            { key: 'location', header: 'Location', render: (a: any) => a.location || '—' },
+            {
+              key: 'isActive',
+              header: 'Status',
+              sortable: true,
+              render: (a: any) => (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
+                  {a.isActive ? 'Active' : 'Inactive'}
+                </span>
+              ),
+            },
+          ]}
+        />
       )}
 
       {tab === 'qualifications' && <QualificationSettingsTab />}
@@ -331,42 +326,35 @@ function SupportCatalogueTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[#f5f3ef]">
-              <tr>
-                {['Item Number', 'Description', 'Day Type', 'ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA', 'Remote', 'V.Remote', 'Effective From'].map(h => (
-                  <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a] whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#f5f3ef]">
-              {allItems.map((item: any) => (
-                <tr key={item.id} className="hover:bg-[#fbf9f5] transition-colors">
-                  <td className="p-3 font-mono text-xs">{item.itemNumber}</td>
-                  <td className="p-3 text-[#43493a]">{item.description}</td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${dayTypeColor(item.dayType)}`}>{item.dayType}</span></td>
-                  <td className="p-3 text-right">${item.priceLimit_ACT?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_NSW?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_NT?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_QLD?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_SA?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_TAS?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_VIC?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_WA?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_Remote?.toFixed(2)}</td>
-                  <td className="p-3 text-right">${item.priceLimit_VeryRemote?.toFixed(2)}</td>
-                  <td className="p-3 text-xs text-[#43493a]">{item.effectiveFrom}</td>
-                </tr>
-              ))}
-              {allItems.length === 0 && (
-                <tr><td colSpan={14} className="p-6 text-center text-[#43493a]">No catalogue items. Import the NDIS Support Catalogue XLSX.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        data={allItems}
+        keyField="id"
+        sortable
+        columns={[
+          { key: 'itemNumber', header: 'Item Number', sortable: true, className: 'font-mono text-xs' },
+          { key: 'description', header: 'Description', sortable: true },
+          {
+            key: 'dayType',
+            header: 'Day Type',
+            sortable: true,
+            render: (item: any) => (
+              <span className={`text-xs px-2 py-0.5 rounded-full ${dayTypeColor(item.dayType)}`}>{item.dayType}</span>
+            ),
+          },
+          { key: 'priceLimit_ACT', header: 'ACT', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_NSW', header: 'NSW', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_NT', header: 'NT', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_QLD', header: 'QLD', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_SA', header: 'SA', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_TAS', header: 'TAS', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_VIC', header: 'VIC', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_WA', header: 'WA', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_Remote', header: 'Remote', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'priceLimit_VeryRemote', header: 'V.Remote', align: 'right' as const, type: 'currency' as const, sortable: true },
+          { key: 'effectiveFrom', header: 'Effective From', type: 'date' as const, sortable: true },
+        ]}
+        emptyMessage="No catalogue items. Import the NDIS Support Catalogue XLSX."
+      />
 
       {/* Import modal */}
       {importing && (
@@ -490,53 +478,54 @@ function PublicHolidaysTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#f5f3ef]">
-            <tr>
-              {['Date', 'Name', 'State', ''].map(h => (
-                <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a]">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#f5f3ef]">
-            {adding && (
-              <tr className="bg-[#fbf9f5]">
-                <td className="p-3"><input type="date" value={newForm.date} onChange={e => setNewForm(p => ({ ...p, date: e.target.value }))} className={inputClass + ' w-full'} /></td>
-                <td className="p-3"><input value={newForm.name} onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} placeholder="Holiday name" className={inputClass + ' w-full'} /></td>
-                <td className="p-3">
-                  <Dropdown
-                    variant="form"
-                    value={newForm.state}
-                    onChange={v => setNewForm(p => ({ ...p, state: v }))}
-                    items={states.map(s => ({ value: s, label: s }))}
-                    label="Select state"
-                  />
-                </td>
-                <td className="p-3">
-                  <div className="flex gap-2">
-                    <button onClick={handleAdd} disabled={createHoliday.isPending} className="px-3 py-1.5 rounded-full bg-[#396200] text-white text-xs font-medium hover:bg-[#294800] disabled:opacity-50">Save</button>
-                    <button onClick={() => setAdding(false)} className="px-3 py-1.5 rounded-full border border-[#c3c9b6] text-xs text-[#43493a] hover:bg-[#f5f3ef]">Cancel</button>
-                  </div>
-                </td>
-              </tr>
-            )}
-            {(holidays as any[]).map((h: any) => (
-              <tr key={h.id} className="hover:bg-[#fbf9f5] transition-colors">
-                <td className="p-3 font-medium text-[#1b1c1a]">{h.date}</td>
-                <td className="p-3 text-[#43493a]">{h.name}</td>
-                <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full bg-[#f5f3ef] text-[#43493a]">{h.state || 'All'}</span></td>
-                <td className="p-3">
-                  <button onClick={() => deleteHoliday.mutate(h.id)} className="text-xs text-red-500 hover:text-red-700 hover:underline">Delete</button>
-                </td>
-              </tr>
-            ))}
-            {(holidays as any[]).length === 0 && !adding && (
-              <tr><td colSpan={4} className="p-6 text-center text-[#43493a]">No holidays found for {year} in {state}.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {adding && (
+        <div className="bg-[var(--color-card)] rounded-t-2xl border border-b-0 border-[var(--color-border)] p-3">
+          <div className="flex items-center gap-3">
+            <input type="date" value={newForm.date} onChange={e => setNewForm(p => ({ ...p, date: e.target.value }))} className={inputClass + ' w-40'} />
+            <input value={newForm.name} onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} placeholder="Holiday name" className={inputClass + ' flex-1'} />
+            <Dropdown
+              variant="form"
+              value={newForm.state}
+              onChange={v => setNewForm(p => ({ ...p, state: v }))}
+              items={states.map(s => ({ value: s, label: s }))}
+              label="Select state"
+            />
+            <div className="flex gap-2">
+              <button onClick={handleAdd} disabled={createHoliday.isPending} className="px-3 py-1.5 rounded-full bg-[#396200] text-white text-xs font-medium hover:bg-[#294800] disabled:opacity-50">Save</button>
+              <button onClick={() => setAdding(false)} className="px-3 py-1.5 rounded-full border border-[#c3c9b6] text-xs text-[#43493a] hover:bg-[#f5f3ef]">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <DataTable
+        data={holidays as any[]}
+        keyField="id"
+        className={adding ? 'relative bg-[var(--color-card)] rounded-b-2xl border border-t-0 border-[var(--color-border)] overflow-x-auto' : undefined}
+        sortable
+        columns={[
+          { key: 'date', header: 'Date', sortable: true, className: 'font-medium' },
+          { key: 'name', header: 'Name', sortable: true },
+          {
+            key: 'state',
+            header: 'State',
+            render: (h: any) => (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-[var(--color-muted-foreground)]">
+                {h.state || 'All'}
+              </span>
+            ),
+          },
+          {
+            key: 'actions',
+            header: '',
+            render: (h: any) => (
+              <button onClick={() => deleteHoliday.mutate(h.id)} className="text-xs text-red-500 hover:text-red-700 hover:underline">
+                Delete
+              </button>
+            ),
+          },
+        ]}
+        emptyMessage={`No holidays found for ${year} in ${state}.`}
+      />
 
       {/* Holiday Sync */}
       <div className="pt-4">

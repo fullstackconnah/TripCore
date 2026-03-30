@@ -1,9 +1,3 @@
-export interface LoginDto {
-  username: string
-  password: string
-  email: string
-}
-
 export interface AuthResponseDto {
   token: string
   expiresAt: string

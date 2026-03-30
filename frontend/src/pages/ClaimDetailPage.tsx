@@ -5,6 +5,8 @@ import { Download, Check, DollarSign, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { apiClient } from '@/api/client'
 import { NoShowModal } from '@/components/NoShowModal'
+import { DataTable } from '@/components/DataTable'
+import { formatCurrency } from '@/lib/utils'
 
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 
@@ -197,82 +199,126 @@ export default function ClaimDetailPage() {
           <h2 className="font-semibold text-sm text-[#43493a]">Line Items</h2>
           <span className="text-xs text-[#43493a]">{(claim.lineItems ?? []).length} items</span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[#f5f3ef]/50">
-              <tr>
-                {['Participant', 'Support Item', 'Day Type', 'Dates', 'Hours', 'Unit Price', 'Total', 'Status', ''].map(h => (
-                  <th key={h} className="text-left p-3 text-xs font-medium text-[#43493a] whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#f5f3ef]">
-              {(claim.lineItems ?? []).map((item: any) => (
-                <tr key={item.id} className="hover:bg-[#fbf9f5] transition-colors">
-                  <td className="p-3">
-                    <p className="font-medium text-[#1b1c1a]">{item.participantName}</p>
-                    <p className="text-xs text-[#43493a] font-mono">{item.ndisNumber}</p>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${planTypeColor(item.planType)}`}>
-                      {planTypeLabel(item.planType)}
-                    </span>
-                  </td>
-                  <td className="p-3 font-mono text-xs text-[#43493a]">{item.supportItemCode}</td>
-                  <td className="p-3 text-[#43493a]">{item.dayType}</td>
-                  <td className="p-3 text-xs text-[#43493a] whitespace-nowrap">
-                    {item.supportsDeliveredFrom} – {item.supportsDeliveredTo}
-                  </td>
-                  <td className="p-3 text-right text-[#43493a]">{item.hours}h</td>
-                  <td className="p-3 text-right text-[#43493a]">${item.unitPrice?.toFixed(2)}</td>
-                  <td className="p-3 text-right font-medium text-[#1b1c1a]">${item.totalAmount?.toFixed(2)}</td>
-                  <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${lineItemStatusColor(item.status)}`}>{item.status}</span>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex flex-col gap-1.5 items-start">
-                      {item.claimType === 'Cancellation' ? (
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium whitespace-nowrap">
-                            No Show · {item.cancellationReason}
-                          </span>
-                          <button
-                            onClick={() => handleRevertToConfirmed(item as ClaimLineItemDto)}
-                            disabled={updateLineItem.isPending}
-                            className="text-xs text-[#43493a] hover:text-[#396200] hover:underline disabled:opacity-50"
-                          >
-                            Mark Confirmed
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setNoShowTarget(item as ClaimLineItemDto)}
-                          className="text-xs text-[#43493a] hover:text-amber-600 hover:underline"
-                        >
-                          No Show
-                        </button>
-                      )}
-                      {(item.planType === 'PlanManaged' || item.planType === 'SelfManaged') && (
-                        <button
-                          onClick={() => downloadFile(`/claims/${id}/invoices/${item.participantBookingId}`, `invoice-${item.participantName.replace(/\s+/g, '-')}.pdf`)}
-                          className="flex items-center gap-1 text-xs text-[#396200] hover:underline"
-                        >
-                          <Download className="w-3 h-3" />
-                          Invoice
-                        </button>
-                      )}
+        <DataTable
+          data={claim.lineItems ?? []}
+          keyField="id"
+          sortable
+          columns={[
+            {
+              key: 'participantName',
+              header: 'Participant',
+              sortable: true,
+              render: (item: any) => (
+                <div>
+                  <p className="font-medium text-[#1b1c1a]">{item.participantName}</p>
+                  <p className="text-xs text-[#43493a] font-mono">{item.ndisNumber}</p>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${planTypeColor(item.planType)}`}>
+                    {planTypeLabel(item.planType)}
+                  </span>
+                </div>
+              ),
+            },
+            {
+              key: 'supportItemCode',
+              header: 'Support Item',
+              sortable: true,
+              className: 'font-mono text-xs text-[#43493a]',
+            },
+            {
+              key: 'dayType',
+              header: 'Day Type',
+              sortable: true,
+              render: (item: any) => (
+                <span className="text-[#43493a]">{item.dayType}</span>
+              ),
+            },
+            {
+              key: 'supportsDeliveredFrom',
+              header: 'Dates',
+              sortable: true,
+              render: (item: any) => (
+                <span className="text-xs text-[#43493a] whitespace-nowrap">
+                  {item.supportsDeliveredFrom} – {item.supportsDeliveredTo}
+                </span>
+              ),
+            },
+            {
+              key: 'hours',
+              header: 'Hours',
+              align: 'right' as const,
+              render: (item: any) => (
+                <span className="text-[#43493a]">{item.hours}h</span>
+              ),
+            },
+            {
+              key: 'unitPrice',
+              header: 'Unit Price',
+              type: 'currency' as const,
+              align: 'right' as const,
+            },
+            {
+              key: 'totalAmount',
+              header: 'Total',
+              type: 'currency' as const,
+              align: 'right' as const,
+              sortable: true,
+              className: 'font-medium',
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (item: any) => (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${lineItemStatusColor(item.status)}`}>{item.status}</span>
+              ),
+            },
+            {
+              key: 'actions',
+              header: '',
+              render: (item: any) => (
+                <div className="flex flex-col gap-1.5 items-start">
+                  {item.claimType === 'Cancellation' ? (
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium whitespace-nowrap">
+                        No Show · {item.cancellationReason}
+                      </span>
+                      <button
+                        onClick={() => handleRevertToConfirmed(item as ClaimLineItemDto)}
+                        disabled={updateLineItem.isPending}
+                        className="text-xs text-[#43493a] hover:text-[#396200] hover:underline disabled:opacity-50"
+                      >
+                        Mark Confirmed
+                      </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot className="border-t-2 border-[#f5f3ef]">
-              <tr>
-                <td colSpan={6} className="p-3 text-right text-sm font-medium text-[#43493a]">Total</td>
-                <td className="p-3 text-right font-bold text-[#1b1c1a]">${totalAmount.toFixed(2)}</td>
-                <td colSpan={2} />
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                  ) : (
+                    <button
+                      onClick={() => setNoShowTarget(item as ClaimLineItemDto)}
+                      className="text-xs text-[#43493a] hover:text-amber-600 hover:underline"
+                    >
+                      No Show
+                    </button>
+                  )}
+                  {(item.planType === 'PlanManaged' || item.planType === 'SelfManaged') && (
+                    <button
+                      onClick={() => downloadFile(`/claims/${id}/invoices/${item.participantBookingId}`, `invoice-${item.participantName.replace(/\s+/g, '-')}.pdf`)}
+                      className="flex items-center gap-1 text-xs text-[#396200] hover:underline"
+                    >
+                      <Download className="w-3 h-3" />
+                      Invoice
+                    </button>
+                  )}
+                </div>
+              ),
+            },
+          ]}
+          footer={
+            <tr>
+              <td colSpan={6} className="p-3 text-right font-semibold text-[var(--color-foreground)]">Total</td>
+              <td className="p-3 font-bold text-[var(--color-foreground)]">{formatCurrency(totalAmount)}</td>
+              <td colSpan={2} />
+            </tr>
+          }
+          className="overflow-x-auto"
+        />
       </div>
       {noShowTarget && id && (
         <NoShowModal

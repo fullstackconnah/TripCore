@@ -78,6 +78,7 @@ export default function TemplateFormPanel({
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
   const [accessibilityExpanded, setAccessibilityExpanded] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const {
     register,
@@ -91,6 +92,7 @@ export default function TemplateFormPanel({
   useEffect(() => {
     if (!isOpen) return
     setError(null)
+    setSuccessMessage(null)
     setShowDeactivateConfirm(false)
     setAccessibilityExpanded(false)
 
@@ -139,10 +141,15 @@ export default function TemplateFormPanel({
     try {
       if (isEdit && template) {
         await updateMutation.mutateAsync({ id: template.id, data: payload as any })
+        setSuccessMessage('Template updated')
       } else {
         await createMutation.mutateAsync(payload as any)
+        setSuccessMessage('Template created')
       }
-      onClose()
+      setTimeout(() => {
+        setSuccessMessage(null)
+        onClose()
+      }, 1500)
     } catch (err: any) {
       setError(
         err?.response?.data?.errors?.[0] ||
@@ -366,6 +373,13 @@ export default function TemplateFormPanel({
               </div>
             )}
           </div>
+
+          {/* Success message */}
+          {successMessage && (
+            <div className="bg-[#bff285] border border-[#8fc950] rounded-xl px-4 py-3 text-sm text-[#294800] font-medium">
+              {successMessage}
+            </div>
+          )}
 
           {/* Error message */}
           {error && (

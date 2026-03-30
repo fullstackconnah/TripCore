@@ -121,6 +121,8 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
 
 export default function TripDetailPage() {
   const { id } = useParams()
+  const currentUser = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
+  const canManageTemplates = ['Admin', 'Coordinator', 'SuperAdmin'].includes(currentUser.role)
   const [activeTab, setActiveTab] = useState<Tab>('overview')  // 'overview' now renders ItineraryTab
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
@@ -654,7 +656,7 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          {!trip?.eventTemplateId && (
+          {!trip?.eventTemplateId && canManageTemplates && (
             <button
               onClick={() => setShowSaveAsTemplate(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#f5f3ef] text-[#43493a] text-sm font-medium hover:bg-[#ede9e3] transition-all"

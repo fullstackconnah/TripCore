@@ -90,11 +90,12 @@ LOGOUT
 **Behaviour:**
 1. Verify `idToken` using `FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken)`
 2. Extract `email` from verified token
-3. Resolve tenant from email domain (existing logic, unchanged)
-4. Look up user in DB by email — return 401 if not found or inactive
-5. Update `LastLoginAt`
-6. Issue backend JWT with existing claims: `userId`, `username`, `email`, `role`, `tenant_id`, `fullName`
-7. Return same response shape as old `/api/v1/auth/login`
+3. **SuperAdmin path:** if email domain is `@tripcore.com.au`, bypass tenant resolution — set `TenantId = null`, `Role = SuperAdmin` (same as existing login logic)
+4. **Standard path:** resolve tenant from email domain, look up tenant in DB — return 401 if tenant not found
+5. Look up user in DB by email — return 401 if not found or inactive
+6. Update `LastLoginAt`
+7. Issue backend JWT with existing claims: `userId`, `username`, `email`, `role`, `tenant_id`, `fullName`
+8. Return same response shape as old `/api/v1/auth/login`
 
 **Rate limiting:** 5 requests per 5 minutes per IP (same as existing login endpoint).
 
@@ -175,13 +176,19 @@ Add `signOut(auth)` call before clearing localStorage (existing logout logic).
 
 ## User Migration
 
-No migration required. All existing users are demo accounts used for testing.
+All existing users are demo accounts — no production data to preserve.
 
 **Steps:**
 1. Run EF migration to drop `PasswordHash` column
-2. Clear seed data from DB
-3. Recreate demo accounts manually in Firebase console
-4. Update `DbSeeder.cs` to seed DB rows without password fields (email + metadata only)
+2. Clear all demo seed users from DB **except the SuperAdmin row** (SuperAdmin must be preserved — it is the platform operator account with cross-tenant access)
+3. Create all accounts (including SuperAdmin) in Firebase console with new passwords
+4. Update `DbSeeder.cs` to seed DB rows without password fields (email + metadata only); SuperAdmin row must always be seeded
+
+**SuperAdmin account:**
+- Email: `superadmin@tripcore.com.au` (or equivalent `@tripcore.com.au` address)
+- Created in Firebase console manually
+- DB row seeded by `DbSeeder.cs` with `Role = SuperAdmin`, `TenantId = null`
+- `X-View-As-Tenant` header behaviour unchanged
 
 ---
 
@@ -211,7 +218,7 @@ JWT_SECRET  ← still needed (backend still issues its own JWTs)
 
 1. Create Firebase project at console.firebase.google.com
 2. Enable **Email/Password** sign-in provider
-3. Create demo user accounts (email + temporary password)
+3. Create all accounts including **SuperAdmin** (`@tripcore.com.au` email) and demo tenant accounts
 4. Generate a **Service Account** key (Project Settings → Service Accounts → Generate new private key)
 5. Store service account JSON as `FIREBASE_SERVICE_ACCOUNT_JSON` env var
 

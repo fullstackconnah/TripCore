@@ -61,7 +61,7 @@ export type ColumnType = 'text' | 'date' | 'currency' | 'boolean' | 'badge' | 'c
 
 // Shared column properties
 type ColumnBase<T> = {
-  header: string
+  header: string | ReactNode
   type?: ColumnType                // default: 'text'
   sortable?: boolean               // opt-in per column
   align?: 'left' | 'center' | 'right'  // default: 'left'
@@ -114,6 +114,7 @@ export type DataTableProps<T> = {
 
   // Editable — compared against String(row[keyField])
   editingRow?: string | number | null
+  onEditChange?: (row: T, key: string, value: unknown) => void
 
   // Styling
   className?: string               // wrapper override
@@ -215,7 +216,8 @@ export type DataTableProps<T> = {
 **`formatCurrency` utility** — must be added to `frontend/src/lib/utils.ts` in Phase 1:
 
 ```typescript
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | null | undefined): string {
+  if (amount == null) return '—'
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(amount)
 }
 ```

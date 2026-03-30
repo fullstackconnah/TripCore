@@ -170,8 +170,11 @@ public class AuthController : ControllerBase
 
     private SymmetricSecurityKey GetSigningKey()
     {
-        var secret = _config["Jwt:Secret"] ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-            ?? throw new InvalidOperationException("JWT secret not configured.");
+        var secret = _config["Jwt:Secret"];
+        if (string.IsNullOrEmpty(secret))
+            secret = Environment.GetEnvironmentVariable("JWT_SECRET");
+        if (string.IsNullOrEmpty(secret))
+            throw new InvalidOperationException("JWT_SECRET must be configured.");
         return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
     }
 }

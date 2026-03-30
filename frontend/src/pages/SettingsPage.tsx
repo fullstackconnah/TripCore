@@ -62,14 +62,18 @@ export default function SettingsPage() {
   const [editingTemplate, setEditingTemplate] = useState<EventTemplateDto | undefined>(undefined)
   const { data: activities = [] } = useActivities()
 
-  const tabs = [
+  const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
+  const isSuperAdmin = user.role === 'SuperAdmin'
+
+  const allTabs = [
     { key: 'templates' as const, label: 'Event Templates' },
     { key: 'activities' as const, label: 'Activity Library' },
     { key: 'qualifications' as const, label: 'Qualification Warnings' },
     { key: 'provider' as const, label: 'Provider Settings' },
-    { key: 'catalogue' as const, label: 'Support Catalogue' },
-    { key: 'holidays' as const, label: 'Public Holidays' },
+    { key: 'catalogue' as const, label: 'Support Catalogue', superAdminOnly: true },
+    { key: 'holidays' as const, label: 'Public Holidays', superAdminOnly: true },
   ]
+  const tabs = allTabs.filter(t => !t.superAdminOnly || isSuperAdmin)
 
   return (
     <div className="space-y-6 animate-fade-in">

@@ -1,5 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -52,6 +54,19 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// ── Firebase Admin SDK ───────────────────────────────────────
+var firebaseServiceAccount = builder.Configuration["Firebase:ServiceAccountJson"]
+    ?? Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
+
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    throw new InvalidOperationException(
+        "Firebase:ServiceAccountJson or FIREBASE_SERVICE_ACCOUNT_JSON env var must be set.");
+
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromJson(firebaseServiceAccount)
+});
 
 // ── NDIS Claiming Services ────────────────────────────────────
 builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();

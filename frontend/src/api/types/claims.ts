@@ -36,6 +36,7 @@ export interface ClaimLineItemDto {
   totalAmount: number
   gstCode: GSTCode
   claimType: ClaimType
+  cancellationReason: string | null
   participantApproved: boolean
   status: ClaimLineItemStatus
   rejectionReason: string | null
@@ -53,6 +54,7 @@ export interface UpdateClaimLineItemDto {
   unitPrice?: number
   supportItemCode?: string
   claimType?: ClaimType
+  cancellationReason?: string
   participantApproved?: boolean
   status?: ClaimLineItemStatus
   rejectionReason?: string

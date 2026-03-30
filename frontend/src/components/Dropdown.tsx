@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
@@ -60,9 +60,9 @@ export function Dropdown({
   // Per-variant default alignment
   const resolvedAlign = align ?? (variant === 'form' ? 'left' : 'right')
 
-  // Position the portal panel relative to the trigger on open
-  useEffect(() => {
-    if (!open || !triggerRef.current) return
+  // Compute panel position from trigger's current viewport rect
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
     const style: CSSProperties = {
       position: 'fixed',
@@ -76,7 +76,23 @@ export function Dropdown({
       style.right = window.innerWidth - rect.right
     }
     setPanelStyle(style)
-  }, [open, resolvedAlign, variant])
+  }, [resolvedAlign, variant])
+
+  // Position the portal panel relative to the trigger on open,
+  // and reposition on scroll / resize so it tracks the trigger.
+  useEffect(() => {
+    if (!open) return
+    updatePosition()
+
+    // Listen on window (captures page-level scroll) and use capture
+    // phase to catch scrolls inside overflow containers (modals, panels).
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [open, updatePosition])
 
   // Click-outside: close if click is outside both trigger container AND portal panel
   useEffect(() => {

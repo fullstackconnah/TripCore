@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom'
 import { useClaim, useUpdateClaim, useUpdateClaimLineItem } from '@/api/hooks'
-import type { TripClaimStatus } from '@/api/types'
+import type { TripClaimStatus, ClaimLineItemDto } from '@/api/types'
 import { Download, Check, DollarSign, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { apiClient } from '@/api/client'
+import { NoShowModal } from '@/components/NoShowModal'
 
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 
@@ -59,8 +60,8 @@ export default function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: claim, isLoading } = useClaim(id)
   const updateClaim = useUpdateClaim()
-  // useUpdateClaimLineItem is available for line item edits if needed
-  useUpdateClaimLineItem()
+  const updateLineItem = useUpdateClaimLineItem()
+  const [noShowTarget, setNoShowTarget] = useState<ClaimLineItemDto | null>(null)
   const [notes, setNotes] = useState('')
   const [notesInit, setNotesInit] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -85,6 +86,11 @@ export default function ClaimDetailPage() {
   function handleStatusChange(status: string) {
     if (!id) return
     updateClaim.mutate({ claimId: id, data: { status: status as TripClaimStatus } })
+  }
+
+  function handleRevertToConfirmed(item: ClaimLineItemDto) {
+    if (!id) return
+    updateLineItem.mutate({ claimId: id, itemId: item.id, data: { claimType: 'Standard' } })
   }
 
   return (
@@ -222,15 +228,38 @@ export default function ClaimDetailPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${lineItemStatusColor(item.status)}`}>{item.status}</span>
                   </td>
                   <td className="p-3">
-                    {(item.planType === 'PlanManaged' || item.planType === 'SelfManaged') && (
-                      <button
-                        onClick={() => downloadFile(`/claims/${id}/invoices/${item.participantBookingId}`, `invoice-${item.participantName.replace(/\s+/g, '-')}.pdf`)}
-                        className="flex items-center gap-1 text-xs text-[#396200] hover:underline"
-                      >
-                        <Download className="w-3 h-3" />
-                        Invoice
-                      </button>
-                    )}
+                    <div className="flex flex-col gap-1.5 items-start">
+                      {item.claimType === 'Cancellation' ? (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium whitespace-nowrap">
+                            No Show · {item.cancellationReason}
+                          </span>
+                          <button
+                            onClick={() => handleRevertToConfirmed(item as ClaimLineItemDto)}
+                            disabled={updateLineItem.isPending}
+                            className="text-xs text-[#43493a] hover:text-[#396200] hover:underline disabled:opacity-50"
+                          >
+                            Mark Confirmed
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setNoShowTarget(item as ClaimLineItemDto)}
+                          className="text-xs text-[#43493a] hover:text-amber-600 hover:underline"
+                        >
+                          No Show
+                        </button>
+                      )}
+                      {(item.planType === 'PlanManaged' || item.planType === 'SelfManaged') && (
+                        <button
+                          onClick={() => downloadFile(`/claims/${id}/invoices/${item.participantBookingId}`, `invoice-${item.participantName.replace(/\s+/g, '-')}.pdf`)}
+                          className="flex items-center gap-1 text-xs text-[#396200] hover:underline"
+                        >
+                          <Download className="w-3 h-3" />
+                          Invoice
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -245,6 +274,14 @@ export default function ClaimDetailPage() {
           </table>
         </div>
       </div>
+      {noShowTarget && id && (
+        <NoShowModal
+          claimId={id}
+          lineItem={noShowTarget}
+          onClose={() => setNoShowTarget(null)}
+          onSuccess={() => setNoShowTarget(null)}
+        />
+      )}
     </div>
   )
 }

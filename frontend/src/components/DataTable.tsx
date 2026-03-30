@@ -21,7 +21,7 @@ type ColumnBase<T> = {
 
 export type Column<T> =
   | (ColumnBase<T> & { key: keyof T & string; render?: (row: T, rowIndex: number) => ReactNode })
-  | (ColumnBase<T> & { key: string; render: (row: T, rowIndex: number) => ReactNode })
+  | (ColumnBase<T> & { key: string; render?: (row: T, rowIndex: number) => ReactNode })
 
 export type SortState = {
   key: string

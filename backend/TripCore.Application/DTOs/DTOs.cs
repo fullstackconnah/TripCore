@@ -21,6 +21,7 @@ public record ParticipantListDto
     public bool IsActive { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public SupportRatio SupportRatio { get; init; }
 }
 
@@ -60,6 +61,7 @@ public record CreateParticipantDto
     public bool IsRepeatClient { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public bool RequiresOvernightSupport { get; init; }
     public bool HasRestrictivePracticeFlag { get; init; }
     public SupportRatio SupportRatio { get; init; }
@@ -168,6 +170,9 @@ public record TripDetailDto : TripListDto
     public int OutstandingTaskCount { get; init; }
     public int InsuranceConfirmedCount { get; init; }
     public int InsuranceOutstandingCount { get; init; }
+    public decimal ActiveHoursPerDay { get; init; }
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -207,6 +212,8 @@ public record CreateTripDto
 public record UpdateTripDto : CreateTripDto
 {
     public TripStatus Status { get; init; } = TripStatus.Draft;
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
 }
 
 public record PatchTripDto
@@ -911,20 +918,6 @@ public record DashboardSummaryDto
 }
 
 // ══════════════════════════════════════════════════════════════
-// AUTH DTOs
-// ══════════════════════════════════════════════════════════════
-
-public record LoginDto
-{
-    [Required, StringLength(100, MinimumLength = 1)]
-    public string Username { get; init; } = string.Empty;
-    [Required, StringLength(200, MinimumLength = 1)]
-    public string Password { get; init; } = string.Empty;
-    [Required, EmailAddress, StringLength(300, MinimumLength = 1)]
-    public string Email { get; init; } = string.Empty;
-}
-
-// ══════════════════════════════════════════════════════════════
 // ITINERARY DTOs (read-only composite view)
 // ══════════════════════════════════════════════════════════════
 
@@ -1239,3 +1232,19 @@ public record UpdateTenantDto(
     string Name,
     string EmailDomain,
     bool IsActive);
+
+// ── Public Holidays Sync DTOs ──────────────────────────────────────────────
+
+public record SyncHolidaysDto
+{
+    public int? FromYear { get; init; }
+    public int? ToYear { get; init; }
+}
+
+public record SyncResultDto
+{
+    public int YearsProcessed { get; init; }
+    public int HolidaysAdded { get; init; }
+    public int HolidaysUpdated { get; init; }
+    public string[] Errors { get; init; } = [];
+}

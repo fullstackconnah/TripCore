@@ -36,6 +36,8 @@ public class TripInstance : ITenantEntity
     public Guid? DefaultActivityGroupId { get; set; }
     public SupportActivityGroup? DefaultActivityGroup { get; set; }
     public decimal ActiveHoursPerDay { get; set; } = 8;
+    public TimeOnly? DepartureTime { get; set; }
+    public TimeOnly? ReturnTime { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

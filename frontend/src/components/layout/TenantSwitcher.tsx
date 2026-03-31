@@ -24,6 +24,42 @@ export default function TenantSwitcher() {
   const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
   const ownTenantId = user.tenantId as string | undefined
 
+  // Auto-select tenant when tenants load but none is selected (or stale)
+  useEffect(() => {
+    if (tenants.length === 0) return
+
+    // Already have a valid selection — just keep last-used in sync
+    if (viewingId && tenants.some(t => t.id === viewingId)) {
+      localStorage.setItem('tripcore_last_tenant', viewingId)
+      return
+    }
+
+    // Try to restore last-used tenant
+    const lastTenant = localStorage.getItem('tripcore_last_tenant')
+    if (lastTenant && tenants.some(t => t.id === lastTenant)) {
+      localStorage.setItem('tripcore_viewing_tenant', lastTenant)
+      window.location.reload()
+      return
+    }
+
+    // Fall back to "Demo" tenant
+    const demo = tenants.find(t => t.name.toLowerCase() === 'demo')
+    if (demo) {
+      localStorage.setItem('tripcore_viewing_tenant', demo.id)
+      localStorage.setItem('tripcore_last_tenant', demo.id)
+      window.location.reload()
+      return
+    }
+
+    // Last resort: first active tenant
+    const firstActive = tenants.find(t => t.isActive)
+    if (firstActive) {
+      localStorage.setItem('tripcore_viewing_tenant', firstActive.id)
+      localStorage.setItem('tripcore_last_tenant', firstActive.id)
+      window.location.reload()
+    }
+  }, [tenants, viewingId])
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
@@ -34,6 +70,7 @@ export default function TenantSwitcher() {
 
   const switchTenant = (tenantId: string) => {
     localStorage.setItem('tripcore_viewing_tenant', tenantId)
+    localStorage.setItem('tripcore_last_tenant', tenantId)
     window.location.reload()
   }
 

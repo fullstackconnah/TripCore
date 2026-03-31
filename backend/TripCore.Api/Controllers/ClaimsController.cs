@@ -28,14 +28,32 @@ public class ClaimsController : ControllerBase
         _invoiceService = invoiceService;
     }
 
-    // POST /api/v1/trips/{tripId}/claims
-    [HttpPost("trips/{tripId:guid}/claims")]
-    [Authorize(Roles = "Admin,Coordinator")]
-    public async Task<ActionResult<ApiResponse<TripClaimListDto>>> GenerateClaim(Guid tripId, CancellationToken ct)
+    // POST /api/v1/trips/{tripId}/claims/preview
+    [HttpPost("trips/{tripId:guid}/claims/preview")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<ClaimPreviewResponseDto>>> PreviewClaim(
+        Guid tripId, [FromBody] ClaimPreviewRequestDto dto, CancellationToken ct)
     {
         try
         {
-            var claim = await _generator.GenerateDraftClaimAsync(tripId, ct);
+            var preview = await _generator.PreviewClaimAsync(tripId, dto, ct);
+            return Ok(ApiResponse<ClaimPreviewResponseDto>.Ok(preview));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<ClaimPreviewResponseDto>.Fail(ex.Message));
+        }
+    }
+
+    // POST /api/v1/trips/{tripId}/claims
+    [HttpPost("trips/{tripId:guid}/claims")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<TripClaimListDto>>> GenerateClaim(
+        Guid tripId, [FromBody] GenerateClaimRequestDto? dto, CancellationToken ct)
+    {
+        try
+        {
+            var claim = await _generator.GenerateDraftClaimAsync(tripId, dto, ct);
             return Ok(ApiResponse<TripClaimListDto>.Ok(new TripClaimListDto
             {
                 Id = claim.Id, TripInstanceId = claim.TripInstanceId,
@@ -106,7 +124,7 @@ public class ClaimsController : ControllerBase
 
     // PUT /api/v1/claims/{claimId}
     [HttpPut("claims/{claimId:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateClaim(Guid claimId, [FromBody] UpdateClaimDto dto, CancellationToken ct)
     {
         var c = await _db.TripClaims.FirstOrDefaultAsync(x => x.Id == claimId, ct);
@@ -127,7 +145,7 @@ public class ClaimsController : ControllerBase
 
     // PATCH /api/v1/claims/{claimId}/line-items/{id}
     [HttpPatch("claims/{claimId:guid}/line-items/{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateLineItem(Guid claimId, Guid id, [FromBody] UpdateClaimLineItemDto dto, CancellationToken ct)
     {
         var item = await _db.ClaimLineItems
@@ -138,7 +156,14 @@ public class ClaimsController : ControllerBase
         if (dto.Hours.HasValue) { item.Hours = dto.Hours.Value; item.TotalAmount = item.Hours * item.UnitPrice; }
         if (dto.UnitPrice.HasValue) { item.UnitPrice = dto.UnitPrice.Value; item.TotalAmount = item.Hours * item.UnitPrice; }
         if (dto.SupportItemCode != null) item.SupportItemCode = dto.SupportItemCode;
-        if (dto.ClaimType.HasValue) item.ClaimType = dto.ClaimType.Value;
+        if (dto.ClaimType.HasValue)
+        {
+            item.ClaimType = dto.ClaimType.Value;
+            if (dto.ClaimType.Value != ClaimType.Cancellation)
+                item.CancellationReason = null;
+        }
+        if (dto.CancellationReason != null && item.ClaimType == ClaimType.Cancellation)
+            item.CancellationReason = dto.CancellationReason;
         if (dto.ParticipantApproved.HasValue) item.ParticipantApproved = dto.ParticipantApproved.Value;
         if (dto.Status.HasValue)
         {
@@ -162,6 +187,35 @@ public class ClaimsController : ControllerBase
         // NOTE: TripClaimStatus.PartiallyPaid exists (value 4) but partial auto-promotion is omitted intentionally
 
         await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
+
+    // DELETE /api/v1/claims/{claimId}
+    [HttpDelete("claims/{claimId:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteClaim(Guid claimId, CancellationToken ct)
+    {
+        var claim = await _db.TripClaims
+            .Include(c => c.LineItems)
+            .FirstOrDefaultAsync(x => x.Id == claimId, ct);
+
+        if (claim == null) return NotFound(ApiResponse<bool>.Fail("Claim not found"));
+
+        if (claim.Status == TripClaimStatus.Submitted || claim.Status == TripClaimStatus.Paid)
+            return BadRequest(ApiResponse<bool>.Fail("Cannot delete a claim that has been submitted or paid."));
+
+        // Reset participant bookings back to unclaimed
+        var bookingIds = claim.LineItems.Select(l => l.ParticipantBookingId).Distinct().ToList();
+        var bookings = await _db.ParticipantBookings
+            .Where(b => bookingIds.Contains(b.Id))
+            .ToListAsync(ct);
+        foreach (var booking in bookings)
+            booking.ClaimStatus = ClaimStatus.NotClaimed;
+
+        _db.ClaimLineItems.RemoveRange(claim.LineItems);
+        _db.TripClaims.Remove(claim);
+        await _db.SaveChangesAsync(ct);
+
         return Ok(ApiResponse<bool>.Ok(true));
     }
 

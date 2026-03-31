@@ -6,14 +6,14 @@ import { generateItineraryPdf } from './ItineraryPdf'
 import { Dropdown } from './Dropdown'
 
 interface TripAdminData {
-  eventTemplateName?: string
+  eventTemplateName?: string | null
   oopDueDate?: string
-  bookingCutoffDate?: string
-  minParticipants?: number
-  minStaffRequired?: number
-  requiredWheelchairCapacity?: number
-  requiredBeds?: number
-  requiredBedrooms?: number
+  bookingCutoffDate?: string | null
+  minParticipants?: number | null
+  minStaffRequired?: number | null
+  requiredWheelchairCapacity?: number | null
+  requiredBeds?: number | null
+  requiredBedrooms?: number | null
 }
 
 interface ItineraryTabProps {

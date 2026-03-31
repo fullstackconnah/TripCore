@@ -559,7 +559,7 @@ export default function TripDetailPage() {
       insuranceStatus: editForm.insuranceStatus as InsuranceStatus,
       insuranceProvider: editForm.insuranceProvider ?? undefined,
       insurancePolicyNumber: editForm.insurancePolicyNumber ?? undefined,
-      insuranceCoverageStart: editForm.insuranceCoverageStart ?? undefined,
+      insuranceCoverageStart: editForm.insuranceCoverageStart || undefined,
       insuranceCoverageEnd: editForm.insuranceCoverageEnd || undefined,
     }}, {
       onSuccess: () => setEditingBooking(null),

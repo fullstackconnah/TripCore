@@ -35,6 +35,34 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
   const updateClaim = useUpdateClaim()
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedClaimIds, setSelectedClaimIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
+
+  async function bulkUpdateClaimStatus(ids: string[], status: string) {
+    setBulkLoading(true)
+    try {
+      await Promise.all(
+        ids.map(
+          id =>
+            new Promise<void>((resolve, reject) => {
+              updateClaim.mutate(
+                { claimId: id, data: { status: status as TripClaimStatus } },
+                { onSuccess: () => resolve(), onError: err => reject(err) }
+              )
+            })
+        )
+      )
+      setSelectedClaimIds(new Set())
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.errors?.[0] ??
+        err?.response?.data?.message ??
+        'Failed to update claims.'
+      )
+    } finally {
+      setBulkLoading(false)
+    }
+  }
 
   function handleDelete(claimId: string) {
     if (!confirm('Delete this claim? This cannot be undone.')) return
@@ -71,6 +99,10 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
           data={claims}
           keyField="id"
           sortable
+          loading={bulkLoading}
+          selectable
+          selectedRows={selectedClaimIds}
+          onSelectionChange={setSelectedClaimIds}
           emptyMessage="No claims yet"
           columns={[
             { key: 'claimReference', header: 'Reference', sortable: true, className: 'font-medium font-mono text-sm' },
@@ -78,6 +110,10 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
               key: 'status',
               header: 'Status',
               sortable: true,
+              bulkEditable: {
+                items: CLAIM_STATUS_ITEMS,
+                onBulkChange: (ids, value) => bulkUpdateClaimStatus(ids, value),
+              },
               render: (c: any) => (
                 <Dropdown
                   variant="pill"

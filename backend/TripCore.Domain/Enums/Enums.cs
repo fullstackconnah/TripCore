@@ -333,3 +333,10 @@ public enum OvernightSupportType
     Sleepover = 3,
     SleepoverSupport = 4
 }
+
+public enum AuditAction
+{
+    Created,
+    Updated,
+    Deleted
+}

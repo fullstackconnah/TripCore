@@ -4,10 +4,13 @@ import { formatDateAu, maskNdisNumber } from '@/lib/utils'
 import { DataTable } from '@/components/DataTable'
 import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
+import AuditHistoryTab from '@/components/AuditHistoryTab'
 
 export default function ParticipantDetailPage() {
   const { id } = useParams()
-  const [tab, setTab] = useState<'details' | 'bookings' | 'support'>('details')
+  const [tab, setTab] = useState<'details' | 'bookings' | 'support' | 'history'>('details')
+  const currentUser = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
+  const isAdmin = currentUser.role === 'Admin'
   const { data: p, isLoading } = useParticipant(id)
   const { data: bookings = [] } = useParticipantBookings(id)
   const { data: supportProfile } = useSupportProfile(id)
@@ -40,6 +43,18 @@ export default function ParticipantDetailPage() {
             <t.icon className="w-4 h-4" /> {t.label}
           </button>
         ))}
+        {isAdmin && (
+          <button
+            onClick={() => setTab('history')}
+            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              tab === 'history'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-text)]'
+            }`}
+          >
+            History
+          </button>
+        )}
       </div>
 
       {tab === 'details' && (
@@ -121,6 +136,10 @@ export default function ParticipantDetailPage() {
             </div>
           )}
         </div>
+      )}
+
+      {tab === 'history' && isAdmin && p && (
+        <AuditHistoryTab entityType="Participant" entityId={String(p.id)} />
       )}
     </div>
   )

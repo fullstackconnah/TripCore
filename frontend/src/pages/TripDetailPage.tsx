@@ -1,136 +1,24 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, FileText } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, ClockIcon } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
+import AuditHistoryTab from '@/components/AuditHistoryTab'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
-import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
-import TemplateFormPanel from '@/components/TemplateFormPanel'
 import { Dropdown } from '@/components/Dropdown'
-import { DataTable } from '@/components/DataTable'
-import type { TripClaimStatus, BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims'
-
-const CLAIM_STATUS_ITEMS = [
-  { value: 'Draft', label: 'Draft' },
-  { value: 'Submitted', label: 'Submitted' },
-  { value: 'Paid', label: 'Paid' },
-  { value: 'Rejected', label: 'Rejected' },
-  { value: 'PartiallyPaid', label: 'Partially Paid' },
-]
-
-const CLAIM_STATUS_COLORS: Record<string, string> = {
-  Draft: 'bg-gray-100 text-gray-600',
-  Submitted: 'bg-blue-100 text-blue-700',
-  Paid: 'bg-[#bff285] text-[#294800]',
-  Rejected: 'bg-red-100 text-red-700',
-  PartiallyPaid: 'bg-amber-100 text-amber-700',
-}
-
-function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: any[]; trip: any }) {
-  const deleteClaim = useDeleteClaim()
-  const updateClaim = useUpdateClaim()
-  const [showGenerateModal, setShowGenerateModal] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  function handleDelete(claimId: string) {
-    if (!confirm('Delete this claim? This cannot be undone.')) return
-    deleteClaim.mutate(claimId, {
-      onError: (err: any) => setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to delete claim.'),
-    })
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-[#1b1c1a]">NDIS Claims</h2>
-        <button
-          onClick={() => setShowGenerateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all"
-        >
-          + Generate Claim
-        </button>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
-          <span className="mt-0.5">⚠</span>
-          <span>{error}</span>
-        </div>
-      )}
-
-      {claims.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center text-[#43493a]">
-          No claims yet. Generate a claim once the trip is complete.
-        </div>
-      ) : (
-        <DataTable
-          data={claims}
-          keyField="id"
-          sortable
-          emptyMessage="No claims yet"
-          columns={[
-            { key: 'claimReference', header: 'Reference', sortable: true, className: 'font-medium font-mono text-sm' },
-            {
-              key: 'status',
-              header: 'Status',
-              sortable: true,
-              render: (c: any) => (
-                <Dropdown
-                  variant="pill"
-                  value={c.status}
-                  onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val as TripClaimStatus } })}
-                  colorClass={CLAIM_STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-600'}
-                  items={CLAIM_STATUS_ITEMS}
-                />
-              ),
-            },
-            { key: 'totalAmount', header: 'Total Amount', type: 'currency', sortable: true },
-            { key: 'createdAt', header: 'Created', type: 'date', sortable: true },
-            { key: 'submittedDate', header: 'Submitted', type: 'date', sortable: true },
-            {
-              key: 'actions',
-              header: '',
-              render: (c: any) => (
-                <div className="flex items-center gap-3">
-                  <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
-                  {c.status !== 'Submitted' && c.status !== 'Paid' && (
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >Delete</button>
-                  )}
-                </div>
-              ),
-            },
-          ]}
-        />
-      )}
-
-      {showGenerateModal && (
-        <GenerateClaimModal
-          tripId={tripId}
-          trip={trip}
-          onClose={() => setShowGenerateModal(false)}
-          onSuccess={() => setShowGenerateModal(false)}
-        />
-      )}
-    </div>
-  )
-}
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'history'
 
 export default function TripDetailPage() {
   const { id } = useParams()
   const currentUser = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
-  const canManageTemplates = ['Admin', 'Coordinator', 'SuperAdmin'].includes(currentUser.role)
+  const isAdmin = currentUser.role === 'Admin'
   const [activeTab, setActiveTab] = useState<Tab>('overview')  // 'overview' now renders ItineraryTab
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [showAddActivity, setShowAddActivity] = useState(false)
-  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false)
   const [editingScheduledActivity, setEditingScheduledActivity] = useState<any>(null)
   const [addActivityDayId, setAddActivityDayId] = useState('')
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set())
@@ -156,7 +44,6 @@ export default function TripDetailPage() {
   const { data: staff = [] } = useTripStaff(id)
   const { data: tasks = [] } = useTripTasks(id)
   const { data: schedule = [] } = useTripSchedule(id)
-  const { data: claims = [] } = useTripClaims(id)
   const { data: participants = [] } = useParticipants()
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
@@ -342,12 +229,12 @@ export default function TripDetailPage() {
     createStaffAssignment.mutate({
       tripInstanceId: id,
       staffId: selectedStaffId,
-      assignmentRole: staffAssignmentRole || undefined,
-      assignmentStart: staffAssignmentStart,
-      assignmentEnd: staffAssignmentEnd,
+      assignmentRole: staffAssignmentRole || null,
+      assignmentStart: staffAssignmentStart || null,
+      assignmentEnd: staffAssignmentEnd || null,
       isDriver: staffIsDriver,
-      sleepoverType: staffSleepoverType as SleepoverType,
-      shiftNotes: staffShiftNotes || undefined,
+      sleepoverType: staffSleepoverType,
+      shiftNotes: staffShiftNotes || null,
     }, {
       onSuccess: () => {
         setShowAddStaff(false)
@@ -429,11 +316,11 @@ export default function TripDetailPage() {
       accommodationPropertyId: propertyId,
       checkInDate: accommForm.checkInDate,
       checkOutDate: accommForm.checkOutDate,
-      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : undefined,
-      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : undefined,
-      cost: accommForm.cost ? parseFloat(accommForm.cost) : undefined,
+      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : null,
+      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : null,
+      cost: accommForm.cost ? parseFloat(accommForm.cost) : null,
       reservationStatus: accommForm.reservationStatus,
-      comments: accommForm.comments || undefined,
+      comments: accommForm.comments || null,
     }, {
       onSuccess: () => {
         setShowAddAccommodation(false)
@@ -448,14 +335,11 @@ export default function TripDetailPage() {
       if (!newPropertyForm.propertyName) return
       createAccommodation.mutate({
         propertyName: newPropertyForm.propertyName,
-        location: newPropertyForm.location || undefined,
-        region: newPropertyForm.region || undefined,
-        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : undefined,
-        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : undefined,
-        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : undefined,
-        isFullyModified: false,
-        isSemiModified: false,
-        isWheelchairAccessible: false,
+        location: newPropertyForm.location || null,
+        region: newPropertyForm.region || null,
+        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : null,
+        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : null,
+        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : null,
         isActive: true,
       }, {
         onSuccess: (res: any) => {
@@ -550,22 +434,13 @@ export default function TripDetailPage() {
   const handleUpdateBooking = () => {
     if (!editingBooking) return
     updateBooking.mutate({ id: editingBooking.id, data: {
-      tripInstanceId: editingBooking.tripInstanceId,
-      participantId: editingBooking.participantId,
-      bookingStatus: editForm.bookingStatus as BookingStatus,
-      wheelchairRequired: editForm.wheelchairRequired,
-      highSupportRequired: editForm.highSupportRequired,
-      nightSupportRequired: editForm.nightSupportRequired,
-      hasRestrictivePracticeFlag: editForm.hasRestrictivePracticeFlag,
-      paymentStatus: editingBooking.paymentStatus as PaymentStatus,
-      actionRequired: editingBooking.actionRequired ?? false,
-      supportRatioOverride: (editForm.supportRatioOverride || undefined) as SupportRatio | undefined,
-      insuranceStatus: editForm.insuranceStatus as InsuranceStatus,
-      insuranceProvider: editForm.insuranceProvider || undefined,
-      insurancePolicyNumber: editForm.insurancePolicyNumber || undefined,
-      insuranceCoverageStart: editForm.insuranceCoverageStart || undefined,
-      insuranceCoverageEnd: editForm.insuranceCoverageEnd || undefined,
-      bookingNotes: editForm.bookingNotes || undefined,
+      ...editForm,
+      supportRatioOverride: editForm.supportRatioOverride || null,
+      insuranceStatus: editForm.insuranceStatus,
+      insuranceProvider: editForm.insuranceProvider || null,
+      insurancePolicyNumber: editForm.insurancePolicyNumber || null,
+      insuranceCoverageStart: editForm.insuranceCoverageStart || null,
+      insuranceCoverageEnd: editForm.insuranceCoverageEnd || null,
     }}, {
       onSuccess: () => setEditingBooking(null),
     })
@@ -592,14 +467,14 @@ export default function TripDetailPage() {
     createBooking.mutate({
       tripInstanceId: id,
       participantId: selectedParticipantId,
-      bookingStatus: bookingStatus as BookingStatus,
+      bookingStatus,
       wheelchairRequired,
       highSupportRequired,
       nightSupportRequired,
       hasRestrictivePracticeFlag,
-      ...(supportRatioOverride ? { supportRatioOverride: supportRatioOverride as SupportRatio } : {}),
+      ...(supportRatioOverride ? { supportRatioOverride } : {}),
       ...(bookingNotes ? { bookingNotes } : {}),
-      insuranceStatus: insuranceStatus as InsuranceStatus,
+      insuranceStatus,
       ...(insuranceProvider ? { insuranceProvider } : {}),
       ...(insurancePolicyNumber ? { insurancePolicyNumber } : {}),
       ...(insuranceCoverageStart ? { insuranceCoverageStart } : {}),
@@ -624,7 +499,7 @@ export default function TripDetailPage() {
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
     { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
-    { key: 'claims', label: 'Claims', icon: FileText, count: claims.length },
+    ...(isAdmin ? [{ key: 'history' as Tab, label: 'History', icon: ClockIcon }] : []),
   ]
 
   return (
@@ -659,15 +534,6 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          {!trip?.eventTemplateId && canManageTemplates && (
-            <button
-              onClick={() => setShowSaveAsTemplate(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#f5f3ef] text-[#43493a] text-sm font-medium hover:bg-[#ede9e3] transition-all"
-            >
-              <FileText className="w-4 h-4" />
-              Save as Template
-            </button>
-          )}
           <button
             onClick={handleOpenTripEdit}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all"
@@ -968,13 +834,13 @@ export default function TripDetailPage() {
                     {/* Participant Select */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Participant *</label>
-                      <Dropdown
-                        variant="form"
-                        items={availableParticipants.map((p: any) => ({ value: p.id, label: p.fullName }))}
-                        value={selectedParticipantId}
-                        onChange={setSelectedParticipantId}
-                        label="Select a participant..."
-                      />
+                      <select value={selectedParticipantId} onChange={e => setSelectedParticipantId(e.target.value)}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        <option value="">Select a participant...</option>
+                        {availableParticipants.map((p: any) => (
+                          <option key={p.id} value={p.id}>{p.fullName}</option>
+                        ))}
+                      </select>
                       {availableParticipants.length === 0 && (
                         <p className="text-xs text-[#43493a] mt-1">All active participants are already booked on this trip.</p>
                       )}
@@ -983,13 +849,12 @@ export default function TripDetailPage() {
                     {/* Booking Status */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Booking Status</label>
-                      <Dropdown
-                        variant="form"
-                        items={['Enquiry', 'Held', 'Confirmed', 'Waitlist'].map(s => ({ value: s, label: s }))}
-                        value={bookingStatus}
-                        onChange={setBookingStatus}
-                        label="Select status..."
-                      />
+                      <select value={bookingStatus} onChange={e => setBookingStatus(e.target.value)}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        {['Enquiry', 'Held', 'Confirmed', 'Waitlist'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Support Overrides */}
@@ -1022,13 +887,13 @@ export default function TripDetailPage() {
                     {/* Support Ratio Override */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Support Ratio Override</label>
-                      <Dropdown
-                        variant="form"
-                        items={[['OneToOne','1:1'],['OneToTwo','1:2'],['OneToThree','1:3'],['OneToFour','1:4'],['OneToFive','1:5'],['TwoToOne','2:1'],['SharedSupport','Shared'],['Other','Other']].map(([val, label]) => ({ value: val, label }))}
-                        value={supportRatioOverride}
-                        onChange={setSupportRatioOverride}
-                        label="No override"
-                      />
+                      <select value={supportRatioOverride} onChange={e => setSupportRatioOverride(e.target.value)}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        <option value="">No override</option>
+                        {[['OneToOne','1:1'],['OneToTwo','1:2'],['OneToThree','1:3'],['OneToFour','1:4'],['OneToFive','1:5'],['TwoToOne','2:1'],['SharedSupport','Shared'],['Other','Other']].map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Notes */}
@@ -1045,13 +910,12 @@ export default function TripDetailPage() {
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs text-[#43493a] mb-1">Status</label>
-                          <Dropdown
-                            variant="form"
-                            items={['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => ({ value: s, label: s }))}
-                            value={insuranceStatus}
-                            onChange={setInsuranceStatus}
-                            label="Select status..."
-                          />
+                          <select value={insuranceStatus} onChange={e => setInsuranceStatus(e.target.value)}
+                            className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                            {['None', 'Pending', 'Confirmed', 'Expired', 'Cancelled'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
                         </div>
                         {insuranceStatus !== 'None' && (
                           <>
@@ -1107,101 +971,95 @@ export default function TripDetailPage() {
               </div>
             )}
 
-            <DataTable
-              data={bookings}
-              keyField="id"
-              sortable
-              emptyMessage="No bookings yet"
-              columns={[
-                { key: 'participantName', header: 'Participant', sortable: true, className: 'font-medium' },
-                {
-                  key: 'bookingStatus',
-                  header: 'Status',
-                  sortable: true,
-                  render: (b: any) => (
-                    <Dropdown
-                      variant="pill"
-                      value={b.bookingStatus}
-                      onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val as BookingStatus } })}
-                      colorClass={getStatusColor(b.bookingStatus)}
-                      items={[
-                        { value: 'Enquiry', label: 'Enquiry' },
-                        { value: 'Held', label: 'Held' },
-                        { value: 'Confirmed', label: 'Confirmed' },
-                        { value: 'Waitlist', label: 'Waitlist' },
-                        { value: 'Cancelled', label: 'Cancelled' },
-                        { value: 'Completed', label: 'Completed' },
-                        { value: 'NoLongerAttending', label: 'No Longer Attending' },
-                      ]}
-                    />
-                  ),
-                },
-                { key: 'bookingDate', header: 'Date', type: 'date', sortable: true },
-                {
-                  key: 'supportRatioOverride',
-                  header: 'Ratio',
-                  sortable: true,
-                  render: (b: any) => <>{{ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string] || '—'}</>,
-                },
-                { key: 'wheelchairRequired', header: <span className="material-symbols-outlined text-base leading-none">accessible</span>, type: 'boolean', align: 'center' },
-                { key: 'highSupportRequired', header: 'High', type: 'boolean', align: 'center' },
-                { key: 'nightSupportRequired', header: 'Night', type: 'boolean', align: 'center' },
-                {
-                  key: 'insuranceStatus',
-                  header: 'Insurance',
-                  align: 'center',
-                  render: (b: any) => (
-                    <Dropdown
-                      variant="pill"
-                      value={b.insuranceStatus || 'None'}
-                      onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val as InsuranceStatus } })}
-                      colorClass={getStatusColor(b.insuranceStatus || 'none')}
-                      items={[
-                        { value: 'None', label: 'None' },
-                        { value: 'Pending', label: 'Pending' },
-                        { value: 'Confirmed', label: 'Confirmed' },
-                        { value: 'Expired', label: 'Expired' },
-                        { value: 'Cancelled', label: 'Cancelled' },
-                      ]}
-                    />
-                  ),
-                },
-                {
-                  key: 'paymentStatus',
-                  header: 'Payment',
-                  align: 'center',
-                  render: (b: any) => (
-                    <Dropdown
-                      variant="pill"
-                      value={b.paymentStatus || 'NotInvoiced'}
-                      onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
-                      colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
-                      items={PAYMENT_STATUS_ITEMS}
-                      disabled={isReadOnly}
-                    />
-                  ),
-                },
-                {
-                  key: 'actions',
-                  header: '',
-                  align: 'center',
-                  render: (b: any) => (
-                    <div className="flex items-center justify-center gap-2">
-                      {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                      <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
-                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                      </button>
-                      <Link to={`/participants/${b.participantId}`} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="View participant">
-                        <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
-                      </Link>
-                      <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                      </button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
+            <div className="bg-white rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-[#efeeea]">
+                  <tr>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Participant</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Date</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Ratio</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]"><span className="material-symbols-outlined text-base leading-none">accessible</span></th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">High</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Night</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Insurance</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Payment</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#efeeea]">
+                  {bookings.map((b: any) => (
+                    <tr key={b.id} className="hover:bg-[#efeeea]/50 transition-colors">
+                      <td className="p-3 font-medium">{b.participantName || '—'}</td>
+                      <td className="p-3">
+                        <Dropdown
+                          variant="pill"
+                          value={b.bookingStatus}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val } })}
+                          colorClass={getStatusColor(b.bookingStatus)}
+                          items={[
+                            { value: 'Enquiry', label: 'Enquiry' },
+                            { value: 'Held', label: 'Held' },
+                            { value: 'Confirmed', label: 'Confirmed' },
+                            { value: 'Waitlist', label: 'Waitlist' },
+                            { value: 'Cancelled', label: 'Cancelled' },
+                            { value: 'Completed', label: 'Completed' },
+                            { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                          ]}
+                        />
+                      </td>
+                      <td className="p-3 text-[#43493a]">{formatDateAu(b.bookingDate)}</td>
+                      <td className="p-3 text-[#43493a]">{({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string]) || '—'}</td>
+                      <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
+                      <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
+                      <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
+                      <td className="p-3 text-center">
+                        <Dropdown
+                          variant="pill"
+                          value={b.insuranceStatus || 'None'}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val } })}
+                          colorClass={getStatusColor(b.insuranceStatus || 'none')}
+                          items={[
+                            { value: 'None', label: 'None' },
+                            { value: 'Pending', label: 'Pending' },
+                            { value: 'Confirmed', label: 'Confirmed' },
+                            { value: 'Expired', label: 'Expired' },
+                            { value: 'Cancelled', label: 'Cancelled' },
+                          ]}
+                        />
+                      </td>
+                      <td className="p-3 text-center">
+                        <Dropdown
+                          variant="pill"
+                          value={b.paymentStatus || 'NotInvoiced'}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val } })}
+                          colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
+                          items={PAYMENT_STATUS_ITEMS}
+                          disabled={isReadOnly}
+                        />
+                      </td>
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
+                          <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
+                            <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                          </button>
+                          <Link to={`/participants/${b.participantId}`} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="View participant">
+                            <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
+                          </Link>
+                          <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                            <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {bookings.length === 0 && (
+                    <tr><td colSpan={10} className="p-6 text-center text-[#43493a]">No bookings yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             {/* Staffing Summary */}
             {bookings.length > 0 && (() => {
@@ -1712,13 +1570,13 @@ export default function TripDetailPage() {
                           </div>
                         </div>
                       ) : (
-                        <Dropdown
-                          variant="form"
-                          items={allAccommodation.map((a: any) => ({ value: a.id, label: `${a.propertyName} — ${a.location || 'No location'}` }))}
-                          value={accommForm.accommodationPropertyId}
-                          onChange={(val) => setAccommForm({ ...accommForm, accommodationPropertyId: val })}
-                          label="Select property..."
-                        />
+                        <select value={accommForm.accommodationPropertyId} onChange={e => setAccommForm({ ...accommForm, accommodationPropertyId: e.target.value })}
+                          className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                          <option value="">Select property...</option>
+                          {allAccommodation.map((a: any) => (
+                            <option key={a.id} value={a.id}>{a.propertyName} — {a.location || 'No location'}</option>
+                          ))}
+                        </select>
                       )}
                     </div>
 
@@ -1760,13 +1618,12 @@ export default function TripDetailPage() {
                     {/* Status */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Status</label>
-                      <Dropdown
-                        variant="form"
-                        items={['Researching', 'Requested', 'Booked', 'Confirmed', 'Cancelled', 'Unavailable'].map(s => ({ value: s, label: s }))}
-                        value={accommForm.reservationStatus}
-                        onChange={(val) => setAccommForm({ ...accommForm, reservationStatus: val })}
-                        label="Select status..."
-                      />
+                      <select value={accommForm.reservationStatus} onChange={e => setAccommForm({ ...accommForm, reservationStatus: e.target.value })}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        {['Researching', 'Requested', 'Booked', 'Confirmed', 'Cancelled', 'Unavailable'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Comments */}
@@ -1814,13 +1671,12 @@ export default function TripDetailPage() {
                     {/* Property */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Property</label>
-                      <Dropdown
-                        variant="form"
-                        items={allAccommodation.map((a: any) => ({ value: a.id, label: `${a.propertyName} — ${a.location || 'No location'}` }))}
-                        value={editReservationForm.accommodationPropertyId}
-                        onChange={(val) => setEditReservationForm({ ...editReservationForm, accommodationPropertyId: val })}
-                        label="Select property..."
-                      />
+                      <select value={editReservationForm.accommodationPropertyId} onChange={e => setEditReservationForm({ ...editReservationForm, accommodationPropertyId: e.target.value })}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        {allAccommodation.map((a: any) => (
+                          <option key={a.id} value={a.id}>{a.propertyName} — {a.location || 'No location'}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Dates */}
@@ -1859,13 +1715,12 @@ export default function TripDetailPage() {
                     {/* Status */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Status</label>
-                      <Dropdown
-                        variant="form"
-                        items={['Researching', 'Requested', 'Booked', 'Confirmed', 'Cancelled', 'Unavailable'].map(s => ({ value: s, label: s }))}
-                        value={editReservationForm.reservationStatus}
-                        onChange={(val) => setEditReservationForm({ ...editReservationForm, reservationStatus: val })}
-                        label="Select status..."
-                      />
+                      <select value={editReservationForm.reservationStatus} onChange={e => setEditReservationForm({ ...editReservationForm, reservationStatus: e.target.value })}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        {['Researching', 'Requested', 'Booked', 'Confirmed', 'Cancelled', 'Unavailable'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Confirmation Reference */}
@@ -2077,47 +1932,47 @@ export default function TripDetailPage() {
               )
             })()}
 
-            <DataTable
-              data={staff}
-              keyField="id"
-              sortable
-              emptyMessage="No staff assigned yet"
-              columns={[
-                { key: 'staffName', header: 'Staff', sortable: true, className: 'font-medium' },
-                { key: 'assignmentRole', header: 'Role', sortable: true },
-                {
-                  key: 'assignmentStart',
-                  header: 'Dates',
-                  sortable: true,
-                  render: (s: any) => <>{formatDateAu(s.assignmentStart)} — {formatDateAu(s.assignmentEnd)}</>,
-                },
-                { key: 'status', header: 'Status', type: 'badge', sortable: true },
-                { key: 'isDriver', header: 'Driver', type: 'boolean', align: 'center', sortable: true },
-                {
-                  key: 'sleepoverType',
-                  header: 'Sleepover',
-                  align: 'center',
-                  sortable: true,
-                  render: (s: any) => <span className="text-xs">{s.sleepoverType !== 'None' ? s.sleepoverType : ''}</span>,
-                },
-                {
-                  key: 'actions',
-                  header: '',
-                  align: 'center',
-                  render: (s: any) => (
-                    <div className="flex items-center justify-center gap-2">
-                      {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                      <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
-                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                      </button>
-                      <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                      </button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
+            <div className="bg-white rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-[#efeeea]">
+                  <tr>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Staff</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Role</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Dates</th>
+                    <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Driver</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]">Sleepover</th>
+                    <th className="text-center p-3 font-medium text-[#43493a]"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#efeeea]">
+                  {staff.map((s: any) => (
+                    <tr key={s.id} className="hover:bg-[#efeeea]/50 transition-colors">
+                      <td className="p-3 font-medium">{s.staffName}</td>
+                      <td className="p-3 text-[#43493a]">{s.assignmentRole || '—'}</td>
+                      <td className="p-3 text-[#43493a]">{formatDateAu(s.assignmentStart)} — {formatDateAu(s.assignmentEnd)}</td>
+                      <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(s.status)}`}>{s.status}</span></td>
+                      <td className="p-3 text-center">{s.isDriver ? '✅' : ''}</td>
+                      <td className="p-3 text-center text-xs">{s.sleepoverType !== 'None' ? s.sleepoverType : ''}</td>
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
+                          <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
+                            <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                          </button>
+                          <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                            <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {staff.length === 0 && (
+                    <tr><td colSpan={7} className="p-6 text-center text-[#43493a]">No staff assigned yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             {/* Edit Staff Assignment Modal */}
             {editingStaff && (
@@ -2142,13 +1997,12 @@ export default function TripDetailPage() {
                     {/* Status */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Status</label>
-                      <Dropdown
-                        variant="form"
-                        items={['Proposed', 'Confirmed', 'Completed', 'Cancelled'].map(s => ({ value: s, label: s }))}
-                        value={editStaffForm.status}
-                        onChange={(val) => setEditStaffForm({ ...editStaffForm, status: val })}
-                        label="Select status..."
-                      />
+                      <select value={editStaffForm.status} onChange={e => setEditStaffForm({ ...editStaffForm, status: e.target.value })}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        {['Proposed', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Dates */}
@@ -2177,18 +2031,13 @@ export default function TripDetailPage() {
                     {/* Sleepover Type */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Sleepover Type</label>
-                      <Dropdown
-                        variant="form"
-                        items={[
-                          { value: 'None', label: 'None' },
-                          { value: 'ActiveNight', label: 'Active Night' },
-                          { value: 'PassiveNight', label: 'Passive Night' },
-                          { value: 'Sleepover', label: 'Sleepover' },
-                        ]}
-                        value={editStaffForm.sleepoverType}
-                        onChange={(val) => setEditStaffForm({ ...editStaffForm, sleepoverType: val })}
-                        label="Select sleepover type..."
-                      />
+                      <select value={editStaffForm.sleepoverType} onChange={e => setEditStaffForm({ ...editStaffForm, sleepoverType: e.target.value })}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        <option value="None">None</option>
+                        <option value="ActiveNight">Active Night</option>
+                        <option value="PassiveNight">Passive Night</option>
+                        <option value="Sleepover">Sleepover</option>
+                      </select>
                     </div>
 
                     {/* Shift Notes */}
@@ -2235,18 +2084,20 @@ export default function TripDetailPage() {
                     {/* Staff Select */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Staff Member</label>
-                      <Dropdown
-                        variant="form"
-                        items={allStaff
+                      <select value={selectedStaffId} onChange={e => setSelectedStaffId(e.target.value)}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        <option value="">Select staff...</option>
+                        {allStaff
                           .filter((s: any) => !assignedStaffIds.has(s.id))
-                          .map((s: any) => ({
-                            value: s.id,
-                            label: `${s.fullName}${!availableStaffIds.has(s.id) ? ' (Unavailable)' : ''}`,
-                          }))}
-                        value={selectedStaffId}
-                        onChange={setSelectedStaffId}
-                        label="Select staff..."
-                      />
+                          .map((s: any) => {
+                            const isAvailable = availableStaffIds.has(s.id)
+                            return (
+                              <option key={s.id} value={s.id}>
+                                {s.fullName}{!isAvailable ? ' (Unavailable)' : ''}
+                              </option>
+                            )
+                          })}
+                      </select>
                       {selectedStaffId && !availableStaffIds.has(selectedStaffId) && (
                         <p className="text-xs text-[#f59e0b] mt-1 flex items-center gap-1">
                           <AlertTriangle className="w-3 h-3" /> This staff member has a scheduling conflict for the trip dates
@@ -2288,18 +2139,13 @@ export default function TripDetailPage() {
                     {/* Sleepover Type */}
                     <div>
                       <label className="block text-sm font-medium mb-1">Sleepover Type</label>
-                      <Dropdown
-                        variant="form"
-                        items={[
-                          { value: 'None', label: 'None' },
-                          { value: 'ActiveNight', label: 'Active Night' },
-                          { value: 'PassiveNight', label: 'Passive Night' },
-                          { value: 'Sleepover', label: 'Sleepover' },
-                        ]}
-                        value={staffSleepoverType}
-                        onChange={setStaffSleepoverType}
-                        label="Select sleepover type..."
-                      />
+                      <select value={staffSleepoverType} onChange={e => setStaffSleepoverType(e.target.value)}
+                        className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
+                        <option value="None">None</option>
+                        <option value="ActiveNight">Active Night</option>
+                        <option value="PassiveNight">Passive Night</option>
+                        <option value="Sleepover">Sleepover</option>
+                      </select>
                     </div>
 
                     {/* Shift Notes */}
@@ -2370,34 +2216,32 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'tasks' && (
-          <DataTable
-            data={tasks}
-            keyField="id"
-            sortable
-            emptyMessage="No tasks yet"
-            columns={[
-              { key: 'title', header: 'Task', sortable: true, className: 'font-medium' },
-              { key: 'taskType', header: 'Type', sortable: true },
-              {
-                key: 'ownerName',
-                header: 'Owner',
-                sortable: true,
-                render: (t: any) => t.ownerName || 'Unassigned',
-              },
-              { key: 'dueDate', header: 'Due', type: 'date', sortable: true },
-              {
-                key: 'priority',
-                header: 'Priority',
-                sortable: true,
-                render: (t: any) => (
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'
-                  }`}>{t.priority}</span>
-                ),
-              },
-              { key: 'status', header: 'Status', type: 'badge', sortable: true },
-            ]}
-          />
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-[#efeeea]">
+                <tr>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Task</th>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Type</th>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Owner</th>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Due</th>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Priority</th>
+                  <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#efeeea]">
+                {tasks.map((t: any) => (
+                  <tr key={t.id} className="hover:bg-[#efeeea]/50 transition-colors">
+                    <td className="p-3 font-medium">{t.title}</td>
+                    <td className="p-3 text-[#43493a]">{t.taskType}</td>
+                    <td className="p-3 text-[#43493a]">{t.ownerName || 'Unassigned'}</td>
+                    <td className="p-3 text-[#43493a]">{formatDateAu(t.dueDate)}</td>
+                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span></td>
+                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}`}>{t.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {activeTab === 'activities' && (
@@ -2503,7 +2347,7 @@ export default function TripDetailPage() {
               <AddActivityModal
                 tripDayId={addActivityDayId}
                 editingActivity={editingScheduledActivity}
-                eventTemplateId={trip?.eventTemplateId ?? undefined}
+                eventTemplateId={trip?.eventTemplateId}
                 onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
               />
             )}
@@ -2541,8 +2385,8 @@ export default function TripDetailPage() {
           </div>
         )}
 
-        {activeTab === 'claims' && (
-          <ClaimsTabContent tripId={id!} claims={claims} trip={trip} />
+        {activeTab === 'history' && isAdmin && trip && (
+          <AuditHistoryTab entityType="TripInstance" entityId={String(trip.id)} />
         )}
 
       </div>
@@ -2724,14 +2568,6 @@ export default function TripDetailPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {trip && (
-        <TemplateFormPanel
-          isOpen={showSaveAsTemplate}
-          onClose={() => setShowSaveAsTemplate(false)}
-          initialTrip={trip}
-        />
       )}
     </div>
   )

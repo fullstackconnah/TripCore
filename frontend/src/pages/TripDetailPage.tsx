@@ -8,7 +8,7 @@ import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
-import type { BookingStatus, InsuranceStatus, PaymentStatus } from '@/api/types/enums'
+import type { BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio } from '@/api/types/enums'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'history'
 
@@ -436,11 +436,11 @@ export default function TripDetailPage() {
     if (!editingBooking) return
     updateBooking.mutate({ id: editingBooking.id, data: {
       ...editForm,
-      supportRatioOverride: editForm.supportRatioOverride || null,
+      supportRatioOverride: (editForm.supportRatioOverride || undefined) as SupportRatio | undefined,
       insuranceStatus: editForm.insuranceStatus,
-      insuranceProvider: editForm.insuranceProvider || null,
-      insurancePolicyNumber: editForm.insurancePolicyNumber || null,
-      insuranceCoverageStart: editForm.insuranceCoverageStart || null,
+      insuranceProvider: editForm.insuranceProvider ?? undefined,
+      insurancePolicyNumber: editForm.insurancePolicyNumber ?? undefined,
+      insuranceCoverageStart: editForm.insuranceCoverageStart ?? undefined,
       insuranceCoverageEnd: editForm.insuranceCoverageEnd || undefined,
     }}, {
       onSuccess: () => setEditingBooking(null),

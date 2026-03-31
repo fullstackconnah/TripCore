@@ -20,6 +20,7 @@ export interface ScheduleTripDto {
   maxParticipants: number | null
   currentParticipantCount: number
   minStaffRequired: number | null
+  staffRequired: number | null
   staffAssignedCount: number
   vehicleAssignedCount: number
   leadCoordinatorName: string | null

@@ -1069,6 +1069,7 @@ public record ScheduleTripDto
     public int? MaxParticipants { get; init; }
     public int CurrentParticipantCount { get; init; }
     public int? MinStaffRequired { get; init; }
+    public int? StaffRequired { get; init; }
     public int StaffAssignedCount { get; init; }
     public int VehicleAssignedCount { get; init; }
     public string? LeadCoordinatorName { get; init; }

@@ -1,3 +1,5 @@
+using TripCore.Domain.Enums;
+
 namespace TripCore.Domain.Entities;
 
 /// <summary>
@@ -12,6 +14,9 @@ public class TripDay
     public DateOnly Date { get; set; }
     public string? DayTitle { get; set; }
     public string? DayNotes { get; set; }
+    public bool IsPublicHoliday { get; set; }
+    public OvernightSupportType OvernightType { get; set; } = OvernightSupportType.None;
+    public decimal OvernightHours { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

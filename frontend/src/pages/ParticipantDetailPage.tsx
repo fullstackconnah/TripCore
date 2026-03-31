@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useParticipant, useParticipantBookings, useSupportProfile } from '@/api/hooks'
-import { formatDateAu, getStatusColor, maskNdisNumber } from '@/lib/utils'
+import { formatDateAu, maskNdisNumber } from '@/lib/utils'
+import { DataTable } from '@/components/DataTable'
 import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
 
@@ -55,10 +56,10 @@ export default function ParticipantDetailPage() {
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
             <h3 className="font-semibold">Support Needs</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
-              <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? '✅ Yes' : 'No'}</span>
-              <span className="text-[var(--color-muted-foreground)]">Restrictive Practice</span><span>{p.hasRestrictivePracticeFlag ? '⚠️ Yes' : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Restrictive Practice</span><span>{p.hasRestrictivePracticeFlag ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-amber-500">warning</span> Yes</span> : 'No'}</span>
             </div>
           </div>
           {(p.mobilityNotes || p.transportRequirements || p.equipmentRequirements || p.notes) && (
@@ -76,27 +77,24 @@ export default function ParticipantDetailPage() {
       )}
 
       {tab === 'bookings' && (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Trip</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {bookings.length === 0 && <tr><td colSpan={3} className="p-5 text-center text-[var(--color-muted-foreground)]">No bookings</td></tr>}
-              {bookings.map((b: any) => (
-                <tr key={b.id} className="hover:bg-[var(--color-accent)]/50">
-                  <td className="p-3"><Link to={`/trips/${b.tripInstanceId}`} className="font-medium hover:text-[var(--color-primary)]">{b.tripName || 'Trip'}</Link></td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(b.bookingStatus)}`}>{b.bookingStatus}</span></td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{formatDateAu(b.bookingDate)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={bookings}
+          keyField="id"
+          columns={[
+            {
+              key: 'tripName',
+              header: 'Trip',
+              render: (b: any) => (
+                <Link to={`/trips/${b.tripInstanceId}`} className="font-medium hover:text-[var(--color-primary)]">
+                  {b.tripName || 'Trip'}
+                </Link>
+              ),
+            },
+            { key: 'bookingStatus', header: 'Status', type: 'badge' },
+            { key: 'bookingDate', header: 'Date', type: 'date' },
+          ]}
+          emptyMessage="No bookings"
+        />
       )}
 
       {tab === 'support' && (

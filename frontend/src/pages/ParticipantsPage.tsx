@@ -1,5 +1,6 @@
 import { useParticipants, useDeleteParticipant, useUpdateParticipant } from '@/api/hooks'
 import { maskNdisNumber } from '@/lib/utils'
+import { DataTable, type Column } from '@/components/DataTable'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
@@ -22,11 +23,39 @@ export default function ParticipantsPage() {
     }
   }
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation()
     if (window.confirm(`Archive "${name}"? This can be undone from the Archived view.`)) {
       deleteParticipant.mutate(id)
     }
   }
+
+  const participantColumns: Column<any>[] = [
+    { key: 'fullName', header: 'Name', sortable: true, className: 'font-medium' },
+    { key: 'ndisNumber', header: 'NDIS Number', render: (p) => <span className="font-mono text-xs text-[var(--color-muted-foreground)]">{maskNdisNumber(p.maskedNdisNumber || p.ndisNumber)}</span> },
+    { key: 'planType', header: 'Plan Type' },
+    { key: 'region', header: 'Region', sortable: true },
+    { key: 'wheelchairRequired', header: '\u{1F9BD}', type: 'boolean', align: 'center' },
+    { key: 'isHighSupport', header: 'High', type: 'boolean', align: 'center' },
+    { key: 'supportRatio', header: 'Support Ratio' },
+    { key: 'isRepeatClient', header: 'Repeat', type: 'boolean', align: 'center' },
+    { key: 'status', header: 'Status', sortable: true, render: (p) => <span className={`text-xs px-2 py-0.5 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span> },
+    {
+      key: 'actions',
+      header: '',
+      render: (p) => showArchived ? (
+        <button onClick={(e) => handleRestore(e, p)}
+          className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+          <ArchiveRestore className="w-4 h-4" />
+        </button>
+      ) : (
+        <button onClick={(e) => handleDelete(e, p.id, p.fullName)}
+          className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -60,58 +89,15 @@ export default function ParticipantsPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-12 text-[var(--color-muted-foreground)]">Loading...</div>
-      ) : (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Name</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">NDIS Number</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Plan Type</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Region</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">&#x1f9bd;</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">High</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Support Ratio</th>
-                <th className="text-center p-3 font-medium text-[var(--color-muted-foreground)]">Repeat</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                <th className="w-10 p-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {participants.map((p: any) => (
-                <tr key={p.id} className="hover:bg-[var(--color-accent)]/50 transition-colors cursor-pointer" onClick={() => navigate(`/participants/${p.id}`)}>
-                  <td className="p-3">
-                    <Link to={`/participants/${p.id}`} className="font-medium hover:text-[var(--color-primary)]">{p.fullName}</Link>
-                  </td>
-                  <td className="p-3 text-[var(--color-muted-foreground)] font-mono text-xs">{maskNdisNumber(p.maskedNdisNumber || p.ndisNumber)}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{p.planType}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{p.region || '—'}</td>
-                  <td className="p-3 text-center">{p.wheelchairRequired ? '✅' : ''}</td>
-                  <td className="p-3 text-center">{p.isHighSupport ? '✅' : ''}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{p.supportRatio}</td>
-                  <td className="p-3 text-center">{p.isRepeatClient ? '🔁' : ''}</td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
-                  <td className="p-3">
-                    {showArchived ? (
-                      <button onClick={(e) => handleRestore(e, p)}
-                        className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
-                        <ArchiveRestore className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id, p.fullName) }}
-                        className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={participants}
+        columns={participantColumns}
+        keyField="id"
+        sortable
+        onRowClick={(p: any) => navigate(`/participants/${p.id}`)}
+        loading={isLoading}
+        emptyMessage="No participants found"
+      />
     </div>
   )
 }

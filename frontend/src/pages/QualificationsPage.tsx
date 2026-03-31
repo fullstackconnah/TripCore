@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStaff, useSettings, useUpdateStaff } from '@/api/hooks'
+import { DataTable } from '@/components/DataTable'
 
 type QualStatus = 'expired' | 'expiring' | 'no-date' | 'ok'
 type FilterTab = 'all' | 'expired' | 'expiring' | 'no-date'
@@ -137,21 +138,21 @@ export default function QualificationsPage() {
       firstName: s.firstName,
       lastName: s.lastName,
       role: s.role,
-      email: s.email,
-      mobile: s.mobile,
-      region: s.region,
+      email: s.email ?? undefined,
+      mobile: s.mobile ?? undefined,
+      region: s.region ?? undefined,
       isDriverEligible: s.isDriverEligible,
       isFirstAidQualified: s.isFirstAidQualified,
       isMedicationCompetent: s.isMedicationCompetent,
       isManualHandlingCompetent: s.isManualHandlingCompetent,
       isOvernightEligible: s.isOvernightEligible,
       isActive: s.isActive,
-      notes: s.notes,
-      firstAidExpiryDate: s.firstAidExpiryDate,
-      driverLicenceExpiryDate: s.driverLicenceExpiryDate,
-      manualHandlingExpiryDate: s.manualHandlingExpiryDate,
-      medicationCompetencyExpiryDate: s.medicationCompetencyExpiryDate,
-      [row.fieldKey]: editValue || null,
+      notes: s.notes ?? undefined,
+      firstAidExpiryDate: s.firstAidExpiryDate ?? undefined,
+      driverLicenceExpiryDate: s.driverLicenceExpiryDate ?? undefined,
+      manualHandlingExpiryDate: s.manualHandlingExpiryDate ?? undefined,
+      medicationCompetencyExpiryDate: s.medicationCompetencyExpiryDate ?? undefined,
+      [row.fieldKey]: editValue || undefined,
     }
 
     updateStaff.mutate({ id: row.staffId, data: payload }, {
@@ -204,7 +205,7 @@ export default function QualificationsPage() {
       {/* Empty state */}
       {filteredGroups.length === 0 ? (
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <p className="text-3xl mb-3">✓</p>
+          <span className="material-symbols-outlined text-5xl leading-none text-[var(--color-primary)] mb-3 block">check_circle</span>
           <p className="font-semibold text-[var(--color-foreground)]">All qualifications are current</p>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
             No issues found within the {warningDays}-day warning window
@@ -233,76 +234,87 @@ export default function QualificationsPage() {
               {/* Accordion body */}
               {expandedIds.has(group.staffId) && (
                 <div className="border-t border-[var(--color-border)]">
-                  <table className="w-full text-sm">
-                    <thead className="bg-[var(--color-accent)]">
-                      <tr>
-                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Qualification</th>
-                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Expiry Date</th>
-                        <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                        <th className="p-3" />
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--color-border)]">
-                      {group.rows.map(row => {
-                        const isEditing = editingKey === row.key
-                        const badge = getStatusBadge(row)
-                        return (
-                          <tr key={row.key} className={`hover:bg-[var(--color-accent)]/50 transition-colors ${
-                            row.status === 'expired' ? 'bg-[#ffdad6]/10' :
-                            row.status === 'expiring' ? 'bg-[#fef3c7]/10' : ''
-                          }`}>
-                            <td className="p-3 text-[var(--color-muted-foreground)]">{row.qualification}</td>
-                            <td className="p-3">
-                              {isEditing ? (
-                                <div className="space-y-1">
-                                  <input
-                                    type="date"
-                                    value={editValue}
-                                    onChange={e => setEditValue(e.target.value)}
-                                    className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                  />
-                                  {saveError && <p className="text-xs text-[#ba1a1a]">{saveError}</p>}
-                                </div>
-                              ) : (
-                                <span>{row.expiryDate ?? '—'}</span>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
-                                {badge.label}
-                              </span>
-                            </td>
-                            <td className="p-3 text-right">
-                              {isEditing ? (
-                                <div className="flex items-center gap-3 justify-end">
-                                  <button
-                                    onClick={() => handleSave(row)}
-                                    disabled={updateStaff.isPending}
-                                    className="text-xs font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
-                                  >
-                                    {updateStaff.isPending ? 'Saving...' : 'Save'}
-                                  </button>
-                                  <button
-                                    onClick={() => { setEditingKey(null); setSaveError(null) }}
-                                    className="text-xs text-[var(--color-muted-foreground)] hover:underline"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => handleEdit(row)}
-                                  className="text-xs font-medium text-[var(--color-primary)] hover:underline"
-                                >
-                                  Edit
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                  <DataTable<QualRow>
+                    data={group.rows}
+                    keyField="key"
+                    editingRow={editingKey}
+                    onEditChange={(_row, _key, value) => setEditValue(value as string)}
+                    compact
+                    className="overflow-x-auto"
+                    rowClassName={(q) =>
+                      q.status === 'expired' ? 'bg-[#ffdad6]/10' :
+                      q.status === 'expiring' ? 'bg-[#fef3c7]/10' : ''
+                    }
+                    columns={[
+                      {
+                        key: 'qualification',
+                        header: 'Qualification',
+                        className: 'text-[var(--color-muted-foreground)]',
+                      },
+                      {
+                        key: 'expiryDate',
+                        header: 'Expiry Date',
+                        type: 'date',
+                        editable: {
+                          render: (_q, onChange) => (
+                            <div className="space-y-1">
+                              <input
+                                type="date"
+                                value={editValue}
+                                onChange={e => onChange(e.target.value)}
+                                className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                              />
+                              {saveError && <p className="text-xs text-[#ba1a1a]">{saveError}</p>}
+                            </div>
+                          ),
+                        },
+                      },
+                      {
+                        key: 'status',
+                        header: 'Status',
+                        render: (q) => {
+                          const badge = getStatusBadge(q)
+                          return (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          )
+                        },
+                      },
+                      {
+                        key: 'actions',
+                        header: '',
+                        align: 'right' as const,
+                        render: (q) => {
+                          const isEditing = editingKey === q.key
+                          return isEditing ? (
+                            <div className="flex items-center gap-3 justify-end">
+                              <button
+                                onClick={() => handleSave(q)}
+                                disabled={updateStaff.isPending}
+                                className="text-xs font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
+                              >
+                                {updateStaff.isPending ? 'Saving...' : 'Save'}
+                              </button>
+                              <button
+                                onClick={() => { setEditingKey(null); setSaveError(null) }}
+                                className="text-xs text-[var(--color-muted-foreground)] hover:underline"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleEdit(q)}
+                              className="text-xs font-medium text-[var(--color-primary)] hover:underline"
+                            >
+                              Edit
+                            </button>
+                          )
+                        },
+                      },
+                    ]}
+                  />
                 </div>
               )}
             </div>

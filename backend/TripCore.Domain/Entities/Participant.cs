@@ -26,6 +26,7 @@ public class Participant : ITenantEntity
     public bool IsActive { get; set; } = true;
     public bool WheelchairRequired { get; set; }
     public bool IsHighSupport { get; set; }
+    public bool IsIntensiveSupport { get; set; }
     public bool RequiresOvernightSupport { get; set; }
     public bool HasRestrictivePracticeFlag { get; set; }
     public SupportRatio SupportRatio { get; set; }
@@ -35,6 +36,10 @@ public class Participant : ITenantEntity
     public string? MedicalSummary { get; set; }
     public string? BehaviourRiskSummary { get; set; }
     public string? Notes { get; set; }
+    public DateOnly? PlanStartDate { get; set; }
+    public DateOnly? PlanEndDate { get; set; }
+    public Guid? PlanManagerContactId { get; set; }
+    public Contact? PlanManagerContact { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

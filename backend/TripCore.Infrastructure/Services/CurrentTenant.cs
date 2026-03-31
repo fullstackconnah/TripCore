@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using TripCore.Application.Services;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Infrastructure.Services;
 

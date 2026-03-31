@@ -2127,6 +2127,391 @@ git commit -m "feat(ndis): complete NDIS claiming integration — entities, migr
 
 ---
 
+## Task 16: XLSX support catalogue import
+
+**Files:**
+- Modify: `backend/TripCore.Infrastructure/TripCore.Infrastructure.csproj` — add ClosedXML
+- Create: `backend/TripCore.Infrastructure/Services/CatalogueImportService.cs`
+- Modify: `backend/TripCore.Application/DTOs/ClaimDTOs.cs` — add import DTOs
+- Modify: `backend/TripCore.Api/Controllers/SupportCatalogueController.cs` — add import endpoint
+
+The NDIA publishes an updated support catalogue XLSX each July (sometimes mid-year). The import:
+1. Parses Category 04 / Reg Group 0125 rows from the XLSX
+2. Returns a **preview** — what will be added, what will be deactivated — without writing to DB
+3. On confirm, deactivates old items and inserts new rows with the new `CatalogueVersion`
+
+The NDIA catalogue XLSX has a header row with these column names (used for robust column-position-independent parsing):
+`Support Item Number`, `Support Item Name`, `Unit`, then ratio price columns named like `1:1`, `1:2`, `1:3`, `1:4`, `1:5`, `Remote`, `Very Remote`.
+
+- [ ] **Step 1: Add ClosedXML NuGet package**
+
+```bash
+cd "F:/Projects/personal/Trip Planner"
+dotnet add backend/TripCore.Infrastructure/TripCore.Infrastructure.csproj package ClosedXML --version 0.102.3
+```
+
+Expected: Package added successfully.
+
+- [ ] **Step 2: Add import DTOs to ClaimDTOs.cs**
+
+Append to the end of `backend/TripCore.Application/DTOs/ClaimDTOs.cs`:
+
+```csharp
+// ══════════════════════════════════════════════════════════════
+// CATALOGUE IMPORT DTOs
+// ══════════════════════════════════════════════════════════════
+
+public record CatalogueImportPreviewDto
+{
+    public string DetectedVersion { get; init; } = string.Empty;
+    public int ItemsToAdd { get; init; }
+    public int ItemsToDeactivate { get; init; }
+    public List<CatalogueImportRowDto> Rows { get; init; } = new();
+    public List<string> Warnings { get; init; } = new();
+}
+
+public record CatalogueImportRowDto
+{
+    public string ItemNumber { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public ClaimDayType DayType { get; init; }
+    public decimal PriceLimit_Standard { get; init; }
+    public decimal PriceLimit_1to2 { get; init; }
+    public decimal PriceLimit_1to3 { get; init; }
+    public decimal PriceLimit_1to4 { get; init; }
+    public decimal PriceLimit_1to5 { get; init; }
+    public bool IsNew { get; init; }
+    public bool PriceChanged { get; init; }
+}
+
+public record ConfirmCatalogueImportDto
+{
+    [Required, StringLength(20)]
+    public string CatalogueVersion { get; init; } = string.Empty;
+    public List<CatalogueImportRowDto> Rows { get; init; } = new();
+}
+```
+
+- [ ] **Step 3: Create CatalogueImportService.cs**
+
+```csharp
+using ClosedXML.Excel;
+using Microsoft.EntityFrameworkCore;
+using TripCore.Application.DTOs;
+using TripCore.Domain.Entities;
+using TripCore.Domain.Enums;
+using TripCore.Infrastructure.Data;
+
+namespace TripCore.Infrastructure.Services;
+
+public class CatalogueImportService
+{
+    private readonly TripCoreDbContext _db;
+
+    public CatalogueImportService(TripCoreDbContext db) => _db = db;
+
+    // Item number suffixes that identify day type for Category 04 group access
+    private static readonly Dictionary<string, ClaimDayType> ItemSuffixToDayType = new()
+    {
+        { "04_210_", ClaimDayType.Weekday },
+        { "04_211_", ClaimDayType.Weekday },   // evening — treated as Weekday for trips
+        { "04_212_", ClaimDayType.Saturday },
+        { "04_213_", ClaimDayType.Sunday },
+        { "04_214_", ClaimDayType.PublicHoliday }
+    };
+
+    /// <summary>
+    /// Parses an NDIA support catalogue XLSX stream and returns a preview of what will change.
+    /// Does NOT write to the database.
+    /// </summary>
+    public async Task<CatalogueImportPreviewDto> PreviewImportAsync(Stream xlsxStream, CancellationToken ct = default)
+    {
+        var rows = ParseXlsx(xlsxStream);
+        if (!rows.Any())
+            throw new InvalidOperationException("No Category 04 / Registration Group 0125 items found in the uploaded file. Ensure you are uploading the NDIS Support Catalogue XLSX.");
+
+        var existingItems = await _db.SupportCatalogueItems
+            .Where(i => i.IsActive)
+            .ToListAsync(ct);
+
+        var warnings = new List<string>();
+        var previewRows = new List<CatalogueImportRowDto>();
+
+        foreach (var row in rows)
+        {
+            var existing = existingItems.FirstOrDefault(i => i.ItemNumber == row.ItemNumber);
+            var isNew = existing == null;
+            var priceChanged = existing != null && (
+                existing.PriceLimit_Standard != row.PriceLimit_Standard ||
+                existing.PriceLimit_1to3 != row.PriceLimit_1to3);
+
+            previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
+        }
+
+        // Warn about items that will be deactivated but not replaced
+        var incomingCodes = rows.Select(r => r.ItemNumber).ToHashSet();
+        foreach (var existing in existingItems)
+        {
+            if (!incomingCodes.Contains(existing.ItemNumber))
+                warnings.Add($"Existing item {existing.ItemNumber} is not in the new catalogue and will be deactivated.");
+        }
+
+        // Detect version from effective date — default to financial year format
+        var financialYear = DateTime.UtcNow.Month >= 7
+            ? $"{DateTime.UtcNow.Year}-{DateTime.UtcNow.Year + 1 - 2000:D2}"
+            : $"{DateTime.UtcNow.Year - 1}-{DateTime.UtcNow.Year - 2000:D2}";
+
+        return new CatalogueImportPreviewDto
+        {
+            DetectedVersion = financialYear,
+            ItemsToAdd = previewRows.Count(r => r.IsNew),
+            ItemsToDeactivate = existingItems.Count(e => !incomingCodes.Contains(e.ItemNumber)),
+            Rows = previewRows,
+            Warnings = warnings
+        };
+    }
+
+    /// <summary>
+    /// Commits the import: deactivates old items, inserts new ones.
+    /// Call only after the user has reviewed the preview.
+    /// </summary>
+    public async Task CommitImportAsync(ConfirmCatalogueImportDto dto, CancellationToken ct = default)
+    {
+        var group = await _db.SupportActivityGroups
+            .FirstOrDefaultAsync(g => g.GroupCode == "GRP_COMMUNITY_ACCESS", ct)
+            ?? throw new InvalidOperationException("GRP_COMMUNITY_ACCESS activity group not found.");
+
+        var now = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Deactivate all currently active items for this group
+        var existing = await _db.SupportCatalogueItems
+            .Where(i => i.ActivityGroupId == group.Id && i.IsActive)
+            .ToListAsync(ct);
+
+        foreach (var item in existing)
+        {
+            item.IsActive = false;
+            item.EffectiveTo = now;
+        }
+
+        // Insert new items
+        foreach (var row in dto.Rows)
+        {
+            _db.SupportCatalogueItems.Add(new SupportCatalogueItem
+            {
+                Id = Guid.NewGuid(),
+                ActivityGroupId = group.Id,
+                ItemNumber = row.ItemNumber,
+                Description = row.Description,
+                Unit = "H",
+                DayType = row.DayType,
+                PriceLimit_Standard = row.PriceLimit_Standard,
+                PriceLimit_1to2 = row.PriceLimit_1to2,
+                PriceLimit_1to3 = row.PriceLimit_1to3,
+                PriceLimit_1to4 = row.PriceLimit_1to4,
+                PriceLimit_1to5 = row.PriceLimit_1to5,
+                PriceLimit_Remote = 0,    // updated from preview row if parsed
+                PriceLimit_VeryRemote = 0,
+                CatalogueVersion = dto.CatalogueVersion,
+                EffectiveFrom = now,
+                IsActive = true
+            });
+        }
+
+        await _db.SaveChangesAsync(ct);
+    }
+
+    private static List<CatalogueImportRowDto> ParseXlsx(Stream stream)
+    {
+        var results = new List<CatalogueImportRowDto>();
+
+        using var wb = new XLWorkbook(stream);
+
+        // Find the worksheet — NDIA uses "Support Catalogue" or the first sheet
+        var ws = wb.Worksheets.FirstOrDefault(s =>
+            s.Name.Contains("Support", StringComparison.OrdinalIgnoreCase) ||
+            s.Name.Contains("Catalogue", StringComparison.OrdinalIgnoreCase))
+            ?? wb.Worksheets.First();
+
+        // Find header row (scan first 10 rows for "Support Item Number")
+        int headerRow = 0;
+        for (int r = 1; r <= 10; r++)
+        {
+            if (ws.Cell(r, 1).GetString().Contains("Support Item Number", StringComparison.OrdinalIgnoreCase) ||
+                ws.Cell(r, 1).GetString().Contains("SupportItemNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                headerRow = r;
+                break;
+            }
+        }
+
+        if (headerRow == 0)
+            return results; // No recognisable header found
+
+        // Map column headers to indices
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var lastCol = ws.LastColumnUsed()?.ColumnNumber() ?? 30;
+        for (int c = 1; c <= lastCol; c++)
+        {
+            var header = ws.Cell(headerRow, c).GetString().Trim();
+            if (!string.IsNullOrWhiteSpace(header) && !headers.ContainsKey(header))
+                headers[header] = c;
+        }
+
+        // Required columns — try multiple name variants (NDIA renames headers occasionally)
+        int ColIdx(params string[] names)
+        {
+            foreach (var n in names)
+                if (headers.TryGetValue(n, out var idx)) return idx;
+            return 0;
+        }
+
+        var colItemNumber = ColIdx("Support Item Number", "SupportItemNumber", "Item Number");
+        var colDescription = ColIdx("Support Item Name", "SupportItemName", "Item Name", "Description");
+        var col11 = ColIdx("1:1", "1 to 1", "OneToOne", "Standard");
+        var col12 = ColIdx("1:2", "1 to 2", "OneToTwo");
+        var col13 = ColIdx("1:3", "1 to 3", "OneToThree");
+        var col14 = ColIdx("1:4", "1 to 4", "OneToFour");
+        var col15 = ColIdx("1:5", "1 to 5", "OneToFive");
+
+        if (colItemNumber == 0)
+            return results;
+
+        var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1000;
+
+        for (int r = headerRow + 1; r <= lastRow; r++)
+        {
+            var itemNumber = ws.Cell(r, colItemNumber).GetString().Trim();
+
+            // Only process Category 04 / Reg Group 0125 group support items
+            if (!itemNumber.StartsWith("04_") || !itemNumber.Contains("_0125_"))
+                continue;
+
+            // Resolve day type from item number prefix
+            var dayType = ItemSuffixToDayType
+                .FirstOrDefault(kv => itemNumber.StartsWith(kv.Key)).Value;
+
+            // Skip evening (04_211) — not a distinct day type in our model, treated same as weekday
+            // but keep it if coordinator wants it; just map to Weekday
+            if (itemNumber.StartsWith("04_211_"))
+                continue;
+
+            decimal Price(int col) => col > 0
+                ? decimal.TryParse(ws.Cell(r, col).GetString().Replace("$", "").Trim(), out var v) ? v : 0m
+                : 0m;
+
+            results.Add(new CatalogueImportRowDto
+            {
+                ItemNumber = itemNumber,
+                Description = colDescription > 0 ? ws.Cell(r, colDescription).GetString().Trim() : itemNumber,
+                DayType = dayType,
+                PriceLimit_Standard = Price(col11),
+                PriceLimit_1to2 = Price(col12),
+                PriceLimit_1to3 = Price(col13),
+                PriceLimit_1to4 = Price(col14),
+                PriceLimit_1to5 = Price(col15)
+            });
+        }
+
+        return results;
+    }
+}
+```
+
+- [ ] **Step 4: Add import endpoints to SupportCatalogueController.cs**
+
+Add these two endpoints to the existing `SupportCatalogueController` class, after the `GetAll` method:
+
+```csharp
+    // POST /api/v1/support-catalogue/import/preview
+    // Upload XLSX, get back a diff of what will change — no DB writes
+    [HttpPost("import/preview")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<CatalogueImportPreviewDto>>> PreviewImport(
+        IFormFile file, [FromServices] CatalogueImportService importer, CancellationToken ct)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail("No file uploaded."));
+
+        if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail("File must be an .xlsx file."));
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var preview = await importer.PreviewImportAsync(stream, ct);
+            return Ok(ApiResponse<CatalogueImportPreviewDto>.Ok(preview));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<CatalogueImportPreviewDto>.Fail(ex.Message));
+        }
+    }
+
+    // POST /api/v1/support-catalogue/import/confirm
+    // Commit a previewed import (admin confirms after reviewing the preview)
+    [HttpPost("import/confirm")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> ConfirmImport(
+        [FromBody] ConfirmCatalogueImportDto dto, [FromServices] CatalogueImportService importer, CancellationToken ct)
+    {
+        if (dto.Rows.Count == 0)
+            return BadRequest(ApiResponse<bool>.Fail("No rows to import."));
+
+        try
+        {
+            await importer.CommitImportAsync(dto, ct);
+            return Ok(ApiResponse<bool>.Ok(true, $"Imported {dto.Rows.Count} items for catalogue version {dto.CatalogueVersion}."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
+```
+
+Also add to `Program.cs` service registrations (after the existing NDIS service registrations from Task 11):
+
+```csharp
+builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
+```
+
+- [ ] **Step 5: Build full solution**
+
+```bash
+dotnet build "backend/TripCore.sln"
+```
+
+Expected: `Build succeeded. 0 Error(s)`
+
+- [ ] **Step 6: Smoke test the import endpoint**
+
+Download the current NDIA Support Catalogue XLSX from ndis.gov.au (search "NDIS Support Catalogue"). Then:
+
+```bash
+TOKEN="<your-admin-token>"
+
+# Preview — should detect Category 04 items and return a diff
+curl -s -X POST http://localhost:5000/api/v1/support-catalogue/import/preview \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/ndis-support-catalogue-2025-26.xlsx" | jq '{version: .data.detectedVersion, toAdd: .data.itemsToAdd, toDeactivate: .data.itemsToDeactivate}'
+```
+
+Expected: `detectedVersion`, `itemsToAdd` ≥ 4, `itemsToDeactivate` ≥ 4
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add backend/TripCore.Infrastructure/TripCore.Infrastructure.csproj \
+        backend/TripCore.Infrastructure/Services/CatalogueImportService.cs \
+        backend/TripCore.Application/DTOs/ClaimDTOs.cs \
+        backend/TripCore.Api/Controllers/SupportCatalogueController.cs \
+        backend/TripCore.Api/Program.cs
+git commit -m "feat(ndis): add XLSX support catalogue import with preview-then-confirm flow"
+```
+
+---
+
 ## Post-Implementation Notes
 
 ### Program.cs migration block

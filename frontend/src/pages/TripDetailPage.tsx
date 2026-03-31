@@ -1095,95 +1095,122 @@ export default function TripDetailPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-[#efeeea]">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Participant</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Date</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Ratio</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]"><span className="material-symbols-outlined text-base leading-none">accessible</span></th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">High</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">Night</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">Insurance</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">Payment</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#efeeea]">
-                  {bookings.map((b: any) => (
-                    <tr key={b.id} className="hover:bg-[#efeeea]/50 transition-colors">
-                      <td className="p-3 font-medium">{b.participantName || '—'}</td>
-                      <td className="p-3">
-                        <Dropdown
-                          variant="pill"
-                          value={b.bookingStatus}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val as BookingStatus } })}
-                          colorClass={getStatusColor(b.bookingStatus)}
-                          items={[
-                            { value: 'Enquiry', label: 'Enquiry' },
-                            { value: 'Held', label: 'Held' },
-                            { value: 'Confirmed', label: 'Confirmed' },
-                            { value: 'Waitlist', label: 'Waitlist' },
-                            { value: 'Cancelled', label: 'Cancelled' },
-                            { value: 'Completed', label: 'Completed' },
-                            { value: 'NoLongerAttending', label: 'No Longer Attending' },
-                          ]}
-                        />
-                      </td>
-                      <td className="p-3 text-[#43493a]">{formatDateAu(b.bookingDate)}</td>
-                      <td className="p-3 text-[#43493a]">{({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' }[b.supportRatioOverride as string]) || '—'}</td>
-                      <td className="p-3 text-center">{b.wheelchairRequired ? '✅' : ''}</td>
-                      <td className="p-3 text-center">{b.highSupportRequired ? '✅' : ''}</td>
-                      <td className="p-3 text-center">{b.nightSupportRequired ? '✅' : ''}</td>
-                      <td className="p-3 text-center">
-                        <Dropdown
-                          variant="pill"
-                          value={b.insuranceStatus || 'None'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val as InsuranceStatus } })}
-                          colorClass={getStatusColor(b.insuranceStatus || 'none')}
-                          items={[
-                            { value: 'None', label: 'None' },
-                            { value: 'Pending', label: 'Pending' },
-                            { value: 'Confirmed', label: 'Confirmed' },
-                            { value: 'Expired', label: 'Expired' },
-                            { value: 'Cancelled', label: 'Cancelled' },
-                          ]}
-                        />
-                      </td>
-                      <td className="p-3 text-center">
-                        <Dropdown
-                          variant="pill"
-                          value={b.paymentStatus || 'NotInvoiced'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
-                          colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
-                          items={PAYMENT_STATUS_ITEMS}
-                          disabled={isReadOnly}
-                        />
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                          <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
-                            <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                          </button>
-                          <Link to={`/participants/${b.participantId}`} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="View participant">
-                            <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
-                          </Link>
-                          <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                            <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {bookings.length === 0 && (
-                    <tr><td colSpan={10} className="p-6 text-center text-[#43493a]">No bookings yet</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              data={bookings}
+              keyField="id"
+              emptyMessage="No bookings yet"
+              columns={[
+                {
+                  key: 'participantName',
+                  header: 'Participant',
+                  className: 'font-medium',
+                  render: (b: any) => b.participantName || '—',
+                },
+                {
+                  key: 'bookingStatus',
+                  header: 'Status',
+                  render: (b: any) => (
+                    <Dropdown
+                      variant="pill"
+                      value={b.bookingStatus}
+                      onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val as BookingStatus } })}
+                      colorClass={getStatusColor(b.bookingStatus)}
+                      items={[
+                        { value: 'Enquiry', label: 'Enquiry' },
+                        { value: 'Held', label: 'Held' },
+                        { value: 'Confirmed', label: 'Confirmed' },
+                        { value: 'Waitlist', label: 'Waitlist' },
+                        { value: 'Cancelled', label: 'Cancelled' },
+                        { value: 'Completed', label: 'Completed' },
+                        { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                      ]}
+                    />
+                  ),
+                },
+                {
+                  key: 'bookingDate',
+                  header: 'Date',
+                  type: 'date',
+                },
+                {
+                  key: 'supportRatioOverride',
+                  header: 'Ratio',
+                  render: (b: any) => (({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' } as Record<string, string>)[b.supportRatioOverride as string]) || '—',
+                },
+                {
+                  key: 'wheelchairRequired',
+                  header: <span className="material-symbols-outlined text-base leading-none">accessible</span>,
+                  type: 'boolean',
+                  align: 'center',
+                },
+                {
+                  key: 'highSupportRequired',
+                  header: 'High',
+                  type: 'boolean',
+                  align: 'center',
+                },
+                {
+                  key: 'nightSupportRequired',
+                  header: 'Night',
+                  type: 'boolean',
+                  align: 'center',
+                },
+                {
+                  key: 'insuranceStatus',
+                  header: 'Insurance',
+                  align: 'center',
+                  render: (b: any) => (
+                    <Dropdown
+                      variant="pill"
+                      value={b.insuranceStatus || 'None'}
+                      onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val as InsuranceStatus } })}
+                      colorClass={getStatusColor(b.insuranceStatus || 'none')}
+                      items={[
+                        { value: 'None', label: 'None' },
+                        { value: 'Pending', label: 'Pending' },
+                        { value: 'Confirmed', label: 'Confirmed' },
+                        { value: 'Expired', label: 'Expired' },
+                        { value: 'Cancelled', label: 'Cancelled' },
+                      ]}
+                    />
+                  ),
+                },
+                {
+                  key: 'paymentStatus',
+                  header: 'Payment',
+                  align: 'center',
+                  render: (b: any) => (
+                    <Dropdown
+                      variant="pill"
+                      value={b.paymentStatus || 'NotInvoiced'}
+                      onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
+                      colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
+                      items={PAYMENT_STATUS_ITEMS}
+                      disabled={isReadOnly}
+                    />
+                  ),
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  align: 'center',
+                  render: (b: any) => (
+                    <div className="flex items-center justify-center gap-2">
+                      {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
+                      <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
+                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                      </button>
+                      <Link to={`/participants/${b.participantId}`} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="View participant">
+                        <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
+                      </Link>
+                      <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
             {/* Staffing Summary */}
             {bookings.length > 0 && (() => {
@@ -2056,47 +2083,61 @@ export default function TripDetailPage() {
               )
             })()}
 
-            <div className="bg-white rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-[#efeeea]">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Staff</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Role</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Dates</th>
-                    <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">Driver</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]">Sleepover</th>
-                    <th className="text-center p-3 font-medium text-[#43493a]"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#efeeea]">
-                  {staff.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-[#efeeea]/50 transition-colors">
-                      <td className="p-3 font-medium">{s.staffName}</td>
-                      <td className="p-3 text-[#43493a]">{s.assignmentRole || '—'}</td>
-                      <td className="p-3 text-[#43493a]">{formatDateAu(s.assignmentStart)} — {formatDateAu(s.assignmentEnd)}</td>
-                      <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(s.status)}`}>{s.status}</span></td>
-                      <td className="p-3 text-center">{s.isDriver ? '✅' : ''}</td>
-                      <td className="p-3 text-center text-xs">{s.sleepoverType !== 'None' ? s.sleepoverType : ''}</td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                          <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
-                            <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                          </button>
-                          <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                            <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {staff.length === 0 && (
-                    <tr><td colSpan={7} className="p-6 text-center text-[#43493a]">No staff assigned yet</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              data={staff}
+              keyField="id"
+              emptyMessage="No staff assigned yet"
+              columns={[
+                {
+                  key: 'staffName',
+                  header: 'Staff',
+                  className: 'font-medium',
+                },
+                {
+                  key: 'assignmentRole',
+                  header: 'Role',
+                  render: (s: any) => s.assignmentRole || '—',
+                },
+                {
+                  key: 'assignmentStart',
+                  header: 'Dates',
+                  render: (s: any) => `${formatDateAu(s.assignmentStart)} — ${formatDateAu(s.assignmentEnd)}`,
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  type: 'badge',
+                },
+                {
+                  key: 'isDriver',
+                  header: 'Driver',
+                  type: 'boolean',
+                  align: 'center',
+                },
+                {
+                  key: 'sleepoverType',
+                  header: 'Sleepover',
+                  align: 'center',
+                  render: (s: any) => s.sleepoverType !== 'None' ? <span className="text-xs">{s.sleepoverType}</span> : null,
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  align: 'center',
+                  render: (s: any) => (
+                    <div className="flex items-center justify-center gap-2">
+                      {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
+                      <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
+                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                      </button>
+                      <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
             {/* Edit Staff Assignment Modal */}
             {editingStaff && (
@@ -2340,32 +2381,50 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'tasks' && (
-          <div className="bg-white rounded-2xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-[#efeeea]">
-                <tr>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Task</th>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Type</th>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Owner</th>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Due</th>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Priority</th>
-                  <th className="text-left p-3 font-medium text-[#43493a]">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#efeeea]">
-                {tasks.map((t: any) => (
-                  <tr key={t.id} className="hover:bg-[#efeeea]/50 transition-colors">
-                    <td className="p-3 font-medium">{t.title}</td>
-                    <td className="p-3 text-[#43493a]">{t.taskType}</td>
-                    <td className="p-3 text-[#43493a]">{t.ownerName || 'Unassigned'}</td>
-                    <td className="p-3 text-[#43493a]">{formatDateAu(t.dueDate)}</td>
-                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span></td>
-                    <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}`}>{t.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            data={tasks}
+            keyField="id"
+            emptyMessage="No tasks yet"
+            columns={[
+              {
+                key: 'title',
+                header: 'Task',
+                className: 'font-medium',
+              },
+              {
+                key: 'taskType',
+                header: 'Type',
+              },
+              {
+                key: 'ownerName',
+                header: 'Owner',
+                render: (t: any) => t.ownerName || 'Unassigned',
+              },
+              {
+                key: 'dueDate',
+                header: 'Due',
+                type: 'date',
+              },
+              {
+                key: 'priority',
+                header: 'Priority',
+                render: (t: any) => (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>
+                    {t.priority}
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (t: any) => (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}`}>
+                    {t.status}
+                  </span>
+                ),
+              },
+            ]}
+          />
         )}
 
         {activeTab === 'activities' && (

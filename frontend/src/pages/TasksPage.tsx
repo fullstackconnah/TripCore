@@ -1,40 +1,37 @@
 import { useTasks, useUpdateTask, useDeleteTask } from '@/api/hooks'
 import { DataTable, type Column } from '@/components/DataTable'
+import { PageHeader } from '@/components/PageHeader'
+import { StatusBadge } from '@/components/StatusBadge'
+import { useArchiveRestore } from '@/hooks/useArchiveRestore'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { Filter, CheckCircle, Plus, Pencil, Trash2, ArchiveRestore } from 'lucide-react'
+import { Filter, CheckCircle, Plus } from 'lucide-react'
 
 export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('')
-  const [showArchived, setShowArchived] = useState(false)
-  const params: Record<string, string> = {}
-  if (showArchived) {
-    params.status = 'Cancelled'
-  } else if (statusFilter) {
-    params.status = statusFilter
-  }
-
-  const { data: tasks = [], isLoading } = useTasks(params)
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
+
+  const { showArchived, params, toggleButtons, confirmDialog, actionButtons } = useArchiveRestore<any>({
+    deleteMutation: deleteTask,
+    restoreMutation: updateTask,
+    entityName: (t) => t.title,
+    entityId: (t) => t.id,
+    archiveVia: 'status',
+    archiveStatus: 'Cancelled',
+    restoreData: (t) => ({ ...t, status: 'NotStarted' }),
+    editPath: (t) => `/tasks/${t.id}/edit`,
+  })
+
+  // Merge status filter with archive params — when not archived and a filter is active, override status
+  const queryParams = { ...params }
+  if (!showArchived && statusFilter) queryParams.status = statusFilter
+
+  const { data: tasks = [], isLoading } = useTasks(queryParams)
 
   const markComplete = async (e: React.MouseEvent, task: any) => {
     e.stopPropagation()
     await updateTask.mutateAsync({ id: task.id, data: { ...task, status: 'Completed', completedDate: new Date().toISOString().split('T')[0] } })
-  }
-
-  const handleRestore = (e: React.MouseEvent, t: any) => {
-    e.stopPropagation()
-    if (window.confirm(`Restore "${t.title}"?`)) {
-      updateTask.mutate({ id: t.id, data: { ...t, status: 'NotStarted' } })
-    }
-  }
-
-  const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
-    e.stopPropagation()
-    if (window.confirm(`Archive "${title}"? This can be undone from the Archived view.`)) {
-      deleteTask.mutate(id)
-    }
   }
 
   const taskColumns: Column<any>[] = [
@@ -56,58 +53,24 @@ export default function TasksPage() {
     {
       key: 'priority',
       header: 'Priority',
-      render: (t) => <span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span>,
+      render: (t) => <StatusBadge status={t.priority} />,
     },
     { key: 'status', header: 'Status', type: 'badge', sortable: true },
-    {
-      key: 'actions',
-      header: '',
-      render: (t) => (
-        <div className="flex items-center gap-1">
-          <Link to={`/tasks/${t.id}/edit`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
-            <Pencil className="w-4 h-4" />
-          </Link>
-          {showArchived ? (
-            <button onClick={(e) => handleRestore(e, t)}
-              className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
-              <ArchiveRestore className="w-4 h-4" />
-            </button>
-          ) : (
-            <button onClick={(e) => handleDelete(e, t.id, t.title)}
-              className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      ),
-    },
+    { key: 'actions', header: '', render: (t) => actionButtons(t) },
   ]
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Tasks</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
-        </div>
-        {!showArchived && (
+      <PageHeader
+        title="Tasks"
+        subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
+        action={!showArchived && (
           <Link to="/tasks/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
             <Plus className="w-4 h-4" /> New Task
           </Link>
         )}
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="flex gap-2">
-          <button onClick={() => setShowArchived(false)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
-            Active
-          </button>
-          <button onClick={() => setShowArchived(true)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
-            Archived
-          </button>
-        </div>
+      >
+        {toggleButtons}
         {!showArchived && (
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" />
@@ -122,7 +85,7 @@ export default function TasksPage() {
             </select>
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <DataTable
         data={tasks}
@@ -132,6 +95,7 @@ export default function TasksPage() {
         loading={isLoading}
         emptyMessage="No tasks found"
       />
+      {confirmDialog}
     </div>
   )
 }

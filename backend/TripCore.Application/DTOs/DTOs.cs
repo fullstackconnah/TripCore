@@ -1240,6 +1240,66 @@ public record TenantUserDto(
     string Role,
     bool IsActive);
 
+// ── Admin User DTOs ────────────────────────────────────────────────────────
+
+public record AdminUserDto(
+    Guid Id,
+    string FirstName,
+    string LastName,
+    string FullName,
+    string Email,
+    string Username,
+    string Role,
+    Guid TenantId,
+    string TenantName,
+    Guid? StaffId,
+    bool IsActive,
+    DateTime CreatedAt,
+    DateTime? LastLoginAt);
+
+public record CreateAdminUserDto(
+    string FirstName,
+    string LastName,
+    string Email,
+    string Username,
+    string Role,
+    Guid TenantId,
+    Guid? StaffId);
+
+public record UpdateAdminUserDto(
+    string FirstName,
+    string LastName,
+    string Email,
+    string Username,
+    string Role,
+    Guid? StaffId,
+    bool IsActive);
+
+// ── Tenant Summary DTO (includes user count) ──────────────────────────────
+
+public record TenantSummaryDto(
+    Guid Id,
+    string Name,
+    string EmailDomain,
+    bool IsActive,
+    DateTime CreatedAt,
+    int UserCount);
+
+// ── Bundled Tenant Creation ───────────────────────────────────────────────
+
+public record CreateTenantWithSetupDto(
+    string Name,
+    string EmailDomain,
+    UpsertProviderSettingsDto? ProviderSettings,
+    CreateInitialUserDto? InitialUser);
+
+public record CreateInitialUserDto(
+    string FirstName,
+    string LastName,
+    string Email,
+    string Username,
+    string Role);
+
 // ── Public Holidays Sync DTOs ──────────────────────────────────────────────
 
 public record SyncHolidaysDto

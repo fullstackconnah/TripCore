@@ -8,7 +8,7 @@ import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
-import type { BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio } from '@/api/types/enums'
+import type { BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types/enums'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'history'
 
@@ -230,12 +230,12 @@ export default function TripDetailPage() {
     createStaffAssignment.mutate({
       tripInstanceId: id,
       staffId: selectedStaffId,
-      assignmentRole: staffAssignmentRole || null,
-      assignmentStart: staffAssignmentStart || null,
-      assignmentEnd: staffAssignmentEnd || null,
+      assignmentRole: staffAssignmentRole || undefined,
+      assignmentStart: staffAssignmentStart || '',
+      assignmentEnd: staffAssignmentEnd || '',
       isDriver: staffIsDriver,
-      sleepoverType: staffSleepoverType,
-      shiftNotes: staffShiftNotes || null,
+      sleepoverType: (staffSleepoverType || undefined) as SleepoverType | undefined,
+      shiftNotes: staffShiftNotes || undefined,
     }, {
       onSuccess: () => {
         setShowAddStaff(false)
@@ -317,11 +317,11 @@ export default function TripDetailPage() {
       accommodationPropertyId: propertyId,
       checkInDate: accommForm.checkInDate,
       checkOutDate: accommForm.checkOutDate,
-      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : null,
-      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : null,
-      cost: accommForm.cost ? parseFloat(accommForm.cost) : null,
+      bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : undefined,
+      bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : undefined,
+      cost: accommForm.cost ? parseFloat(accommForm.cost) : undefined,
       reservationStatus: accommForm.reservationStatus,
-      comments: accommForm.comments || null,
+      comments: accommForm.comments || undefined,
     }, {
       onSuccess: () => {
         setShowAddAccommodation(false)
@@ -336,11 +336,14 @@ export default function TripDetailPage() {
       if (!newPropertyForm.propertyName) return
       createAccommodation.mutate({
         propertyName: newPropertyForm.propertyName,
-        location: newPropertyForm.location || null,
-        region: newPropertyForm.region || null,
+        location: newPropertyForm.location || undefined,
+        region: newPropertyForm.region || undefined,
         bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : undefined,
         bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : undefined,
         maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : undefined,
+        isFullyModified: false,
+        isSemiModified: false,
+        isWheelchairAccessible: false,
         isActive: true,
       }, {
         onSuccess: (res: any) => {
@@ -436,6 +439,11 @@ export default function TripDetailPage() {
     if (!editingBooking) return
     updateBooking.mutate({ id: editingBooking.id, data: {
       ...editForm,
+      tripInstanceId: editingBooking.tripInstanceId as string,
+      participantId: editingBooking.participantId as string,
+      paymentStatus: editingBooking.paymentStatus as PaymentStatus,
+      actionRequired: editingBooking.actionRequired as boolean,
+      bookingStatus: (editForm.bookingStatus || undefined) as BookingStatus | undefined,
       supportRatioOverride: (editForm.supportRatioOverride || undefined) as SupportRatio | undefined,
       insuranceStatus: editForm.insuranceStatus as InsuranceStatus,
       insuranceProvider: editForm.insuranceProvider ?? undefined,

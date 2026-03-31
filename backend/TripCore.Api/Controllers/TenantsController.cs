@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TripCore.Application.Common;
 using TripCore.Application.DTOs;
 using TripCore.Domain.Entities;
+using TripCore.Domain.Enums;
 using TripCore.Infrastructure.Data;
 
 namespace TripCore.Api.Controllers;
@@ -23,9 +24,11 @@ public class TenantsController : ControllerBase
     {
         var tenants = await _db.Tenants
             .OrderBy(t => t.Name)
-            .Select(t => new TenantDto(t.Id, t.Name, t.EmailDomain, t.IsActive, t.CreatedAt))
+            .Select(t => new TenantSummaryDto(
+                t.Id, t.Name, t.EmailDomain, t.IsActive, t.CreatedAt,
+                _db.Users.IgnoreQueryFilters().Count(u => u.TenantId == t.Id)))
             .ToListAsync();
-        return Ok(ApiResponse<List<TenantDto>>.Ok(tenants));
+        return Ok(ApiResponse<List<TenantSummaryDto>>.Ok(tenants));
     }
 
     // POST api/v1/admin/tenants
@@ -48,6 +51,78 @@ public class TenantsController : ControllerBase
         _db.Tenants.Add(tenant);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetAll), new TenantDto(tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt));
+    }
+
+    // POST api/v1/admin/tenants/with-setup
+    [HttpPost("with-setup")]
+    public async Task<IActionResult> CreateWithSetup([FromBody] CreateTenantWithSetupDto dto)
+    {
+        var domain = dto.EmailDomain.ToLower();
+
+        if (await _db.Tenants.AnyAsync(t => t.EmailDomain == domain))
+            return Conflict("A tenant with this email domain already exists");
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        var tenant = new Tenant
+        {
+            Id = Guid.NewGuid(),
+            Name = dto.Name,
+            EmailDomain = domain,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.Tenants.Add(tenant);
+        await _db.SaveChangesAsync();
+
+        if (dto.ProviderSettings is { } ps)
+        {
+            var settings = new ProviderSettings
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                RegistrationNumber = ps.RegistrationNumber,
+                ABN = ps.ABN,
+                OrganisationName = ps.OrganisationName,
+                Address = ps.Address,
+                State = ps.State,
+                GSTRegistered = ps.GSTRegistered,
+                IsPaceProvider = ps.IsPaceProvider,
+                BankAccountName = ps.BankAccountName,
+                BSB = ps.BSB,
+                AccountNumber = ps.AccountNumber,
+                InvoiceFooterNotes = ps.InvoiceFooterNotes,
+            };
+            _db.ProviderSettings.Add(settings);
+        }
+
+        if (dto.InitialUser is { } iu)
+        {
+            if (!Enum.TryParse<UserRole>(iu.Role, true, out var role) || role == UserRole.SuperAdmin)
+                return BadRequest("Invalid role for tenant user");
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                FirstName = iu.FirstName,
+                LastName = iu.LastName,
+                Email = iu.Email,
+                Username = iu.Username,
+                Role = role,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            _db.Users.Add(user);
+        }
+
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return CreatedAtAction(nameof(GetAll), new TenantSummaryDto(
+            tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt,
+            dto.InitialUser is not null ? 1 : 0));
     }
 
     // PUT api/v1/admin/tenants/{id}
@@ -84,5 +159,31 @@ public class TenantsController : ControllerBase
             .Select(u => new TenantUserDto(u.Id, $"{u.FirstName} {u.LastName}", u.Role.ToString(), u.IsActive))
             .ToListAsync(ct);
         return Ok(ApiResponse<List<TenantUserDto>>.Ok(users));
+    }
+
+    // GET api/v1/admin/tenants/{id}/provider-settings
+    [HttpGet("{id:guid}/provider-settings")]
+    public async Task<IActionResult> GetProviderSettings(Guid id, CancellationToken ct)
+    {
+        var tenant = await _db.Tenants.FindAsync([id], ct);
+        if (tenant is null)
+            return NotFound();
+
+        var ps = await _db.ProviderSettings
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.TenantId == id, ct);
+
+        if (ps is null)
+            return Ok(ApiResponse<ProviderSettingsDto?>.Ok(null));
+
+        return Ok(ApiResponse<ProviderSettingsDto>.Ok(new ProviderSettingsDto
+        {
+            Id = ps.Id, RegistrationNumber = ps.RegistrationNumber, ABN = ps.ABN,
+            OrganisationName = ps.OrganisationName, Address = ps.Address,
+            GSTRegistered = ps.GSTRegistered, IsPaceProvider = ps.IsPaceProvider,
+            BankAccountName = ps.BankAccountName, BSB = ps.BSB,
+            AccountNumber = ps.AccountNumber, InvoiceFooterNotes = ps.InvoiceFooterNotes,
+            State = ps.State
+        }));
     }
 }

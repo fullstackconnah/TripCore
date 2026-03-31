@@ -100,7 +100,7 @@ export default function TaskCreatePage() {
         <Link to="/tasks" className="p-2 rounded-lg hover:bg-[var(--color-accent)] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Task' : 'New Task'}</h1>
+        <h1 className="text-xl md:text-2xl font-bold">{isEdit ? 'Edit Task' : 'New Task'}</h1>
       </div>
 
       {mutation.isError && (

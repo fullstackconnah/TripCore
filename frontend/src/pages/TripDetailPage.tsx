@@ -521,7 +521,7 @@ export default function TripDetailPage() {
               <span className="text-xs font-mono text-[#515f74] bg-[#efeeea] px-2 py-0.5 rounded-full">{trip.tripCode}</span>
             )}
           </div>
-          <h1 className="text-[3.5rem] font-extrabold text-[#1b1c1a] leading-tight tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-4xl lg:text-[3.5rem] font-extrabold text-[#1b1c1a] leading-tight tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {trip.tripName}
           </h1>
           <p className="text-[#43493a] font-medium flex items-center gap-2">
@@ -545,11 +545,11 @@ export default function TripDetailPage() {
       </section>
 
       {/* Quick Metrics Bento */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {/* Participants */}
-        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+        <div className="bg-[#f5f3ef] p-4 md:p-6 rounded-2xl space-y-2 md:space-y-3">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-[#396200] text-4xl">groups</span>
+            <span className="material-symbols-outlined text-[#396200] text-2xl md:text-4xl">groups</span>
             {(trip.waitlistCount ?? 0) > 0
               ? <span className="text-xs font-bold text-[#92400e] px-2 py-1 bg-[#fef3c7] rounded-full">Waitlist</span>
               : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">Active</span>
@@ -557,16 +557,16 @@ export default function TripDetailPage() {
           </div>
           <div>
             <p className="text-sm text-[#43493a] font-medium">Participants / Staff</p>
-            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h4 className="text-xl md:text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {trip.currentParticipantCount} / {trip.staffAssignedCount}
             </h4>
           </div>
         </div>
 
         {/* Tasks / Outstanding */}
-        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+        <div className="bg-[#f5f3ef] p-4 md:p-6 rounded-2xl space-y-2 md:space-y-3">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-[#515f74] text-4xl">checklist</span>
+            <span className="material-symbols-outlined text-[#515f74] text-2xl md:text-4xl">checklist</span>
             {(trip.outstandingTaskCount ?? 0) > 0
               ? <span className="text-xs font-bold text-[#ba1a1a] px-2 py-1 bg-[#ffdad6] rounded-full">Action Needed</span>
               : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">On Track</span>
@@ -574,30 +574,30 @@ export default function TripDetailPage() {
           </div>
           <div>
             <p className="text-sm text-[#43493a] font-medium">Outstanding Tasks</p>
-            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h4 className="text-xl md:text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {trip.outstandingTaskCount ?? 0}
             </h4>
           </div>
         </div>
 
         {/* Support needs */}
-        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+        <div className="bg-[#f5f3ef] p-4 md:p-6 rounded-2xl space-y-2 md:space-y-3">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-[#515f74] text-4xl">accessible</span>
+            <span className="material-symbols-outlined text-[#515f74] text-2xl md:text-4xl">accessible</span>
             <span className="text-xs font-bold text-[#43493a] px-2 py-1 bg-[#e4e2de] rounded-full">{trip.wheelchairCount ?? 0} WC</span>
           </div>
           <div>
             <p className="text-sm text-[#43493a] font-medium">High Support / Overnight</p>
-            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h4 className="text-xl md:text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {trip.highSupportCount ?? 0} / {trip.overnightSupportCount ?? 0}
             </h4>
           </div>
         </div>
 
         {/* Insurance */}
-        <div className="bg-[#f5f3ef] p-6 rounded-2xl space-y-3">
+        <div className="bg-[#f5f3ef] p-4 md:p-6 rounded-2xl space-y-2 md:space-y-3">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-[#ba1a1a] text-4xl">health_and_safety</span>
+            <span className="material-symbols-outlined text-[#ba1a1a] text-2xl md:text-4xl">health_and_safety</span>
             {(trip.insuranceOutstandingCount ?? 0) > 0
               ? <span className="text-xs font-bold text-[#ba1a1a] px-2 py-1 bg-[#ffdad6] rounded-full">Outstanding</span>
               : <span className="text-xs font-bold text-[#396200] px-2 py-1 bg-[#bbf37c] rounded-full">Covered</span>
@@ -605,7 +605,7 @@ export default function TripDetailPage() {
           </div>
           <div>
             <p className="text-sm text-[#43493a] font-medium">Insurance Status</p>
-            <h4 className="text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h4 className="text-xl md:text-2xl font-bold text-[#1b1c1a]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {trip.insuranceConfirmedCount ?? 0}/{(trip.insuranceConfirmedCount ?? 0) + (trip.insuranceOutstandingCount ?? 0)}
             </h4>
           </div>
@@ -613,36 +613,39 @@ export default function TripDetailPage() {
       </section>
 
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {tabs.map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-              activeTab === tab.key
-                ? 'bg-[#396200] text-white shadow-md shadow-[#396200]/20'
-                : 'text-[#43493a] hover:bg-[#efeeea]'
-            }`}>
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-            {tab.count !== undefined && tab.count > 0 && (
-              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-[#efeeea] text-[#43493a]'}`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="-mx-4 md:mx-0 px-4 md:px-0">
+        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+          {tabs.map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
+                activeTab === tab.key
+                  ? 'bg-[#396200] text-white shadow-md shadow-[#396200]/20'
+                  : 'text-[#43493a] hover:bg-[#efeeea]'
+              }`}>
+              <tab.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.slice(0, 5)}{tab.label.length > 5 ? '.' : ''}</span>
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className={`ml-0.5 text-[10px] md:text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-[#efeeea] text-[#43493a]'}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab content */}
       <div className="animate-fade-in">
         {activeTab === 'overview' && id && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 animate-fade-in">
             {/* Left: Itinerary Timeline 7/12 */}
             <div className="lg:col-span-7">
               <ItineraryTab tripId={id} trip={trip} />
             </div>
 
             {/* Right: Coordination Cards 5/12 */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-4 md:space-y-6">
               {/* Accommodation Card */}
               {accommodation.length > 0 && (
                 <div className="bg-white rounded-2xl overflow-hidden shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)]">
@@ -657,7 +660,7 @@ export default function TripDetailPage() {
                       </div>
                       <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '20px' }}>verified</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {accommodation[0]?.bedroomsReserved && (
                         <div className="flex items-center gap-2">
                           <span className="material-symbols-outlined text-[#515f74]" style={{ fontSize: '16px' }}>king_bed</span>
@@ -822,7 +825,7 @@ export default function TripDetailPage() {
             {/* Add Booking Modal */}
             {showAddBooking && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setShowAddBooking(false); resetForm() }}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Add Participant to Trip</h3>
                     <button onClick={() => { setShowAddBooking(false); resetForm() }} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -860,7 +863,7 @@ export default function TripDetailPage() {
                     {/* Support Overrides */}
                     <div>
                       <label className="block text-sm font-medium mb-2">Support Requirements</label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={wheelchairRequired} onChange={e => setWheelchairRequired(e.target.checked)}
                             className="rounded border-[rgba(195,201,181,0.15)]" />
@@ -919,7 +922,7 @@ export default function TripDetailPage() {
                         </div>
                         {insuranceStatus !== 'None' && (
                           <>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-xs text-[#43493a] mb-1">Provider</label>
                                 <input type="text" value={insuranceProvider} onChange={e => setInsuranceProvider(e.target.value)}
@@ -933,7 +936,7 @@ export default function TripDetailPage() {
                                   placeholder="e.g. POL-12345" />
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-xs text-[#43493a] mb-1">Coverage Start</label>
                                 <input type="date" value={insuranceCoverageStart} onChange={e => setInsuranceCoverageStart(e.target.value)}
@@ -1112,7 +1115,7 @@ export default function TripDetailPage() {
             {/* Edit Booking Modal */}
             {editingBooking && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditingBooking(null)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Edit Booking — {editingBooking.participantName}</h3>
                     <button onClick={() => setEditingBooking(null)} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -1143,7 +1146,7 @@ export default function TripDetailPage() {
                     {/* Support Requirements */}
                     <div>
                       <label className="block text-sm font-medium mb-2">Support Requirements</label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={editForm.wheelchairRequired} onChange={e => setEditForm({ ...editForm, wheelchairRequired: e.target.checked })}
                             className="rounded border-[rgba(195,201,181,0.15)]" />
@@ -1218,7 +1221,7 @@ export default function TripDetailPage() {
                         </div>
                         {editForm.insuranceStatus !== 'None' && (
                           <>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-xs text-[#43493a] mb-1">Provider</label>
                                 <input type="text" value={editForm.insuranceProvider} onChange={e => setEditForm({ ...editForm, insuranceProvider: e.target.value })}
@@ -1232,7 +1235,7 @@ export default function TripDetailPage() {
                                   placeholder="e.g. POL-12345" />
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-xs text-[#43493a] mb-1">Coverage Start</label>
                                 <input type="date" value={editForm.insuranceCoverageStart} onChange={e => setEditForm({ ...editForm, insuranceCoverageStart: e.target.value })}
@@ -1511,7 +1514,7 @@ export default function TripDetailPage() {
             {/* Add Accommodation Modal */}
             {showAddAccommodation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddAccommodation(false)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Add Accommodation</h3>
                     <button onClick={() => setShowAddAccommodation(false)} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -1537,7 +1540,7 @@ export default function TripDetailPage() {
                               className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm"
                               placeholder="e.g. Beach House Resort" />
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs font-medium mb-1">Location</label>
                               <input type="text" value={newPropertyForm.location} onChange={e => setNewPropertyForm({ ...newPropertyForm, location: e.target.value })}
@@ -1581,7 +1584,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Check-in</label>
                         <input type="date" value={accommForm.checkInDate} onChange={e => setAccommForm({ ...accommForm, checkInDate: e.target.value })}
@@ -1595,7 +1598,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Bedrooms / Beds */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Bedrooms</label>
                         <input type="number" min="0" value={accommForm.bedroomsReserved} onChange={e => setAccommForm({ ...accommForm, bedroomsReserved: e.target.value })}
@@ -1659,7 +1662,7 @@ export default function TripDetailPage() {
             {/* Edit Reservation Modal */}
             {editingReservation && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditingReservation(null)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Edit Reservation — {editingReservation.propertyName}</h3>
                     <button onClick={() => setEditingReservation(null)} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -1680,7 +1683,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Check-in</label>
                         <input type="date" value={editReservationForm.checkInDate} onChange={e => setEditReservationForm({ ...editReservationForm, checkInDate: e.target.value })}
@@ -1732,7 +1735,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Date Booked / Date Confirmed */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Date Booked</label>
                         <input type="date" value={editReservationForm.dateBooked} onChange={e => setEditReservationForm({ ...editReservationForm, dateBooked: e.target.value })}
@@ -1977,7 +1980,7 @@ export default function TripDetailPage() {
             {/* Edit Staff Assignment Modal */}
             {editingStaff && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditingStaff(null)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Edit Assignment — {editingStaff.staffName}</h3>
                     <button onClick={() => setEditingStaff(null)} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -2006,7 +2009,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Assignment Start</label>
                         <input type="date" value={editStaffForm.assignmentStart} onChange={e => setEditStaffForm({ ...editStaffForm, assignmentStart: e.target.value })}
@@ -2072,7 +2075,7 @@ export default function TripDetailPage() {
             {/* Add Staff Modal */}
             {showAddStaff && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddStaff(false)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)]" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_24px_32px_-12px_rgba(27,28,26,0.12)] mx-2" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Add Staff to Trip</h3>
                     <button onClick={() => setShowAddStaff(false)} className="p-1 rounded hover:bg-[#efeeea] transition-colors">
@@ -2114,7 +2117,7 @@ export default function TripDetailPage() {
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1">Start Date</label>
                         <input type="date" value={staffAssignmentStart} onChange={e => setStaffAssignmentStart(e.target.value)}

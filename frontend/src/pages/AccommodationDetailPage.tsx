@@ -16,7 +16,7 @@ export default function AccommodationDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">{property.propertyName}</h1>
+          <h1 className="text-xl md:text-2xl font-bold">{property.propertyName}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">{property.location || 'No location'}{property.region ? ` · ${property.region}` : ''}</p>
         </div>
         <div className="ml-auto flex items-center gap-3">
@@ -33,7 +33,7 @@ export default function AccommodationDetailPage() {
         {/* Details */}
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <h2 className="font-semibold text-lg">Property Details</h2>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-[var(--color-muted-foreground)]">Provider / Owner</p>
               <p className="font-medium">{property.providerOwner || '—'}</p>
@@ -67,7 +67,7 @@ export default function AccommodationDetailPage() {
         {/* Contact & Address */}
         <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <h2 className="font-semibold text-lg">Contact & Address</h2>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-[var(--color-muted-foreground)]">Contact Person</p>
               <p className="font-medium">{property.contactPerson || '—'}</p>

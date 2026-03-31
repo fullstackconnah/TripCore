@@ -104,35 +104,35 @@ export default function DashboardPage() {
   ].filter(Boolean) as Array<{ label: string; value: number; color: string; bg: string }>
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       {/* ── Page Header ── */}
       <div>
-        <h1 className="font-display font-extrabold text-4xl text-[#1b1c1a] tracking-tight mb-2">
+        <h1 className="font-display font-extrabold text-2xl md:text-4xl text-[#1b1c1a] tracking-tight mb-1 md:mb-2">
           Management Dashboard
         </h1>
-        <p className="text-[var(--color-muted-foreground)] font-medium">
+        <p className="text-sm md:text-base text-[var(--color-muted-foreground)] font-medium">
           Centralized overview of your NDIS trip operations.
         </p>
       </div>
 
       {/* ── Metrics Bento Grid ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
         {/* Upcoming Trips */}
-        <div className="col-span-1 lg:col-span-2 bg-[var(--color-surface-container-low)] p-6 rounded-[2rem]">
-          <p className="text-sm text-[var(--color-muted-foreground)] mb-1 font-medium">Upcoming Trips</p>
-          <p className="text-3xl font-display font-bold text-[var(--color-primary)]">{d.upcomingTripCount}</p>
+        <div className="col-span-1 lg:col-span-2 bg-[var(--color-surface-container-low)] p-4 md:p-6 rounded-2xl md:rounded-[2rem]">
+          <p className="text-xs md:text-sm text-[var(--color-muted-foreground)] mb-1 font-medium">Upcoming Trips</p>
+          <p className="text-2xl md:text-3xl font-display font-bold text-[var(--color-primary)]">{d.upcomingTripCount}</p>
         </div>
 
         {/* Active Participants */}
-        <div className="col-span-1 lg:col-span-2 bg-[var(--color-surface-container-low)] p-6 rounded-[2rem]">
-          <p className="text-sm text-[var(--color-muted-foreground)] mb-1 font-medium">Active Participants</p>
-          <p className="text-3xl font-display font-bold text-[var(--color-primary)]">{d.activeParticipantCount}</p>
+        <div className="col-span-1 lg:col-span-2 bg-[var(--color-surface-container-low)] p-4 md:p-6 rounded-2xl md:rounded-[2rem]">
+          <p className="text-xs md:text-sm text-[var(--color-muted-foreground)] mb-1 font-medium">Active Participants</p>
+          <p className="text-2xl md:text-3xl font-display font-bold text-[var(--color-primary)]">{d.activeParticipantCount}</p>
         </div>
 
         {/* Outstanding Tasks - accent */}
-        <div className="col-span-2 lg:col-span-3 bg-[#ffd7ef]/20 p-6 rounded-[2rem] border-l-4 border-[#8e337b]">
-          <p className="text-sm text-[#8e337b] mb-1 font-medium">Outstanding Tasks</p>
-          <p className="text-3xl font-display font-bold text-[#8e337b]">{d.outstandingTaskCount}</p>
+        <div className="col-span-2 lg:col-span-3 bg-[#ffd7ef]/20 p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-l-4 border-[#8e337b]">
+          <p className="text-xs md:text-sm text-[#8e337b] mb-1 font-medium">Outstanding Tasks</p>
+          <p className="text-2xl md:text-3xl font-display font-bold text-[#8e337b]">{d.outstandingTaskCount}</p>
         </div>
 
         {/* Qualification Issues */}
@@ -157,20 +157,20 @@ export default function DashboardPage() {
 
         {/* Small alert cards */}
         {smallStats.map(s => (
-          <div key={s.label} className={`${s.bg} p-4 rounded-[2rem] flex flex-col justify-center`}>
-            <p className="text-xs text-[var(--color-muted-foreground)] mb-1 font-medium">{s.label}</p>
-            <p className={`text-xl font-display font-bold ${s.color}`}>{s.value}</p>
+          <div key={s.label} className={`${s.bg} p-3 md:p-4 rounded-2xl md:rounded-[2rem] flex flex-col justify-center`}>
+            <p className="text-[10px] md:text-xs text-[var(--color-muted-foreground)] mb-1 font-medium">{s.label}</p>
+            <p className={`text-lg md:text-xl font-display font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* ── Main Content Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
         {/* Upcoming Trips — takes 2 columns */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-display font-bold text-[#1b1c1a]">Upcoming Trips</h3>
+            <h3 className="text-xl md:text-2xl font-display font-bold text-[#1b1c1a]">Upcoming Trips</h3>
             <Link to="/trips" className="text-[var(--color-primary)] font-bold text-sm hover:underline">
               View All
             </Link>
@@ -188,42 +188,42 @@ export default function DashboardPage() {
               const badge = statusBadge[t.status] || statusBadge.Draft
               return (
                 <Link key={t.id} to={`/trips/${t.id}`}
-                  className="group bg-white hover:bg-[var(--color-surface-container-low)] transition-all duration-300 rounded-[2rem] p-5 flex items-center gap-5"
+                  className="group bg-white hover:bg-[var(--color-surface-container-low)] transition-all duration-300 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex items-center gap-3 md:gap-5"
                   style={{ boxShadow: '0 2px 12px rgba(27,28,26,0.04)' }}
                 >
                   {/* Gradient thumbnail */}
-                  <div className={`w-20 h-20 rounded-[1.25rem] bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 overflow-hidden group-hover:scale-105 transition-transform duration-300`}>
-                    <Map className={`w-7 h-7 ${iconColor}`} />
+                  <div className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-[1.25rem] bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 overflow-hidden group-hover:scale-105 transition-transform duration-300`}>
+                    <Map className={`w-5 h-5 md:w-7 md:h-7 ${iconColor}`} />
                   </div>
 
                   {/* Details */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-2 gap-3">
-                      <h4 className="text-base font-bold text-[#1b1c1a] truncate">{t.tripName}</h4>
-                      <span className={`text-[10px] font-bold px-3 py-1 rounded-full flex-shrink-0 ${badge}`}>
+                    <div className="flex justify-between items-start mb-1 md:mb-2 gap-2 md:gap-3">
+                      <h4 className="text-sm md:text-base font-bold text-[#1b1c1a] truncate">{t.tripName}</h4>
+                      <span className={`text-[10px] font-bold px-2 md:px-3 py-0.5 md:py-1 rounded-full flex-shrink-0 ${badge}`}>
                         {t.status.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-[var(--color-muted-foreground)] text-xs font-medium flex-wrap">
+                    <div className="flex items-center gap-2 md:gap-4 text-[var(--color-muted-foreground)] text-[11px] md:text-xs font-medium flex-wrap">
                       <span className="flex items-center gap-1">
-                        <CalendarDays className="w-3.5 h-3.5" />
+                        <CalendarDays className="w-3 h-3 md:w-3.5 md:h-3.5" />
                         {formatDateAu(t.startDate)}
                       </span>
                       {t.destination && (
                         <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5" />
+                          <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5" />
                           {t.destination}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5" />
+                        <Users className="w-3 h-3 md:w-3.5 md:h-3.5" />
                         {t.currentParticipantCount}/{t.maxParticipants || '—'} pax
                       </span>
                     </div>
                   </div>
 
-                  {/* Chevron */}
-                  <button className="w-10 h-10 rounded-full border border-[rgba(195,201,181,0.5)] flex items-center justify-center text-[var(--color-muted-foreground)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all flex-shrink-0">
+                  {/* Chevron - hidden on small mobile */}
+                  <button className="hidden sm:flex w-10 h-10 rounded-full border border-[rgba(195,201,181,0.5)] items-center justify-center text-[var(--color-muted-foreground)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all flex-shrink-0">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </Link>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
         {/* Overdue Tasks — 1 column */}
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-display font-bold text-[#1b1c1a]">Overdue Tasks</h3>
+            <h3 className="text-xl md:text-2xl font-display font-bold text-[#1b1c1a]">Overdue Tasks</h3>
             <Link to="/tasks" className="text-[var(--color-primary)] font-bold text-sm hover:underline">
               View All
             </Link>

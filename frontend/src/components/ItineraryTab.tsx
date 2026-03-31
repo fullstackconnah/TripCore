@@ -156,7 +156,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-[#f5f3ef] rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-[#1b1c1a]">Trip Details</h3>
-            <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm">
               <span className="text-[#43493a]">Event Template</span><span className="text-[#1b1c1a]">{trip.eventTemplateName || '—'}</span>
               <span className="text-[#43493a]">Region</span><span className="text-[#1b1c1a]">{itinerary.region || '—'}</span>
               <span className="text-[#43493a]">OOP Due Date</span><span className="text-[#1b1c1a]">{trip.oopDueDate ? formatDateAu(trip.oopDueDate) : '—'}</span>
@@ -168,7 +168,7 @@ export default function ItineraryTab({ tripId, trip }: ItineraryTabProps) {
           </div>
           <div className="bg-[#f5f3ef] rounded-2xl p-5 space-y-3">
             <h3 className="font-semibold text-[#1b1c1a]">Requirements</h3>
-            <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm">
               <span className="text-[#43493a]">Wheelchair Capacity</span><span className="text-[#1b1c1a]">{trip.requiredWheelchairCapacity || '—'}</span>
               <span className="text-[#43493a]">Required Beds</span><span className="text-[#1b1c1a]">{trip.requiredBeds || '—'}</span>
               <span className="text-[#43493a]">Required Bedrooms</span><span className="text-[#1b1c1a]">{trip.requiredBedrooms || '—'}</span>

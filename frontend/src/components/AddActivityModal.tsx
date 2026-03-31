@@ -112,7 +112,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4 md:p-6 w-full max-w-lg max-h-[90vh] mx-2 overflow-y-auto"
         onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between mb-4">
@@ -153,7 +153,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
             <input value={title} onChange={e => setTitle(e.target.value)} className={inputClass} placeholder="Activity title" maxLength={200} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Start Time</label>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
@@ -169,7 +169,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
             <input value={location} onChange={e => setLocation(e.target.value)} className={inputClass} placeholder="Location" maxLength={200} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Status *</label>
               <Dropdown
@@ -199,7 +199,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
                 <label className={labelClass}>Provider Name</label>
                 <input value={providerName} onChange={e => setProviderName(e.target.value)} className={inputClass} placeholder="Provider name" maxLength={200} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Phone</label>
                   <input value={providerPhone} onChange={e => setProviderPhone(e.target.value)} className={inputClass} placeholder="Phone" maxLength={50} />

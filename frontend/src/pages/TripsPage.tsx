@@ -129,14 +129,14 @@ export default function TripsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1b1c1a]">Trips</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-[#1b1c1a]">Trips</h1>
           <p className="text-sm text-[#43493a] mt-1">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
         </div>
         <Link to="/trips/new"
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all">
-          <Plus className="w-4 h-4" /> New Trip
+          className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all flex-shrink-0">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Trip</span><span className="sm:hidden">New</span>
         </Link>
       </div>
 
@@ -166,8 +166,8 @@ export default function TripsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex flex-wrap gap-2 md:gap-3">
+        <div className="relative flex-1 min-w-0 md:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#43493a]" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder={tab === 'completed' ? 'Search completed trips...' : 'Search trips...'}
@@ -251,7 +251,7 @@ export default function TripsPage() {
       {/* Edit Trip Modal */}
       {editingTripId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={handleCloseEdit}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-[0_32px_64px_-16px_rgba(27,28,26,0.2)]" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-[0_32px_64px_-16px_rgba(27,28,26,0.2)] mx-2" onClick={e => e.stopPropagation()}>
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[rgba(195,201,181,0.2)]">
               <div>
@@ -269,8 +269,8 @@ export default function TripsPage() {
                 {/* Basic Info */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-[#396200] uppercase tracking-wider">Basic Info</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
                       <label className={labelClass}>Trip Name *</label>
                       <input value={editForm.tripName} onChange={e => setEditForm({ ...editForm, tripName: e.target.value })}
                         className={inputClass} placeholder="e.g. Beach Getaway 2026" />
@@ -309,7 +309,7 @@ export default function TripsPage() {
                 {/* Dates & Status */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-[#396200] uppercase tracking-wider">Dates & Status</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>Start Date *</label>
                       <input type="date" value={editForm.startDate} onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
@@ -343,7 +343,7 @@ export default function TripsPage() {
                         ]}
                       />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className={labelClass}>Lead Coordinator</label>
                       <Dropdown
                         variant="form"
@@ -362,7 +362,7 @@ export default function TripsPage() {
                 {/* Capacity */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-[#396200] uppercase tracking-wider">Capacity & Requirements</p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <div>
                       <label className={labelClass}>Min Participants</label>
                       <input type="number" min={0} value={editForm.minParticipants} onChange={e => setEditForm({ ...editForm, minParticipants: e.target.value })}

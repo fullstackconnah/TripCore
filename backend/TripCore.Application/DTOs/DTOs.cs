@@ -1233,6 +1233,12 @@ public record UpdateTenantDto(
     string EmailDomain,
     bool IsActive);
 
+public record TenantUserDto(
+    Guid Id,
+    string FullName,
+    string Role,
+    bool IsActive);
+
 // ── Public Holidays Sync DTOs ──────────────────────────────────────────────
 
 public record SyncHolidaysDto

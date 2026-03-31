@@ -71,17 +71,18 @@ public class TenantsController : ControllerBase
 
     // GET api/v1/admin/tenants/{id}/users
     [HttpGet("{id:guid}/users")]
-    public async Task<IActionResult> GetUsers(Guid id)
+    public async Task<IActionResult> GetUsers(Guid id, CancellationToken ct)
     {
-        var tenant = await _db.Tenants.FindAsync(id);
+        var tenant = await _db.Tenants.FindAsync([id], ct);
         if (tenant is null)
             return NotFound();
 
         var users = await _db.Users
             .IgnoreQueryFilters()
             .Where(u => u.TenantId == id)
-            .Select(u => new { u.Id, u.Username, u.FullName, u.Role, u.IsActive })
-            .ToListAsync();
-        return Ok(users);
+            .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
+            .Select(u => new TenantUserDto(u.Id, $"{u.FirstName} {u.LastName}", u.Role.ToString(), u.IsActive))
+            .ToListAsync(ct);
+        return Ok(ApiResponse<List<TenantUserDto>>.Ok(users));
     }
 }

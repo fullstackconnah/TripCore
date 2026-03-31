@@ -139,6 +139,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
               value={selectedActivityId}
               onChange={handleLibrarySelect}
               label="Select an activity..."
+              searchable
               items={[
                 { value: '', label: 'Select an activity...' },
                 ...filteredActivities.map((a: any) => ({ value: String(a.id), label: `${a.activityName} (${a.category})` })),

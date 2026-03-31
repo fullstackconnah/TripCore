@@ -32,6 +32,7 @@ type DropdownProps = {
 
   // Panel alignment — default varies by variant: pill='right', form='left', menu='right'
   align?: 'left' | 'right'
+  searchable?: boolean
 }
 
 export function Dropdown({
@@ -47,6 +48,7 @@ export function Dropdown({
   disabled = false,
   loading = false,
   align,
+  searchable = false,
 }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
@@ -56,6 +58,8 @@ export function Dropdown({
   const panelRef = useRef<HTMLDivElement>(null)
   const onBlurRef = useRef(onBlur)
   useEffect(() => { onBlurRef.current = onBlur })
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
 
   // Per-variant default alignment
   const resolvedAlign = align ?? (variant === 'form' ? 'left' : 'right')
@@ -121,6 +125,27 @@ export function Dropdown({
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  // Auto-focus search input when panel opens in searchable mode
+  useEffect(() => {
+    if (open && searchable && searchRef.current) {
+      searchRef.current.focus()
+    }
+  }, [open, searchable])
+
+  // Reset search query when panel closes
+  useEffect(() => {
+    if (!open) setSearchQuery('')
+  }, [open])
+
+  // Reset focusedIndex when query changes
+  useEffect(() => {
+    setFocusedIndex(-1)
+  }, [searchQuery])
+
+  const visibleItems = searchable && searchQuery
+    ? items.filter(item => item.value !== '' && item.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    : items
+
   const handleSelect = (item: DropdownItem) => {
     if (item.disabled) return
     if (variant === 'menu') {
@@ -133,6 +158,43 @@ export function Dropdown({
     setFocusedIndex(-1)
   }
 
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setOpen(false)
+      setFocusedIndex(-1)
+      setSearchQuery('')
+      onBlur?.()
+      triggerRef.current?.focus()
+      return
+    }
+    const enabledIndices = visibleItems
+      .map((item, i) => (item.disabled ? -1 : i))
+      .filter(i => i !== -1)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const pos = enabledIndices.indexOf(focusedIndex)
+      const next = pos === -1 ? enabledIndices[0] : enabledIndices[(pos + 1) % enabledIndices.length]
+      if (next !== undefined) setFocusedIndex(next)
+      return
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const pos = enabledIndices.indexOf(focusedIndex)
+      const prev = pos === -1
+        ? enabledIndices[enabledIndices.length - 1]
+        : enabledIndices[(pos - 1 + enabledIndices.length) % enabledIndices.length]
+      if (prev !== undefined) setFocusedIndex(prev)
+      return
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const focused = focusedIndex >= 0 ? visibleItems[focusedIndex] : null
+      const target = focused ?? (visibleItems.length === 1 && !visibleItems[0]?.disabled ? visibleItems[0] : null)
+      if (target) handleSelect(target)
+    }
+  }
+
   const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (disabled || loading) return
 
@@ -140,7 +202,7 @@ export function Dropdown({
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
         setOpen(true)
-        const first = items.findIndex(i => !i.disabled)
+        const first = visibleItems.findIndex(i => !i.disabled)
         setFocusedIndex(first >= 0 ? first : 0)
       }
       return
@@ -161,7 +223,7 @@ export function Dropdown({
       return
     }
 
-    const enabledIndices = items
+    const enabledIndices = visibleItems
       .map((item, i) => (item.disabled ? -1 : i))
       .filter(i => i !== -1)
 
@@ -182,11 +244,11 @@ export function Dropdown({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       if (focusedIndex === -1) {
-        const first = items.findIndex(i => !i.disabled)
+        const first = visibleItems.findIndex(i => !i.disabled)
         if (first >= 0) setFocusedIndex(first)
         return
       }
-      const focused = items[focusedIndex]
+      const focused = visibleItems[focusedIndex]
       if (focused && !focused.disabled) handleSelect(focused)
     }
   }
@@ -211,10 +273,26 @@ export function Dropdown({
       style={panelStyle}
       className={`bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] ${panelWidthClass}`}
     >
-      {items.length === 0 ? (
-        <p role="presentation" className="px-4 py-3 text-sm text-[#43493a] opacity-50">No options available</p>
+      {searchable && (
+        <div className="p-2">
+          <input
+            ref={searchRef}
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search..."
+            className="w-full px-3 py-1.5 text-sm bg-[var(--color-input)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#396200]/25"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+      {visibleItems.length === 0 ? (
+        <p role="presentation" className="px-4 py-3 text-sm text-[#43493a] opacity-50">
+          {searchable && searchQuery ? 'No results found' : 'No options available'}
+        </p>
       ) : (
-        items.map((item, idx) => (
+        visibleItems.map((item, idx) => (
           <div key={item.value}>
             {variant === 'menu' && idx > 0 && item.description && (
               <div className="h-px bg-[rgba(195,201,181,0.25)] mx-4" />
@@ -258,7 +336,7 @@ export function Dropdown({
           type="button"
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
+          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${visibleItems[focusedIndex]?.value}` : undefined}
           disabled={disabled || loading}
           onClick={() => setOpen(v => !v)}
           onKeyDown={handleKeyDown}
@@ -283,7 +361,7 @@ export function Dropdown({
           type="button"
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
+          aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${visibleItems[focusedIndex]?.value}` : undefined}
           disabled={disabled || loading}
           onClick={() => setOpen(v => !v)}
           onKeyDown={handleKeyDown}
@@ -307,7 +385,7 @@ export function Dropdown({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${items[focusedIndex]?.value}` : undefined}
+        aria-activedescendant={open && focusedIndex >= 0 ? `dd-opt-${visibleItems[focusedIndex]?.value}` : undefined}
         disabled={disabled || loading}
         onClick={() => setOpen(v => !v)}
         onKeyDown={handleKeyDown}

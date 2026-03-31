@@ -18,6 +18,7 @@ const participantSchema = z.object({
   isRepeatClient: z.boolean().optional(),
   wheelchairRequired: z.boolean().optional(),
   isHighSupport: z.boolean().optional(),
+  isIntensiveSupport: z.boolean().optional(),
   requiresOvernightSupport: z.boolean().optional(),
   hasRestrictivePracticeFlag: z.boolean().optional(),
   supportRatio: z.string().min(1),
@@ -53,6 +54,7 @@ export default function ParticipantCreatePage() {
       isRepeatClient: false,
       wheelchairRequired: false,
       isHighSupport: false,
+      isIntensiveSupport: false,
       requiresOvernightSupport: false,
       hasRestrictivePracticeFlag: false,
     },
@@ -72,6 +74,7 @@ export default function ParticipantCreatePage() {
         isRepeatClient: existing.isRepeatClient ?? false,
         wheelchairRequired: existing.wheelchairRequired ?? false,
         isHighSupport: existing.isHighSupport ?? false,
+        isIntensiveSupport: existing.isIntensiveSupport ?? false,
         requiresOvernightSupport: existing.requiresOvernightSupport ?? false,
         hasRestrictivePracticeFlag: existing.hasRestrictivePracticeFlag ?? false,
         supportRatio: existing.supportRatio ?? 'SharedSupport',
@@ -194,6 +197,11 @@ export default function ParticipantCreatePage() {
           <div className={checkboxWrapperClass}>
             <input type="checkbox" {...register('isHighSupport')} id="isHighSupport" className="w-4 h-4 rounded border-[var(--color-border)]" />
             <label htmlFor="isHighSupport" className={checkboxLabelClass}>High Support</label>
+          </div>
+
+          <div className={checkboxWrapperClass}>
+            <input type="checkbox" {...register('isIntensiveSupport')} id="isIntensiveSupport" className="w-4 h-4 rounded border-[var(--color-border)]" />
+            <label htmlFor="isIntensiveSupport" className={checkboxLabelClass}>Intensive Support (NDIS billing)</label>
           </div>
 
           <div className={checkboxWrapperClass}>

@@ -1,10 +1,13 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TripCore.Infrastructure.Audit;
+using TripCore.Domain.Interfaces;
 using TripCore.Infrastructure.Data;
+using TripCore.Infrastructure.Services;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -15,29 +18,17 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")
     ?? "Host=localhost;Port=5432;Database=tripcore;Username=postgres;Password=postgres";
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<AuditInterceptor>();
-
-builder.Services.AddDbContext<TripCoreDbContext>((sp, options) =>
-{
-    options.UseNpgsql(connectionString);
-    options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
-});
+builder.Services.AddDbContext<TripCoreDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // ── JWT Authentication ───────────────────────────────────────
 var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
+if (string.IsNullOrEmpty(jwtSecret))
     jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
-if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE-ME"))
-{
-    if (builder.Environment.IsDevelopment())
-        jwtSecret = "TripCore-Dev-Only-Secret-Min32Characters!!";
-    else
-        throw new InvalidOperationException(
-            "JWT_SECRET environment variable or Jwt:Secret config is required in non-development environments. " +
-            "Set a strong random secret of at least 32 characters.");
-}
+if (string.IsNullOrEmpty(jwtSecret) || jwtSecret == "TripCore-Dev-Only-Secret-Min32Characters!!")
+    throw new InvalidOperationException(
+        "Jwt:Secret must be set to a strong secret in configuration or JWT_SECRET environment variable.");
 
 if (jwtSecret.Length < 32)
     throw new InvalidOperationException("JWT secret must be at least 32 characters long.");
@@ -63,6 +54,73 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// ── Firebase Admin SDK ───────────────────────────────────────
+// Priority: 1) full JSON from config/env  2) file path  3) individual env vars
+var firebaseServiceAccount = builder.Configuration["Firebase:ServiceAccountJson"];
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    firebaseServiceAccount = Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
+
+// If value points to a .json file on disk, read its contents
+if (!string.IsNullOrEmpty(firebaseServiceAccount)
+    && firebaseServiceAccount.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+    && File.Exists(firebaseServiceAccount))
+{
+    firebaseServiceAccount = File.ReadAllText(firebaseServiceAccount);
+}
+
+// Fallback: build the JSON from individual env vars (avoids Compose interpolation issues)
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+{
+    var projectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID");
+    var privateKey = Environment.GetEnvironmentVariable("FIREBASE_PRIVATE_KEY");
+    var clientEmail = Environment.GetEnvironmentVariable("FIREBASE_CLIENT_EMAIL");
+
+    if (!string.IsNullOrEmpty(projectId) && !string.IsNullOrEmpty(privateKey) && !string.IsNullOrEmpty(clientEmail))
+    {
+        var privateKeyId = Environment.GetEnvironmentVariable("FIREBASE_PRIVATE_KEY_ID") ?? "";
+        var clientId = Environment.GetEnvironmentVariable("FIREBASE_CLIENT_ID") ?? "";
+        var tokenUri = Environment.GetEnvironmentVariable("FIREBASE_TOKEN_URI") ?? "https://oauth2.googleapis.com/token";
+
+        firebaseServiceAccount = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            type = "service_account",
+            project_id = projectId,
+            private_key_id = privateKeyId,
+            private_key = privateKey.Replace("\\n", "\n"),
+            client_email = clientEmail,
+            client_id = clientId,
+            auth_uri = "https://accounts.google.com/o/oauth2/auth",
+            token_uri = tokenUri,
+            auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs",
+            client_x509_cert_url = $"https://www.googleapis.com/robot/v1/metadata/x509/{Uri.EscapeDataString(clientEmail)}"
+        });
+    }
+}
+
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    throw new InvalidOperationException(
+        "Firebase credentials not configured. Provide one of: " +
+        "Firebase:ServiceAccountJson (config/env with full JSON), " +
+        "FIREBASE_SERVICE_ACCOUNT_JSON (file path), " +
+        "or FIREBASE_PROJECT_ID + FIREBASE_PRIVATE_KEY + FIREBASE_CLIENT_EMAIL (individual env vars).");
+
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromJson(firebaseServiceAccount)
+});
+
+// ── NDIS Claiming Services ────────────────────────────────────
+builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.BprCsvService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
+
+// ── Public Holiday Sync ───────────────────────────────────────
+builder.Services.AddHttpClient<TripCore.Infrastructure.Services.NagerHolidayProvider>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.IHolidayProvider, TripCore.Infrastructure.Services.NagerHolidayProvider>();
+builder.Services.AddScoped<TripCore.Application.Interfaces.IPublicHolidaySyncService, TripCore.Infrastructure.Services.PublicHolidaySyncService>();
+builder.Services.AddHostedService<TripCore.Infrastructure.BackgroundServices.HolidaySyncBackgroundService>();
 
 // ── Rate Limiting ────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
@@ -138,6 +196,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentTenant, CurrentTenant>();
+
 var app = builder.Build();
 
 // ── Migrate + Seed ───────────────────────────────────────────
@@ -166,8 +227,7 @@ using (var scope = app.Services.CreateScope())
             ('20260320104626_AddIncidentReports'),
             ('20260320133223_AddScheduledActivityTrackingFields'),
             ('20260321093551_AddInsuranceTracking'),
-            ('20260327084507_AddPaymentStatusToBooking'),
-            ('20260328020237_AddAuditLog')
+            ('20260327084507_AddPaymentStatusToBooking')
         ) AS m("MigrationId")
         WHERE EXISTS (
             SELECT 1 FROM pg_catalog.pg_class c
@@ -175,6 +235,20 @@ using (var scope = app.Services.CreateScope())
             WHERE n.nspname = 'public' AND c.relname = 'AccommodationProperties'
         )
         ON CONFLICT DO NOTHING;
+        """);
+
+    // Repair: if AddNdisClaiming was falsely marked as applied by the pre-population
+    // block but the tables don't actually exist, remove the false history entry so
+    // MigrateAsync re-runs the migration and creates the tables properly.
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        DELETE FROM "__EFMigrationsHistory"
+        WHERE "MigrationId" = '20260327121732_AddNdisClaiming'
+        AND NOT EXISTS (
+            SELECT 1 FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = 'SupportActivityGroups'
+        );
         """);
 
     // Apply pending EF Core migrations automatically on startup
@@ -211,18 +285,8 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
         ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
         """);
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        CREATE TABLE IF NOT EXISTS "AppSettings" (
-            "Id" integer NOT NULL,
-            "QualificationWarningDays" integer NOT NULL DEFAULT 30,
-            CONSTRAINT "PK_AppSettings" PRIMARY KEY ("Id")
-        );
-        INSERT INTO "AppSettings" ("Id", "QualificationWarningDays")
-        VALUES (1, 30)
-        ON CONFLICT ("Id") DO NOTHING;
-        """);
     await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedNdisDataAsync(db);
 }
 
 // ── Middleware pipeline ──────────────────────────────────────
@@ -246,7 +310,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-XSS-Protection"] = "0";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()";
-    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; script-src 'self' 'wasm-unsafe-eval'; frame-ancestors 'none'";
     context.Response.Headers["Cache-Control"] = "no-store";
     context.Response.Headers["Pragma"] = "no-cache";
     await next();

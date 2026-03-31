@@ -33,6 +33,8 @@ public class ParticipantBooking
     public DateOnly? InsuranceCoverageStart { get; set; }
     public DateOnly? InsuranceCoverageEnd { get; set; }
     public InsuranceStatus InsuranceStatus { get; set; } = InsuranceStatus.None;
+    public ClaimStatus ClaimStatus { get; set; } = ClaimStatus.NotClaimed;
+    public DateOnly? CancellationNoticeDate { get; set; }
 
     public bool ActionRequired { get; set; }
     public string? BookingNotes { get; set; }

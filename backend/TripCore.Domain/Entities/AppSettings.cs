@@ -1,12 +1,14 @@
-using System.ComponentModel.DataAnnotations.Schema;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Domain.Entities;
 
-public class AppSettings
+/// <summary>
+/// Per-tenant application settings. One row per tenant.
+/// </summary>
+public class AppSettings : ITenantEntity
 {
-    /// <summary>Always 1 — this is a single-row settings table.</summary>
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public int Id { get; set; }
-
+    public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public int QualificationWarningDays { get; set; } = 30;
 }

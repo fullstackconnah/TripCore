@@ -21,6 +21,7 @@ public record ParticipantListDto
     public bool IsActive { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public SupportRatio SupportRatio { get; init; }
 }
 
@@ -60,6 +61,7 @@ public record CreateParticipantDto
     public bool IsRepeatClient { get; init; }
     public bool WheelchairRequired { get; init; }
     public bool IsHighSupport { get; init; }
+    public bool IsIntensiveSupport { get; init; }
     public bool RequiresOvernightSupport { get; init; }
     public bool HasRestrictivePracticeFlag { get; init; }
     public SupportRatio SupportRatio { get; init; }
@@ -168,6 +170,9 @@ public record TripDetailDto : TripListDto
     public int OutstandingTaskCount { get; init; }
     public int InsuranceConfirmedCount { get; init; }
     public int InsuranceOutstandingCount { get; init; }
+    public decimal ActiveHoursPerDay { get; init; }
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -207,6 +212,8 @@ public record CreateTripDto
 public record UpdateTripDto : CreateTripDto
 {
     public TripStatus Status { get; init; } = TripStatus.Draft;
+    public TimeOnly? DepartureTime { get; init; }
+    public TimeOnly? ReturnTime { get; init; }
 }
 
 public record PatchTripDto
@@ -911,18 +918,6 @@ public record DashboardSummaryDto
 }
 
 // ══════════════════════════════════════════════════════════════
-// AUTH DTOs
-// ══════════════════════════════════════════════════════════════
-
-public record LoginDto
-{
-    [Required, StringLength(100, MinimumLength = 1)]
-    public string Username { get; init; } = string.Empty;
-    [Required, StringLength(200, MinimumLength = 1)]
-    public string Password { get; init; } = string.Empty;
-}
-
-// ══════════════════════════════════════════════════════════════
 // ITINERARY DTOs (read-only composite view)
 // ══════════════════════════════════════════════════════════════
 
@@ -1045,6 +1040,8 @@ public record AuthResponseDto
     public string Username { get; init; } = string.Empty;
     public string FullName { get; init; } = string.Empty;
     public string Role { get; init; } = string.Empty;
+    public string? TenantName { get; init; }
+    public Guid? TenantId { get; init; }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1216,4 +1213,38 @@ public record UpdateIncidentDto : CreateIncidentDto
     public DateTime? FamilyNotifiedAt { get; init; }
     public bool SupportCoordinatorNotified { get; init; }
     public DateTime? SupportCoordinatorNotifiedAt { get; init; }
+}
+
+// ── Tenant DTOs ─────────────────────────────────────────────────────────────
+
+public record TenantDto(
+    Guid Id,
+    string Name,
+    string EmailDomain,
+    bool IsActive,
+    DateTime CreatedAt);
+
+public record CreateTenantDto(
+    string Name,
+    string EmailDomain);
+
+public record UpdateTenantDto(
+    string Name,
+    string EmailDomain,
+    bool IsActive);
+
+// ── Public Holidays Sync DTOs ──────────────────────────────────────────────
+
+public record SyncHolidaysDto
+{
+    public int? FromYear { get; init; }
+    public int? ToYear { get; init; }
+}
+
+public record SyncResultDto
+{
+    public int YearsProcessed { get; init; }
+    public int HolidaysAdded { get; init; }
+    public int HolidaysUpdated { get; init; }
+    public string[] Errors { get; init; } = [];
 }

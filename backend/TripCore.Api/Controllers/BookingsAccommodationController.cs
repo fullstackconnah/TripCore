@@ -33,7 +33,7 @@ public class BookingsController : ControllerBase
                 WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
                 NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
                 SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired,
-                InsuranceStatus = b.InsuranceStatus
+                InsuranceStatus = b.InsuranceStatus, PaymentStatus = b.PaymentStatus
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<BookingListDto>>.Ok(items));
     }
@@ -56,7 +56,7 @@ public class BookingsController : ControllerBase
             PlanTypeOverride = b.PlanTypeOverride, FundingNotes = b.FundingNotes,
             RoomPreference = b.RoomPreference, TransportNotes = b.TransportNotes,
             EquipmentNotes = b.EquipmentNotes, RiskSupportNotes = b.RiskSupportNotes,
-            OopPaymentStatus = b.OopPaymentStatus, BookingNotes = b.BookingNotes,
+            PaymentStatus = b.PaymentStatus, BookingNotes = b.BookingNotes,
             CancellationReason = b.CancellationReason,
             InsuranceProvider = b.InsuranceProvider, InsurancePolicyNumber = b.InsurancePolicyNumber,
             InsuranceCoverageStart = b.InsuranceCoverageStart, InsuranceCoverageEnd = b.InsuranceCoverageEnd,
@@ -70,19 +70,25 @@ public class BookingsController : ControllerBase
     {
         { SupportRatio.OneToOne, 1m }, { SupportRatio.OneToTwo, 0.5m }, { SupportRatio.OneToThree, 1m / 3m },
         { SupportRatio.OneToFour, 0.25m }, { SupportRatio.OneToFive, 0.2m }, { SupportRatio.TwoToOne, 2m },
-        { SupportRatio.SharedSupport, 0.25m }
+        { SupportRatio.SharedSupport, 0.25m }, { SupportRatio.Other, 1m }
     };
 
     private async Task RecalculateStaffRequired(Guid tripId, CancellationToken ct)
     {
-        var trip = await _db.TripInstances.Include(t => t.Bookings).FirstOrDefaultAsync(t => t.Id == tripId, ct);
+        var trip = await _db.TripInstances
+            .Include(t => t.Bookings)
+            .ThenInclude(b => b.Participant)
+            .FirstOrDefaultAsync(t => t.Id == tripId, ct);
         if (trip == null) return;
 
         var activeBookings = trip.Bookings.Where(b =>
             b.BookingStatus != BookingStatus.Cancelled && b.BookingStatus != BookingStatus.NoLongerAttending);
 
         var rawTotal = activeBookings.Sum(b =>
-            b.SupportRatioOverride.HasValue && RatioToStaff.TryGetValue(b.SupportRatioOverride.Value, out var v) ? v : 0m);
+        {
+            var ratio = b.SupportRatioOverride ?? b.Participant?.SupportRatio ?? SupportRatio.OneToOne;
+            return RatioToStaff.TryGetValue(ratio, out var v) ? v : 1m;
+        });
 
         trip.CalculatedStaffRequired = rawTotal;
         trip.MinStaffRequired = (int)Math.Ceiling(rawTotal);
@@ -90,6 +96,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<BookingDetailDto>>> Create([FromBody] CreateBookingDto dto, CancellationToken ct)
     {
         var booking = new ParticipantBooking
@@ -129,13 +136,23 @@ public class BookingsController : ControllerBase
             });
         }
 
-        await RecalculateStaffRequired(dto.TripInstanceId, ct);
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            await RecalculateStaffRequired(dto.TripInstanceId, ct);
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("23505") == true
+            || ex.InnerException?.Message.Contains("unique") == true
+            || ex.InnerException?.Message.Contains("duplicate") == true)
+        {
+            return Conflict(ApiResponse<BookingDetailDto>.Fail("This participant is already booked on this trip."));
+        }
         return CreatedAtAction(nameof(GetById), new { id = booking.Id },
             ApiResponse<BookingDetailDto>.Ok(new BookingDetailDto { Id = booking.Id, TripInstanceId = booking.TripInstanceId, ParticipantId = booking.ParticipantId, BookingStatus = booking.BookingStatus }));
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<BookingDetailDto>>> Update(Guid id, [FromBody] UpdateBookingDto dto, CancellationToken ct)
     {
         var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -147,7 +164,7 @@ public class BookingsController : ControllerBase
         b.PlanTypeOverride = dto.PlanTypeOverride; b.FundingNotes = dto.FundingNotes;
         b.RoomPreference = dto.RoomPreference; b.TransportNotes = dto.TransportNotes;
         b.EquipmentNotes = dto.EquipmentNotes; b.RiskSupportNotes = dto.RiskSupportNotes;
-        b.OopPaymentStatus = dto.OopPaymentStatus; b.ActionRequired = dto.ActionRequired;
+        b.PaymentStatus = dto.PaymentStatus; b.ActionRequired = dto.ActionRequired;
         b.BookingNotes = dto.BookingNotes; b.CancellationReason = dto.CancellationReason;
         b.InsuranceProvider = dto.InsuranceProvider; b.InsurancePolicyNumber = dto.InsurancePolicyNumber;
         b.InsuranceCoverageStart = dto.InsuranceCoverageStart; b.InsuranceCoverageEnd = dto.InsuranceCoverageEnd;
@@ -182,6 +199,7 @@ public class BookingsController : ControllerBase
 
         if (dto.BookingStatus.HasValue) b.BookingStatus = dto.BookingStatus.Value;
         if (dto.InsuranceStatus.HasValue) b.InsuranceStatus = dto.InsuranceStatus.Value;
+        if (dto.PaymentStatus.HasValue) b.PaymentStatus = dto.PaymentStatus.Value;
 
         b.UpdatedAt = DateTime.UtcNow;
         await RecalculateStaffRequired(b.TripInstanceId, ct);
@@ -190,14 +208,16 @@ public class BookingsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (b == null) return NotFound(ApiResponse<bool>.Fail("Booking not found"));
         var tripId = b.TripInstanceId;
         _db.ParticipantBookings.Remove(b);
-        await RecalculateStaffRequired(tripId, ct);
-        await _db.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(ct);           // save deletion first
+        await RecalculateStaffRequired(tripId, ct); // now recalculate from clean DB
+        await _db.SaveChangesAsync(ct);           // save updated staff count
         return Ok(ApiResponse<bool>.Ok(true, "Booking deleted"));
     }
 }
@@ -254,6 +274,7 @@ public class AccommodationController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<AccommodationDetailDto>>> Create([FromBody] CreateAccommodationDto dto, CancellationToken ct)
     {
         var prop = new AccommodationProperty
@@ -275,6 +296,7 @@ public class AccommodationController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<AccommodationDetailDto>>> Update(Guid id, [FromBody] UpdateAccommodationDto dto, CancellationToken ct)
     {
         var a = await _db.AccommodationProperties.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -296,6 +318,7 @@ public class AccommodationController : ControllerBase
 
     /// <summary>Archive (soft-delete) an accommodation property.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var a = await _db.AccommodationProperties.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -349,6 +372,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ReservationDto>>> Create([FromBody] CreateReservationDto dto, CancellationToken ct)
     {
         var reservation = new AccommodationReservation
@@ -373,6 +397,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ReservationDto>>> Update(Guid id, [FromBody] UpdateReservationDto dto, CancellationToken ct)
     {
         var r = await _db.AccommodationReservations.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -397,6 +422,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var r = await _db.AccommodationReservations.FirstOrDefaultAsync(x => x.Id == id, ct);

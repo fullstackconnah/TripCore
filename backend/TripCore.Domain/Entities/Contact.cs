@@ -21,6 +21,7 @@ public class Contact
     public string? State { get; set; }
     public string? Postcode { get; set; }
     public PreferredContactMethod PreferredContactMethod { get; set; }
+    public ContactType ContactType { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

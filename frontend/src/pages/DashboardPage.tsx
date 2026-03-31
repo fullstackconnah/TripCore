@@ -1,4 +1,4 @@
-import { useDashboard } from '@/api/hooks'
+import { useDashboard, useSettings, useStaff } from '@/api/hooks'
 import { formatDateAu } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import {
@@ -52,7 +52,9 @@ const statusBadge: Record<string, string> = {
 }
 
 export default function DashboardPage() {
-  const { data, isLoading } = useDashboard()
+  const { data, isLoading, isError } = useDashboard()
+  const { data: settings } = useSettings()
+  const { data: allStaff = [] } = useStaff({ isActive: 'true' })
 
   if (isLoading) {
     return (
@@ -62,12 +64,35 @@ export default function DashboardPage() {
     )
   }
 
+  if (isError) return (
+    <div className="p-8 text-center text-red-600">Failed to load dashboard. Please refresh the page.</div>
+  )
+
   const d = data || {
     upcomingTripCount: 0, activeParticipantCount: 0, outstandingTaskCount: 0,
     overdueTaskCount: 0, conflictCount: 0, tripsMissingAccommodation: 0,
     tripsMissingVehicles: 0, tripsMissingStaff: 0, openIncidentCount: 0,
     qscOverdueCount: 0, upcomingTrips: [], overdueTasks: [],
   }
+
+  const warningDays = settings?.qualificationWarningDays ?? 30
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const qualIssueCount = (allStaff as any[]).reduce((count: number, s: any) => {
+    const checks = [
+      { flag: s.isFirstAidQualified, expiry: s.firstAidExpiryDate },
+      { flag: s.isDriverEligible, expiry: s.driverLicenceExpiryDate },
+      { flag: s.isManualHandlingCompetent, expiry: s.manualHandlingExpiryDate },
+      { flag: s.isMedicationCompetent, expiry: s.medicationCompetencyExpiryDate },
+    ]
+    return count + checks.filter(({ flag, expiry }) => {
+      if (!flag) return false
+      if (!expiry) return true  // no date set counts as an issue
+      const diff = Math.floor((new Date(expiry + 'T00:00:00').getTime() - today.getTime()) / 86400000)
+      return diff <= warningDays
+    }).length
+  }, 0)
 
   const smallStats = [
     d.overdueTaskCount > 0 && { label: 'Overdue', value: d.overdueTaskCount, color: 'text-[#ba1a1a]', bg: 'bg-[#ffdad6]/20' },
@@ -109,6 +134,26 @@ export default function DashboardPage() {
           <p className="text-xs md:text-sm text-[#8e337b] mb-1 font-medium">Outstanding Tasks</p>
           <p className="text-2xl md:text-3xl font-display font-bold text-[#8e337b]">{d.outstandingTaskCount}</p>
         </div>
+
+        {/* Qualification Issues */}
+        <Link
+          to="/qualifications"
+          className={`col-span-2 lg:col-span-2 p-6 rounded-[2rem] flex flex-col justify-between hover:opacity-90 transition-opacity ${
+            qualIssueCount > 0
+              ? 'bg-[#ffdad6]/30 border border-[#ba1a1a]/20'
+              : 'bg-[var(--color-surface-container-low)]'
+          }`}
+        >
+          <p className={`text-sm mb-1 font-medium ${qualIssueCount > 0 ? 'text-[#ba1a1a]' : 'text-[var(--color-muted-foreground)]'}`}>
+            Qualification Issues
+          </p>
+          <p className={`text-3xl font-display font-bold ${qualIssueCount > 0 ? 'text-[#ba1a1a]' : 'text-[var(--color-primary)]'}`}>
+            {qualIssueCount > 0 ? qualIssueCount : <span className="material-symbols-outlined text-3xl leading-none">check_circle</span>}
+          </p>
+          {qualIssueCount === 0 && (
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">All clear</p>
+          )}
+        </Link>
 
         {/* Small alert cards */}
         {smallStats.map(s => (

@@ -76,6 +76,7 @@ public class TripsController : ControllerBase
             RequiredWheelchairCapacity = t.RequiredWheelchairCapacity, RequiredBeds = t.RequiredBeds,
             RequiredBedrooms = t.RequiredBedrooms, MinStaffRequired = t.MinStaffRequired,
             CalculatedStaffRequired = t.CalculatedStaffRequired, Notes = t.Notes,
+            ActiveHoursPerDay = t.ActiveHoursPerDay, DepartureTime = t.DepartureTime, ReturnTime = t.ReturnTime,
             CurrentParticipantCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Confirmed),
             WaitlistCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Waitlist),
             HighSupportCount = t.Bookings.Count(b => b.HighSupportRequired && b.BookingStatus == BookingStatus.Confirmed),
@@ -97,6 +98,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Create a new trip instance.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Create([FromBody] CreateTripDto dto, CancellationToken ct)
     {
         var trip = new TripInstance
@@ -104,7 +106,7 @@ public class TripsController : ControllerBase
             Id = Guid.NewGuid(), TripName = dto.TripName, TripCode = dto.TripCode,
             EventTemplateId = dto.EventTemplateId, Destination = dto.Destination, Region = dto.Region,
             StartDate = dto.StartDate, DurationDays = dto.DurationDays, BookingCutoffDate = dto.BookingCutoffDate,
-            Status = dto.Status, LeadCoordinatorId = dto.LeadCoordinatorId,
+            Status = TripStatus.Draft, LeadCoordinatorId = dto.LeadCoordinatorId,
             MinParticipants = dto.MinParticipants, MaxParticipants = dto.MaxParticipants,
             RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity, RequiredBeds = dto.RequiredBeds,
             RequiredBedrooms = dto.RequiredBedrooms, MinStaffRequired = dto.MinStaffRequired, Notes = dto.Notes
@@ -117,6 +119,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Update a trip instance.</summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<TripDetailDto>>> Update(Guid id, [FromBody] UpdateTripDto dto, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -129,13 +132,76 @@ public class TripsController : ControllerBase
         t.MaxParticipants = dto.MaxParticipants; t.RequiredWheelchairCapacity = dto.RequiredWheelchairCapacity;
         t.RequiredBeds = dto.RequiredBeds; t.RequiredBedrooms = dto.RequiredBedrooms;
         t.MinStaffRequired = dto.MinStaffRequired; t.Notes = dto.Notes; t.UpdatedAt = DateTime.UtcNow;
+        if (dto.DepartureTime.HasValue) t.DepartureTime = dto.DepartureTime;
+        if (dto.ReturnTime.HasValue) t.ReturnTime = dto.ReturnTime;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<TripDetailDto>.Ok(new TripDetailDto { Id = t.Id, TripName = t.TripName, Status = t.Status }));
     }
 
+    /// <summary>Partially update a trip (e.g. status only).</summary>
+    [HttpPatch("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<bool>>> Patch(Guid id, [FromBody] PatchTripDto dto, CancellationToken ct)
+    {
+        var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (t == null) return NotFound(ApiResponse<bool>.Fail("Trip not found"));
+
+        if (dto.Status.HasValue && dto.Status.Value == TripStatus.InProgress && t.Status != TripStatus.InProgress)
+        {
+            var gateErrors = new List<string>();
+
+            var hasConfirmedStaff = await _db.StaffAssignments
+                .AnyAsync(sa => sa.TripInstanceId == id && sa.Status == AssignmentStatus.Confirmed, ct);
+            if (!hasConfirmedStaff)
+                gateErrors.Add("at least one confirmed staff assignment is required");
+
+            var hasConfirmedBooking = await _db.ParticipantBookings
+                .AnyAsync(pb => pb.TripInstanceId == id && pb.BookingStatus == BookingStatus.Confirmed, ct);
+            if (!hasConfirmedBooking)
+                gateErrors.Add("at least one confirmed participant booking is required");
+
+            if (gateErrors.Count > 0)
+                return BadRequest(ApiResponse<bool>.Fail(
+                    $"Pre-departure gate failed: {string.Join("; ", gateErrors)}"));
+        }
+
+        // Auto-create GenerateNdisClaims task when trip moves to Completed
+        if (dto.Status.HasValue && dto.Status.Value == TripStatus.Completed && t.Status != TripStatus.Completed)
+        {
+            var hasProviderSettings = await _db.ProviderSettings.AnyAsync(ct);
+            var taskTitle = hasProviderSettings
+                ? $"Generate NDIS claims for {t.TripName}"
+                : $"Generate NDIS claims for {t.TripName} — configure Provider Settings first";
+
+            var alreadyExists = await _db.BookingTasks.AnyAsync(bt =>
+                bt.TripInstanceId == id && bt.TaskType == TaskType.GenerateNdisClaims, ct);
+
+            if (!alreadyExists)
+            {
+                _db.BookingTasks.Add(new BookingTask
+                {
+                    Id = Guid.NewGuid(),
+                    TripInstanceId = id,
+                    TaskType = TaskType.GenerateNdisClaims,
+                    Title = taskTitle,
+                    Priority = TaskPriority.High,
+                    Status = TaskItemStatus.NotStarted,
+                    DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
+                    OwnerId = t.LeadCoordinatorId
+                });
+            }
+        }
+
+        if (dto.Status.HasValue) t.Status = dto.Status.Value;
+        t.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return Ok(ApiResponse<bool>.Ok(true));
+    }
+
     /// <summary>Soft-delete (archive) a trip.</summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var t = await _db.TripInstances.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -159,7 +225,7 @@ public class TripsController : ControllerBase
                 WheelchairRequired = b.WheelchairRequired, HighSupportRequired = b.HighSupportRequired,
                 NightSupportRequired = b.NightSupportRequired, HasRestrictivePracticeFlag = b.HasRestrictivePracticeFlag,
                 SupportRatioOverride = b.SupportRatioOverride, ActionRequired = b.ActionRequired,
-                InsuranceStatus = b.InsuranceStatus
+                InsuranceStatus = b.InsuranceStatus, PaymentStatus = b.PaymentStatus
             }).ToListAsync(ct);
         return Ok(ApiResponse<List<BookingListDto>>.Ok(bookings));
     }

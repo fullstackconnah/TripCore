@@ -8,9 +8,11 @@
 CLAUDE.md
 .worktrees/
 .superpowers/
+.claude-flow/
+.serena/
+.swarm/
+.playwright-mcp/
 
-# ── Documentation / planning ─────────────────────────────────────────────────
-docs/
 
 # ── .NET build artifacts ─────────────────────────────────────────────────────
 backend/**/bin/
@@ -32,3 +34,11 @@ desktop.ini
 
 # ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
+
+# ── Frontend build artifacts ──────────────────────────────────────────────────
+frontend/dist/
+frontend/node_modules/
+
+# ── Root-level Node artifacts (claude-flow / other tooling) ──────────────────
+node_modules/
+package-lock.json

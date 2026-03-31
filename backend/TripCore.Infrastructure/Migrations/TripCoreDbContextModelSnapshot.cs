@@ -111,6 +111,9 @@ namespace TripCore.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -125,6 +128,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("IsWheelchairAccessible");
 
                     b.HasIndex("Region");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("AccommodationProperties");
                 });
@@ -249,6 +254,25 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("Activities");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.AppSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("QualificationWarningDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("AppSettings");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.BookingTask", b =>
                 {
                     b.Property<Guid>("Id")
@@ -327,6 +351,78 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("BookingTasks");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.ClaimLineItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ClaimType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DayType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GSTCode")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("ParticipantApproved")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ParticipantBookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SupportItemCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateOnly>("SupportsDeliveredFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("SupportsDeliveredTo")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("TripClaimId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParticipantBookingId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TripClaimId");
+
+                    b.ToTable("ClaimLineItems");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.Contact", b =>
                 {
                     b.Property<Guid>("Id")
@@ -335,6 +431,9 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("text");
+
+                    b.Property<int>("ContactType")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -446,6 +545,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int?>("StandardDurationDays")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TypicalActivities")
                         .HasColumnType("text");
 
@@ -461,6 +563,8 @@ namespace TripCore.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("IsActive");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("EventTemplates");
                 });
@@ -631,6 +735,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<bool>("IsHighSupport")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsIntensiveSupport")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsRepeatClient")
                         .HasColumnType("boolean");
 
@@ -652,6 +759,15 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<DateOnly?>("PlanEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("PlanManagerContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("PlanStartDate")
+                        .HasColumnType("date");
+
                     b.Property<int>("PlanType")
                         .HasColumnType("integer");
 
@@ -669,6 +785,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("SupportRatio")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TransportRequirements")
                         .HasColumnType("text");
 
@@ -684,9 +803,13 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.HasIndex("NdisNumber");
 
+                    b.HasIndex("PlanManagerContactId");
+
                     b.HasIndex("Region");
 
                     b.HasIndex("SupportRatio");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Participants");
                 });
@@ -709,8 +832,14 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("BookingStatus")
                         .HasColumnType("integer");
 
+                    b.Property<DateOnly?>("CancellationNoticeDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("CancellationReason")
                         .HasColumnType("text");
+
+                    b.Property<int>("ClaimStatus")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -745,11 +874,11 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<bool>("NightSupportRequired")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("OopPaymentStatus")
-                        .HasColumnType("text");
-
                     b.Property<Guid>("ParticipantId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("PlanTypeOverride")
                         .HasColumnType("integer");
@@ -802,6 +931,95 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("ContactId");
 
                     b.ToTable("ParticipantContacts");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.ProviderSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ABN")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("AccountNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("BSB")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("BankAccountName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("GSTRegistered")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("InvoiceFooterNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsPaceProvider")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OrganisationName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("RegistrationNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("ProviderSettings");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.PublicHoliday", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("Date", "State");
+
+                    b.ToTable("PublicHolidays");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.ScheduledActivity", b =>
@@ -896,9 +1114,15 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateOnly?>("DriverLicenceExpiryDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateOnly?>("FirstAidExpiryDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -928,6 +1152,12 @@ namespace TripCore.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateOnly?>("ManualHandlingExpiryDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("MedicationCompetencyExpiryDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Mobile")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -942,6 +1172,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -952,6 +1185,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("Region");
 
                     b.HasIndex("Role");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Staff");
                 });
@@ -1051,6 +1286,135 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("StaffAvailabilities");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.SupportActivityGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("GroupCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SupportCategory")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupCode")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("SupportActivityGroups");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.SupportCatalogueItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CatalogueVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("DayType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsIntensive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ItemNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("PriceLimit_ACT")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_NSW")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_NT")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_QLD")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_Remote")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_SA")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_TAS")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_VIC")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_VeryRemote")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_WA")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityGroupId");
+
+                    b.HasIndex("DayType");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("ItemNumber", "CatalogueVersion");
+
+                    b.ToTable("SupportCatalogueItems");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.SupportProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1098,6 +1462,89 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("SupportProfiles");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("EmailDomain")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailDomain")
+                        .IsUnique();
+
+                    b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.TripClaim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuthorisedByStaffId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ClaimReference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SubmittedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalApprovedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("TripInstanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorisedByStaffId");
+
+                    b.HasIndex("ClaimReference")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TripInstanceId");
+
+                    b.ToTable("TripClaims");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.TripDay", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1118,6 +1565,15 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.Property<string>("DayTitle")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPublicHoliday")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("OvernightHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("OvernightType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("TripInstanceId")
                         .HasColumnType("uuid");
@@ -1189,6 +1645,9 @@ namespace TripCore.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("ActiveHoursPerDay")
+                        .HasColumnType("numeric");
+
                     b.Property<DateOnly?>("BookingCutoffDate")
                         .HasColumnType("date");
 
@@ -1197,6 +1656,12 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid?>("DefaultActivityGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<TimeOnly?>("DepartureTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<string>("Destination")
                         .HasMaxLength(200)
@@ -1236,11 +1701,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<int?>("RequiredWheelchairCapacity")
                         .HasColumnType("integer");
 
+                    b.Property<TimeOnly?>("ReturnTime")
+                        .HasColumnType("time without time zone");
+
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("TripCode")
                         .HasMaxLength(20)
@@ -1256,6 +1727,8 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DefaultActivityGroupId");
+
                     b.HasIndex("EventTemplateId");
 
                     b.HasIndex("LeadCoordinatorId");
@@ -1265,6 +1738,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("StartDate");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("TripCode")
                         .IsUnique()
@@ -1303,15 +1778,13 @@ namespace TripCore.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1330,6 +1803,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.HasIndex("StaffId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -1371,6 +1846,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<DateOnly?>("ServiceDueDate")
                         .HasColumnType("date");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("TotalSeats")
                         .HasColumnType("integer");
 
@@ -1391,6 +1869,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsActive");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("VehicleType");
 
@@ -1455,6 +1935,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.ToTable("VehicleAssignments");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.AccommodationProperty", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.AccommodationReservation", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.AccommodationProperty", "AccommodationProperty")
@@ -1482,6 +1973,17 @@ namespace TripCore.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("EventTemplate");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.AppSettings", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.BookingTask", b =>
@@ -1530,6 +2032,36 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("VehicleAssignment");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.ClaimLineItem", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.ParticipantBooking", "ParticipantBooking")
+                        .WithMany()
+                        .HasForeignKey("ParticipantBookingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TripCore.Domain.Entities.TripClaim", "TripClaim")
+                        .WithMany("LineItems")
+                        .HasForeignKey("TripClaimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParticipantBooking");
+
+                    b.Navigation("TripClaim");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.EventTemplate", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.IncidentReport", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.Participant", "InvolvedParticipant")
@@ -1557,7 +2089,7 @@ namespace TripCore.Infrastructure.Migrations
                     b.HasOne("TripCore.Domain.Entities.TripInstance", "TripInstance")
                         .WithMany("IncidentReports")
                         .HasForeignKey("TripInstanceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("InvolvedParticipant");
@@ -1571,6 +2103,24 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("ReviewedByStaff");
 
                     b.Navigation("TripInstance");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.Participant", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Contact", "PlanManagerContact")
+                        .WithMany()
+                        .HasForeignKey("PlanManagerContactId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlanManagerContact");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.ParticipantBooking", b =>
@@ -1611,6 +2161,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Participant");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.ProviderSettings", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.ScheduledActivity", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.Activity", "Activity")
@@ -1627,6 +2188,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Activity");
 
                     b.Navigation("TripDay");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.Staff", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.StaffAssignment", b =>
@@ -1659,6 +2231,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Staff");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.SupportCatalogueItem", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.SupportActivityGroup", "ActivityGroup")
+                        .WithMany("Items")
+                        .HasForeignKey("ActivityGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActivityGroup");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.SupportProfile", b =>
                 {
                     b.HasOne("TripCore.Domain.Entities.Participant", "Participant")
@@ -1668,6 +2251,24 @@ namespace TripCore.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.TripClaim", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Staff", "AuthorisedByStaff")
+                        .WithMany()
+                        .HasForeignKey("AuthorisedByStaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TripCore.Domain.Entities.TripInstance", "TripInstance")
+                        .WithMany("TripClaims")
+                        .HasForeignKey("TripInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AuthorisedByStaff");
+
+                    b.Navigation("TripInstance");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.TripDay", b =>
@@ -1701,6 +2302,11 @@ namespace TripCore.Infrastructure.Migrations
 
             modelBuilder.Entity("TripCore.Domain.Entities.TripInstance", b =>
                 {
+                    b.HasOne("TripCore.Domain.Entities.SupportActivityGroup", "DefaultActivityGroup")
+                        .WithMany()
+                        .HasForeignKey("DefaultActivityGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("TripCore.Domain.Entities.EventTemplate", "EventTemplate")
                         .WithMany("TripInstances")
                         .HasForeignKey("EventTemplateId")
@@ -1711,9 +2317,19 @@ namespace TripCore.Infrastructure.Migrations
                         .HasForeignKey("LeadCoordinatorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DefaultActivityGroup");
+
                     b.Navigation("EventTemplate");
 
                     b.Navigation("LeadCoordinator");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.User", b =>
@@ -1723,7 +2339,26 @@ namespace TripCore.Infrastructure.Migrations
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany("Users")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Staff");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.Vehicle", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.VehicleAssignment", b =>
@@ -1807,6 +2442,21 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Tasks");
                 });
 
+            modelBuilder.Entity("TripCore.Domain.Entities.SupportActivityGroup", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.Tenant", b =>
+                {
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.TripClaim", b =>
+                {
+                    b.Navigation("LineItems");
+                });
+
             modelBuilder.Entity("TripCore.Domain.Entities.TripDay", b =>
                 {
                     b.Navigation("ScheduledActivities");
@@ -1825,6 +2475,8 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("StaffAssignments");
 
                     b.Navigation("Tasks");
+
+                    b.Navigation("TripClaims");
 
                     b.Navigation("TripDays");
 

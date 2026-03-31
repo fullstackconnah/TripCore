@@ -87,16 +87,16 @@ export default function AccommodationPage() {
                 </div>
               </div>
               <div className="space-y-2 text-sm text-[var(--color-muted-foreground)]">
-                <p>📍 {a.location || '—'} {a.region ? `· ${a.region}` : ''}</p>
+                <p className="flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">location_on</span> {a.location || '—'} {a.region ? `· ${a.region}` : ''}</p>
                 <div className="flex flex-wrap gap-2">
-                  {a.isWheelchairAccessible && <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400">♿ Accessible</span>}
+                  {a.isWheelchairAccessible && <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">accessible</span> Accessible</span>}
                   {a.isFullyModified && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400">Fully Modified</span>}
                   {a.isSemiModified && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400">Semi Modified</span>}
                 </div>
                 <div className="flex gap-4 pt-2 border-t border-[var(--color-border)]">
-                  <span>🛏 {a.bedCount || '—'} beds</span>
-                  <span>🚪 {a.bedroomCount || '—'} rooms</span>
-                  <span>👥 max {a.maxCapacity || '—'}</span>
+                  <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">bed</span> {a.bedCount || '—'} beds</span>
+                  <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">meeting_room</span> {a.bedroomCount || '—'} rooms</span>
+                  <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none">group</span> max {a.maxCapacity || '—'}</span>
                 </div>
               </div>
             </Link>

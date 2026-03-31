@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useActivities, useCreateScheduledActivity, useUpdateScheduledActivity } from '@/api/hooks'
+import { Dropdown } from './Dropdown'
 
 interface AddActivityModalProps {
   tripDayId: string
@@ -133,12 +134,16 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
         {sourceTab === 'library' && !editingActivity && (
           <div className="mb-4">
             <label className={labelClass}>Activity Library</label>
-            <select value={selectedActivityId} onChange={e => handleLibrarySelect(e.target.value)} className={inputClass}>
-              <option value="">Select an activity...</option>
-              {filteredActivities.map((a: any) => (
-                <option key={a.id} value={a.id}>{a.activityName} ({a.category})</option>
-              ))}
-            </select>
+            <Dropdown
+              variant="form"
+              value={selectedActivityId}
+              onChange={handleLibrarySelect}
+              label="Select an activity..."
+              items={[
+                { value: '', label: 'Select an activity...' },
+                ...filteredActivities.map((a: any) => ({ value: String(a.id), label: `${a.activityName} (${a.category})` })),
+              ]}
+            />
           </div>
         )}
 
@@ -167,9 +172,12 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Status *</label>
-              <select value={status} onChange={e => setStatus(e.target.value)} className={inputClass}>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <Dropdown
+                variant="form"
+                value={status}
+                onChange={setStatus}
+                items={STATUS_OPTIONS.map(s => ({ value: s, label: s }))}
+              />
             </div>
             <div>
               <label className={labelClass}>Estimated Cost</label>

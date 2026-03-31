@@ -25,3 +25,8 @@ export function getStatusColor(status: string): string {
   if (['none'].includes(s)) return 'bg-[#e4e2de] text-[#43493a]'
   return 'bg-[#fef3c7] text-[#92400e]'
 }
+
+export function formatCurrency(amount: number | null | undefined): string {
+  if (amount == null) return '—'
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(amount)
+}

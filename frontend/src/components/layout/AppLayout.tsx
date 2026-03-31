@@ -4,6 +4,7 @@ import {
   ListChecks, Settings, LogOut, Menu, X, ClipboardList, AlertTriangle, Plus
 } from 'lucide-react'
 import { useState } from 'react'
+import TenantSwitcher from '@/components/layout/TenantSwitcher'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard' },
@@ -16,6 +17,7 @@ const navItems = [
   { to: '/tasks', icon: ListChecks, label: 'Tasks', msIcon: 'checklist' },
   { to: '/incidents', icon: AlertTriangle, label: 'Incidents', msIcon: 'emergency' },
   { to: '/bookings', icon: ClipboardList, label: 'Bookings', msIcon: 'description' },
+  { to: '/qualifications', icon: Settings, label: 'Qualifications', msIcon: 'health_and_safety' },
   { to: '/settings', icon: Settings, label: 'Settings', msIcon: 'settings' },
 ]
 
@@ -26,6 +28,7 @@ export default function AppLayout() {
   const handleLogout = () => {
     localStorage.removeItem('tripcore_token')
     localStorage.removeItem('tripcore_user')
+    localStorage.removeItem('tripcore_viewing_tenant')
     window.location.href = '/login'
   }
 
@@ -47,7 +50,7 @@ export default function AppLayout() {
               <span className="material-symbols-outlined text-[#dfffb7]" style={{ fontSize: '18px' }}>travel_explore</span>
             </div>
             <div>
-              <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trip Planner</span>
+              <span className="font-extrabold text-[#396200] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>TripCore</span>
               <p className="text-[10px] text-[#43493a] opacity-70 leading-none mt-0.5">NDIS Management</p>
             </div>
           </div>
@@ -98,6 +101,11 @@ export default function AppLayout() {
               <button className="lg:hidden p-2 rounded-xl hover:bg-[#efeeea] transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
+              {user.tenantName && (
+                <span className="hidden sm:inline-flex text-xs bg-[#396200]/10 text-[#396200] px-2.5 py-0.5 rounded-full border border-[#396200]/20 font-medium">
+                  {user.tenantName}
+                </span>
+              )}
               <div className="hidden md:flex items-center bg-[#f5f3ef] rounded-full px-4 py-2 gap-3 min-w-[280px]">
                 <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '18px' }}>search</span>
                 <input
@@ -108,6 +116,7 @@ export default function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {user.role === 'SuperAdmin' && <TenantSwitcher />}
               <button className="p-2 rounded-full hover:bg-[#efeeea] transition-colors">
                 <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '22px' }}>notifications</span>
               </button>

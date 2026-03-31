@@ -1,13 +1,16 @@
 using TripCore.Domain.Enums;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Master record for every NDIS client/participant.
 /// </summary>
-public class Participant
+public class Participant : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? PreferredName { get; set; }
@@ -23,6 +26,7 @@ public class Participant
     public bool IsActive { get; set; } = true;
     public bool WheelchairRequired { get; set; }
     public bool IsHighSupport { get; set; }
+    public bool IsIntensiveSupport { get; set; }
     public bool RequiresOvernightSupport { get; set; }
     public bool HasRestrictivePracticeFlag { get; set; }
     public SupportRatio SupportRatio { get; set; }
@@ -32,6 +36,10 @@ public class Participant
     public string? MedicalSummary { get; set; }
     public string? BehaviourRiskSummary { get; set; }
     public string? Notes { get; set; }
+    public DateOnly? PlanStartDate { get; set; }
+    public DateOnly? PlanEndDate { get; set; }
+    public Guid? PlanManagerContactId { get; set; }
+    public Contact? PlanManagerContact { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

@@ -1,13 +1,16 @@
 using TripCore.Domain.Enums;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Domain.Entities;
 
 /// <summary>
 /// Central hub entity — an actual scheduled trip departure.
 /// </summary>
-public class TripInstance
+public class TripInstance : ITenantEntity
 {
     public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public string TripName { get; set; } = string.Empty;
     public string? TripCode { get; set; }
     public Guid? EventTemplateId { get; set; }
@@ -30,6 +33,11 @@ public class TripInstance
     public int? MinStaffRequired { get; set; }
     public decimal CalculatedStaffRequired { get; set; }
     public string? Notes { get; set; }
+    public Guid? DefaultActivityGroupId { get; set; }
+    public SupportActivityGroup? DefaultActivityGroup { get; set; }
+    public decimal ActiveHoursPerDay { get; set; } = 8;
+    public TimeOnly? DepartureTime { get; set; }
+    public TimeOnly? ReturnTime { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -42,4 +50,5 @@ public class TripInstance
     public ICollection<TripDocument> Documents { get; set; } = new List<TripDocument>();
     public ICollection<TripDay> TripDays { get; set; } = new List<TripDay>();
     public ICollection<IncidentReport> IncidentReports { get; set; } = new List<IncidentReport>();
+    public ICollection<TripClaim> TripClaims { get; set; } = new List<TripClaim>();
 }

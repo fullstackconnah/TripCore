@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useMemo, useRef, useEffect } from 'react'
 import { formatDateAu, getStatusColor, formatCurrency } from '@/lib/utils'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Check } from 'lucide-react'
-import { Dropdown, type DropdownItem } from '@/components/Dropdown'
+import { type DropdownItem } from '@/components/Dropdown'
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -146,6 +146,16 @@ export function DataTable<T>({
     return sorted
   }, [data, activeSort, columns])
 
+  const selectAllRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!selectAllRef.current || !selectable || !sortedData.length) return
+    const selectedCount = sortedData.filter(row =>
+      selectedRows?.has(String((row as any)[keyField]))
+    ).length
+    selectAllRef.current.indeterminate = selectedCount > 0 && selectedCount < sortedData.length
+  }, [selectedRows, sortedData, keyField, selectable])
+
   function handleSort(key: string) {
     if (!sortable) return
     const col = columns.find(c => c.key === key)
@@ -180,6 +190,31 @@ export function DataTable<T>({
       <table className="w-full text-sm">
         <thead className="bg-[var(--color-accent)]">
           <tr>
+            {selectable && (
+              <th className={`${cellPadding} w-10`}>
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  checked={
+                    sortedData.length > 0 &&
+                    sortedData.every(row =>
+                      selectedRows?.has(String((row as any)[keyField]))
+                    )
+                  }
+                  onChange={e => {
+                    if (e.target.checked) {
+                      onSelectionChange?.(
+                        new Set(sortedData.map(row => String((row as any)[keyField])))
+                      )
+                    } else {
+                      onSelectionChange?.(new Set())
+                    }
+                  }}
+                  className="rounded border-[var(--color-border)] accent-[#396200] cursor-pointer"
+                  aria-label="Select all rows"
+                />
+              </th>
+            )}
             {visibleColumns.map(col => {
               const isSortable = sortable && col.sortable
               const isSorted = activeSort?.key === col.key
@@ -213,7 +248,7 @@ export function DataTable<T>({
         <tbody className="divide-y divide-[var(--color-border)]">
           {loading && data.length === 0 && (
             <tr>
-              <td colSpan={visibleColumns.length} className={`${cellPadding} py-8 text-center text-[var(--color-muted-foreground)]`}>
+              <td colSpan={visibleColumns.length + (selectable ? 1 : 0)} className={`${cellPadding} py-8 text-center text-[var(--color-muted-foreground)]`}>
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
                   Loading...
@@ -223,7 +258,7 @@ export function DataTable<T>({
           )}
           {!loading && sortedData.length === 0 && (
             <tr>
-              <td colSpan={visibleColumns.length} className={`${cellPadding} py-6 text-center text-[var(--color-muted-foreground)]`} aria-live="polite">
+              <td colSpan={visibleColumns.length + (selectable ? 1 : 0)} className={`${cellPadding} py-6 text-center text-[var(--color-muted-foreground)]`} aria-live="polite">
                 {emptyMessage}
               </td>
             </tr>
@@ -243,6 +278,28 @@ export function DataTable<T>({
                 tabIndex={isClickable ? 0 : undefined}
                 role={isClickable ? 'button' : undefined}
               >
+                {selectable && (
+                  <td
+                    className={`${cellPadding} w-10`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRows?.has(rowKey) ?? false}
+                      onChange={e => {
+                        const next = new Set(selectedRows ?? [])
+                        if (e.target.checked) {
+                          next.add(rowKey)
+                        } else {
+                          next.delete(rowKey)
+                        }
+                        onSelectionChange?.(next)
+                      }}
+                      className="rounded border-[var(--color-border)] accent-[#396200] cursor-pointer"
+                      aria-label={`Select row ${rowKey}`}
+                    />
+                  </td>
+                )}
                 {visibleColumns.map(col => {
                   const alignClass = col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : ''
 

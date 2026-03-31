@@ -658,7 +658,9 @@ public class TripCoreDbContext : DbContext
             foreach (var entry in ChangeTracker.Entries<ITenantEntity>()
                 .Where(e => e.State == EntityState.Added))
             {
-                entry.Entity.TenantId = _tenant.TenantId.Value;
+                // Only set TenantId if it hasn't been explicitly assigned (e.g. by SuperAdmin)
+                if (entry.Entity.TenantId == default)
+                    entry.Entity.TenantId = _tenant.TenantId.Value;
             }
         }
 

@@ -80,12 +80,13 @@ export default function UserSwitcher() {
             {users.map(user => (
               <button
                 key={user.id}
-                onClick={() => selectUser(user)}
+                onClick={() => !user.isActive ? undefined : selectUser(user)}
+                disabled={!user.isActive}
                 className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-colors ${
                   user.id === viewingUserId
                     ? 'bg-[rgba(234,88,12,0.15)]'
-                    : 'hover:bg-[rgba(255,255,255,0.05)]'
-                } ${!user.isActive ? 'opacity-50' : ''}`}
+                    : user.isActive ? 'hover:bg-[rgba(255,255,255,0.05)]' : ''
+                } ${!user.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${user.isActive ? 'bg-[#22c55e]' : 'bg-[#ef4444]'}`} />
                 <span className={`text-sm flex-1 ${user.id === viewingUserId ? 'text-[#e2e8f0] font-medium' : 'text-[#94a3b8]'}`}>

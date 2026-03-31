@@ -36,7 +36,10 @@ public sealed class CurrentTenant : ICurrentTenant
             }
         }
 
-        // User-level view-as: only a SuperAdmin who has scoped to a tenant may set this
+        // User-level view-as: only a SuperAdmin who has scoped to a tenant may set this.
+        // Note: ViewAsUserId is accepted without validating that the user belongs to the selected
+        // tenant. This is safe while ViewAsUserId has no backend consumers; add validation
+        // (e.g. a DB lookup) before using it in query filters or audit logs.
         if (wasSuperAdmin && TenantId.HasValue)
         {
             var userHeader = accessor.HttpContext?.Request.Headers["X-View-As-User"].FirstOrDefault();

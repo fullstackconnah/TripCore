@@ -18,6 +18,10 @@ apiClient.interceptors.request.use((config) => {
   if (viewingTenantId) {
     config.headers['X-View-As-Tenant'] = viewingTenantId
   }
+  const viewingUserId = localStorage.getItem('tripcore_viewing_user')
+  if (viewingUserId) {
+    config.headers['X-View-As-User'] = viewingUserId
+  }
   return config
 })
 
@@ -49,6 +53,8 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('tripcore_token')
       localStorage.removeItem('tripcore_user')
       localStorage.removeItem('tripcore_viewing_tenant')
+      localStorage.removeItem('tripcore_viewing_user')
+      localStorage.removeItem('tripcore_superadmin_user')
       window.location.href = '/login'
     }
     return Promise.reject(error)

@@ -6,6 +6,13 @@ export interface TenantDto {
   createdAt: string
 }
 
+export interface TenantUserDto {
+  id: string
+  fullName: string
+  role: string
+  isActive: boolean
+}
+
 export interface CreateTenantDto {
   name: string
   emailDomain: string

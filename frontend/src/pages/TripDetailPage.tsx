@@ -338,9 +338,9 @@ export default function TripDetailPage() {
         propertyName: newPropertyForm.propertyName,
         location: newPropertyForm.location || null,
         region: newPropertyForm.region || null,
-        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : null,
-        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : null,
-        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : null,
+        bedroomCount: newPropertyForm.bedroomCount ? parseInt(newPropertyForm.bedroomCount) : undefined,
+        bedCount: newPropertyForm.bedCount ? parseInt(newPropertyForm.bedCount) : undefined,
+        maxCapacity: newPropertyForm.maxCapacity ? parseInt(newPropertyForm.maxCapacity) : undefined,
         isActive: true,
       }, {
         onSuccess: (res: any) => {
@@ -437,7 +437,7 @@ export default function TripDetailPage() {
     updateBooking.mutate({ id: editingBooking.id, data: {
       ...editForm,
       supportRatioOverride: (editForm.supportRatioOverride || undefined) as SupportRatio | undefined,
-      insuranceStatus: editForm.insuranceStatus,
+      insuranceStatus: editForm.insuranceStatus as InsuranceStatus,
       insuranceProvider: editForm.insuranceProvider ?? undefined,
       insurancePolicyNumber: editForm.insurancePolicyNumber ?? undefined,
       insuranceCoverageStart: editForm.insuranceCoverageStart ?? undefined,
@@ -473,7 +473,7 @@ export default function TripDetailPage() {
       highSupportRequired,
       nightSupportRequired,
       hasRestrictivePracticeFlag,
-      ...(supportRatioOverride ? { supportRatioOverride } : {}),
+      ...(supportRatioOverride ? { supportRatioOverride: supportRatioOverride as SupportRatio } : {}),
       ...(bookingNotes ? { bookingNotes } : {}),
       insuranceStatus: insuranceStatus as InsuranceStatus,
       ...(insuranceProvider ? { insuranceProvider } : {}),

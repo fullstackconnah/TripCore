@@ -8,6 +8,9 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Singleton refresh promise — prevents concurrent 401s from each calling /auth/exchange
+let refreshPromise: Promise<string | null> | null = null
+
 // JWT interceptor
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('tripcore_token')
@@ -30,22 +33,33 @@ apiClient.interceptors.response.use(
   async (error) => {
     const config = error.config as typeof error.config & { _retried?: boolean }
     if (error.response?.status === 401 && !config._retried) {
+      config._retried = true
       try {
-        const { auth } = await import('../lib/firebase')
-        const currentUser = auth.currentUser
-        if (currentUser) {
-          const idToken = await currentUser.getIdToken(true)
-          const exchangeRes = await apiClient.post<ApiResponse<{ token: string }>>(
-            '/auth/exchange',
-            { idToken }
-          )
-          const newToken = exchangeRes.data.data?.token
-          if (newToken) {
-            localStorage.setItem('tripcore_token', newToken)
-            config._retried = true
-            config.headers.Authorization = `Bearer ${newToken}`
-            return apiClient(config)
-          }
+        // Deduplicate concurrent refresh calls — reuse in-flight promise instead of
+        // spawning a new /auth/exchange request for every simultaneous 401
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            try {
+              const { auth } = await import('../lib/firebase')
+              const currentUser = auth.currentUser
+              if (!currentUser) return null
+              const idToken = await currentUser.getIdToken(true)
+              const exchangeRes = await apiClient.post<ApiResponse<{ token: string }>>(
+                '/auth/exchange',
+                { idToken }
+              )
+              const newToken = exchangeRes.data.data?.token ?? null
+              if (newToken) localStorage.setItem('tripcore_token', newToken)
+              return newToken
+            } finally {
+              refreshPromise = null
+            }
+          })()
+        }
+        const newToken = await refreshPromise
+        if (newToken) {
+          config.headers.Authorization = `Bearer ${newToken}`
+          return apiClient(config)
         }
       } catch {
         // Firebase refresh failed — fall through to logout

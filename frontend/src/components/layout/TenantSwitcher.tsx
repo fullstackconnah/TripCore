@@ -69,6 +69,13 @@ export default function TenantSwitcher() {
   }, [])
 
   const switchTenant = (tenantId: string) => {
+    // Restore original SuperAdmin user if we were impersonating
+    const savedAdmin = localStorage.getItem('tripcore_superadmin_user')
+    if (savedAdmin) {
+      localStorage.setItem('tripcore_user', savedAdmin)
+      localStorage.removeItem('tripcore_superadmin_user')
+    }
+    localStorage.removeItem('tripcore_viewing_user')
     localStorage.setItem('tripcore_viewing_tenant', tenantId)
     localStorage.setItem('tripcore_last_tenant', tenantId)
     window.location.reload()

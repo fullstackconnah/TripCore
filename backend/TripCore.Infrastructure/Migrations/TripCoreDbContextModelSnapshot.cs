@@ -357,6 +357,9 @@ namespace TripCore.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("text");
+
                     b.Property<int>("ClaimType")
                         .HasColumnType("integer");
 
@@ -732,6 +735,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<bool>("IsHighSupport")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsIntensiveSupport")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsRepeatClient")
                         .HasColumnType("boolean");
 
@@ -975,7 +981,16 @@ namespace TripCore.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("ProviderSettings");
                 });
@@ -1334,24 +1349,27 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsIntensive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ItemNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<decimal>("PriceLimit_1to2")
+                    b.Property<decimal>("PriceLimit_ACT")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<decimal>("PriceLimit_1to3")
+                    b.Property<decimal>("PriceLimit_NSW")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<decimal>("PriceLimit_1to4")
+                    b.Property<decimal>("PriceLimit_NT")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<decimal>("PriceLimit_1to5")
+                    b.Property<decimal>("PriceLimit_QLD")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -1359,11 +1377,23 @@ namespace TripCore.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<decimal>("PriceLimit_Standard")
+                    b.Property<decimal>("PriceLimit_SA")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_TAS")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_VIC")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("PriceLimit_VeryRemote")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PriceLimit_WA")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -1630,6 +1660,9 @@ namespace TripCore.Infrastructure.Migrations
                     b.Property<Guid?>("DefaultActivityGroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<TimeOnly?>("DepartureTime")
+                        .HasColumnType("time without time zone");
+
                     b.Property<string>("Destination")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -1667,6 +1700,9 @@ namespace TripCore.Infrastructure.Migrations
 
                     b.Property<int?>("RequiredWheelchairCapacity")
                         .HasColumnType("integer");
+
+                    b.Property<TimeOnly?>("ReturnTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
@@ -1741,11 +1777,6 @@ namespace TripCore.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
@@ -2128,6 +2159,17 @@ namespace TripCore.Infrastructure.Migrations
                     b.Navigation("Contact");
 
                     b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("TripCore.Domain.Entities.ProviderSettings", b =>
+                {
+                    b.HasOne("TripCore.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("TripCore.Domain.Entities.ScheduledActivity", b =>

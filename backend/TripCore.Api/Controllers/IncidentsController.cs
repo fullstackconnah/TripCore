@@ -134,7 +134,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator,SupportWorker")]
+    [Authorize(Roles = "Admin,Coordinator,SupportWorker,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<IncidentListDto>>> Create([FromBody] CreateIncidentDto dto, CancellationToken ct)
     {
         var incident = new IncidentReport
@@ -172,7 +172,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<IncidentListDto>>> Update(Guid id, [FromBody] UpdateIncidentDto dto, CancellationToken ct)
     {
         var i = await _db.IncidentReports.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -220,7 +220,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var i = await _db.IncidentReports.FirstOrDefaultAsync(x => x.Id == id, ct);

@@ -21,6 +21,7 @@ public class ClaimLineItem
 
     public GSTCode GSTCode { get; set; }
     public ClaimType ClaimType { get; set; } = ClaimType.Standard;
+    public string? CancellationReason { get; set; }
     public bool ParticipantApproved { get; set; }
 
     public ClaimLineItemStatus Status { get; set; } = ClaimLineItemStatus.Draft;

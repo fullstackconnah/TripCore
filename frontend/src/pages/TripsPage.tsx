@@ -1,4 +1,5 @@
 import { useTrips, useUpdateTrip, usePatchTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
+import type { TripStatus } from '@/api/types'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
@@ -231,7 +232,7 @@ export default function TripsPage() {
                   <Dropdown
                     variant="pill"
                     value={t.status}
-                    onChange={val => patchTrip.mutate({ id: t.id, data: { status: val } })}
+                    onChange={val => patchTrip.mutate({ id: t.id, data: { status: val as TripStatus } })}
                     colorClass={getStatusColor(t.status)}
                     items={TRIP_STATUS_ITEMS}
                   />

@@ -292,7 +292,8 @@ public enum ClaimDayType
     Sunday = 2,
     Weekend = 3,
     PublicHoliday = 4,
-    ShortNotice = 5
+    ShortNotice = 5,
+    WeekdayEvening = 6
 }
 
 public enum ClaimType

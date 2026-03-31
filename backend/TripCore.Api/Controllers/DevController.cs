@@ -9,7 +9,7 @@ namespace TripCore.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/dev")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class DevController : ControllerBase
 {
     private readonly TripCoreDbContext _db;

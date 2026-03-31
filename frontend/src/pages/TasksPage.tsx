@@ -1,6 +1,6 @@
 import { useTasks, useUpdateTask, useDeleteTask } from '@/api/hooks'
+import { DataTable, type Column } from '@/components/DataTable'
 import { Link } from 'react-router-dom'
-import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { useState } from 'react'
 import { Filter, CheckCircle, Plus, Pencil, Trash2, ArchiveRestore } from 'lucide-react'
 
@@ -18,7 +18,8 @@ export default function TasksPage() {
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
 
-  const markComplete = async (task: any) => {
+  const markComplete = async (e: React.MouseEvent, task: any) => {
+    e.stopPropagation()
     await updateTask.mutateAsync({ id: task.id, data: { ...task, status: 'Completed', completedDate: new Date().toISOString().split('T')[0] } })
   }
 
@@ -35,6 +36,52 @@ export default function TasksPage() {
       deleteTask.mutate(id)
     }
   }
+
+  const taskColumns: Column<any>[] = [
+    {
+      key: 'checkbox',
+      header: '',
+      hidden: showArchived,
+      render: (t) => t.status !== 'Completed' && t.status !== 'Cancelled' ? (
+        <button onClick={(e) => markComplete(e, t)} className="p-1 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Mark complete">
+          <CheckCircle className="w-4 h-4" />
+        </button>
+      ) : null,
+    },
+    { key: 'title', header: 'Task', sortable: true, className: 'font-medium' },
+    { key: 'tripName', header: 'Trip', sortable: true },
+    { key: 'taskType', header: 'Type', sortable: true },
+    { key: 'ownerName', header: 'Owner', sortable: true },
+    { key: 'dueDate', header: 'Due', type: 'date', sortable: true },
+    {
+      key: 'priority',
+      header: 'Priority',
+      render: (t) => <span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span>,
+    },
+    { key: 'status', header: 'Status', type: 'badge', sortable: true },
+    {
+      key: 'actions',
+      header: '',
+      render: (t) => (
+        <div className="flex items-center gap-1">
+          <Link to={`/tasks/${t.id}/edit`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
+            <Pencil className="w-4 h-4" />
+          </Link>
+          {showArchived ? (
+            <button onClick={(e) => handleRestore(e, t)}
+              className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
+              <ArchiveRestore className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={(e) => handleDelete(e, t.id, t.title)}
+              className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -77,65 +124,14 @@ export default function TasksPage() {
         )}
       </div>
 
-      {isLoading ? <div className="text-center py-12 text-[var(--color-muted-foreground)]">Loading...</div> : (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-accent)]">
-              <tr>
-                {!showArchived && <th className="w-10 p-3"></th>}
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Task</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Trip</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Type</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Owner</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Due</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Priority</th>
-                <th className="text-left p-3 font-medium text-[var(--color-muted-foreground)]">Status</th>
-                <th className="w-20 p-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {tasks.map((t: any) => (
-                <tr key={t.id} className="hover:bg-[var(--color-accent)]/50 transition-colors">
-                  {!showArchived && (
-                    <td className="p-3">
-                      {t.status !== 'Completed' && t.status !== 'Cancelled' && (
-                        <button onClick={() => markComplete(t)} className="p-1 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Mark complete">
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  )}
-                  <td className="p-3 font-medium">{t.title}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{t.tripName || '—'}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{t.taskType}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{t.ownerName || 'Unassigned'}</td>
-                  <td className="p-3 text-[var(--color-muted-foreground)]">{formatDateAu(t.dueDate)}</td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${t.priority === 'High' || t.priority === 'Urgent' ? 'badge-overdue' : 'badge-info'}`}>{t.priority}</span></td>
-                  <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(t.status)}`}>{t.status}</span></td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      <Link to={`/tasks/${t.id}/edit`} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
-                        <Pencil className="w-4 h-4" />
-                      </Link>
-                      {showArchived ? (
-                        <button onClick={(e) => handleRestore(e, t)}
-                          className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
-                          <ArchiveRestore className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <button onClick={(e) => handleDelete(e, t.id, t.title)}
-                          className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={tasks}
+        columns={taskColumns}
+        keyField="id"
+        sortable
+        loading={isLoading}
+        emptyMessage="No tasks found"
+      />
     </div>
   )
 }

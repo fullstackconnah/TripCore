@@ -96,7 +96,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<BookingDetailDto>>> Create([FromBody] CreateBookingDto dto, CancellationToken ct)
     {
         var booking = new ParticipantBooking
@@ -152,7 +152,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<BookingDetailDto>>> Update(Guid id, [FromBody] UpdateBookingDto dto, CancellationToken ct)
     {
         var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -208,7 +208,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -274,7 +274,7 @@ public class AccommodationController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<AccommodationDetailDto>>> Create([FromBody] CreateAccommodationDto dto, CancellationToken ct)
     {
         var prop = new AccommodationProperty
@@ -296,7 +296,7 @@ public class AccommodationController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<AccommodationDetailDto>>> Update(Guid id, [FromBody] UpdateAccommodationDto dto, CancellationToken ct)
     {
         var a = await _db.AccommodationProperties.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -318,7 +318,7 @@ public class AccommodationController : ControllerBase
 
     /// <summary>Archive (soft-delete) an accommodation property.</summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var a = await _db.AccommodationProperties.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -372,7 +372,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ReservationDto>>> Create([FromBody] CreateReservationDto dto, CancellationToken ct)
     {
         var reservation = new AccommodationReservation
@@ -397,7 +397,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ReservationDto>>> Update(Guid id, [FromBody] UpdateReservationDto dto, CancellationToken ct)
     {
         var r = await _db.AccommodationReservations.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -422,7 +422,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Coordinator")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken ct)
     {
         var r = await _db.AccommodationReservations.FirstOrDefaultAsync(x => x.Id == id, ct);

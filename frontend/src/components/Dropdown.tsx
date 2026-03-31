@@ -64,11 +64,21 @@ export function Dropdown({
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
+    const maxPanelHeight = 320
+    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const spaceAbove = rect.top - 8
     const style: CSSProperties = {
       position: 'fixed',
-      top: rect.bottom + 8,
       zIndex: 9999,
     }
+    if (spaceBelow >= spaceAbove || spaceBelow >= 120) {
+      style.top = rect.bottom + 8
+      style.maxHeight = Math.min(maxPanelHeight, spaceBelow)
+    } else {
+      style.bottom = window.innerHeight - rect.top + 8
+      style.maxHeight = Math.min(maxPanelHeight, spaceAbove)
+    }
+    style.overflowY = 'auto'
     if (resolvedAlign === 'left') {
       style.left = rect.left
       if (variant === 'form') style.width = rect.width
@@ -199,7 +209,7 @@ export function Dropdown({
       ref={panelRef}
       role="listbox"
       style={panelStyle}
-      className={`bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] overflow-hidden ${panelWidthClass}`}
+      className={`bg-white rounded-2xl shadow-[0_24px_40px_-12px_rgba(27,28,26,0.14)] ${panelWidthClass}`}
     >
       {items.length === 0 ? (
         <p role="presentation" className="px-4 py-3 text-sm text-[#43493a] opacity-50">No options available</p>

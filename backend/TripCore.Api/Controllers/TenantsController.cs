@@ -130,6 +130,7 @@ public class TenantsController : ControllerBase
                 {
                     Email = firebaseIu.Email,
                     DisplayName = $"{firebaseIu.FirstName} {firebaseIu.LastName}",
+                    Password = firebaseIu.Password,
                     Disabled = false,
                 });
             }

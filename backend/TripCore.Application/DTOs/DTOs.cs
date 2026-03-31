@@ -1264,7 +1264,8 @@ public record CreateAdminUserDto(
     string Username,
     string Role,
     Guid TenantId,
-    Guid? StaffId);
+    Guid? StaffId,
+    string? Password);
 
 public record UpdateAdminUserDto(
     string FirstName,
@@ -1298,7 +1299,8 @@ public record CreateInitialUserDto(
     string LastName,
     string Email,
     string Username,
-    string Role);
+    string Role,
+    string? Password);
 
 // ── Public Holidays Sync DTOs ──────────────────────────────────────────────
 

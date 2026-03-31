@@ -53,6 +53,7 @@ export default function UserFormPanel({
   const [username, setUsername] = useState('')
   const [role, setRole] = useState('')
   const [isActive, setIsActive] = useState(true)
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   // Reset form state when the panel opens or the user prop changes
@@ -68,6 +69,7 @@ export default function UserFormPanel({
       setUsername(user.username)
       setRole(user.role)
       setIsActive(user.isActive)
+      setPassword('')
     } else {
       setTenantId(defaultTenantId ?? '')
       setFirstName('')
@@ -76,6 +78,7 @@ export default function UserFormPanel({
       setUsername('')
       setRole('')
       setIsActive(true)
+      setPassword('')
     }
   }, [isOpen, user, defaultTenantId])
 
@@ -113,6 +116,7 @@ export default function UserFormPanel({
           email: email.trim(),
           username: username.trim(),
           role,
+          password: password || undefined,
         })
       }
       onClose()
@@ -238,6 +242,30 @@ export default function UserFormPanel({
               label="Select role"
             />
           </div>
+
+          {/* Password — create mode only */}
+          {!isEdit && (
+            <div>
+              <label className={labelClass}>Password</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className={inputClass}
+                  placeholder="Min 6 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPassword(Math.random().toString(36).slice(-10) + 'A1!')}
+                  className="px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs font-medium hover:bg-[var(--color-accent)] transition-colors whitespace-nowrap"
+                >
+                  Generate
+                </button>
+              </div>
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-1">Optional. User will sign in with this password via email/password auth.</p>
+            </div>
+          )}
 
           {/* Active toggle — edit mode only */}
           {isEdit && (

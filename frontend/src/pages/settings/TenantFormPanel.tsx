@@ -81,6 +81,7 @@ export default function TenantFormPanel({
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [role, setRole] = useState('')
+  const [userPassword, setUserPassword] = useState('')
 
   // ── UI state ──────────────────────────────────────────────────────────────
   const [error, setError] = useState<string | null>(null)
@@ -120,6 +121,7 @@ export default function TenantFormPanel({
       setEmail('')
       setUsername('')
       setRole('')
+      setUserPassword('')
     }
   }, [isOpen, tenant])
 
@@ -165,7 +167,7 @@ export default function TenantFormPanel({
         // Build initial user only if required fields are filled
         const hasUser = firstName && lastName && email && username
         const initialUser = hasUser
-          ? { firstName, lastName, email, username, role: role || 'Admin' }
+          ? { firstName, lastName, email, username, role: role || 'Admin', password: userPassword || undefined }
           : null
 
         const data: CreateTenantWithSetupDto = {
@@ -491,6 +493,27 @@ export default function TenantFormPanel({
                       items={ROLE_OPTIONS}
                       label="Select role..."
                     />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Password</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={userPassword}
+                        onChange={e => setUserPassword(e.target.value)}
+                        className={inputClass}
+                        placeholder="Min 6 characters"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setUserPassword(Math.random().toString(36).slice(-10) + 'A1!')}
+                        className="px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs font-medium hover:bg-[var(--color-accent)] transition-colors whitespace-nowrap"
+                      >
+                        Generate
+                      </button>
+                    </div>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-1">Optional. User will sign in with this password.</p>
                   </div>
                 </div>
               )}

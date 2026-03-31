@@ -176,6 +176,7 @@ public class AdminUsersController : ControllerBase
             {
                 Email = dto.Email,
                 DisplayName = $"{dto.FirstName} {dto.LastName}",
+                Password = dto.Password,
                 Disabled = false,
             }, ct);
         }

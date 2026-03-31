@@ -22,6 +22,7 @@ export interface CreateAdminUserDto {
   role: string
   tenantId: string
   staffId?: string | null
+  password?: string
 }
 
 export interface UpdateAdminUserDto {

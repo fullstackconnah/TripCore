@@ -39,6 +39,7 @@ export interface CreateInitialUserDto {
   email: string
   username: string
   role: string
+  password?: string
 }
 
 export interface CreateTenantWithSetupDto {

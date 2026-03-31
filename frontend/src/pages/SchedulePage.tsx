@@ -722,7 +722,7 @@ export default function SchedulePage() {
                         </div>
                         <TripStatusBadge status={trip.status} />
                         <div className="text-[10px] text-[var(--color-muted-foreground)]">
-                          {trip.staffAssignedCount}/{trip.minStaffRequired ?? '?'} staff · {trip.currentParticipantCount}/{trip.maxParticipants ?? '?'} pax
+                          {trip.staffAssignedCount}/{trip.staffRequired ?? '?'} staff · {trip.currentParticipantCount}/{trip.maxParticipants ?? '?'} pax
                         </div>
                       </div>
                     </th>

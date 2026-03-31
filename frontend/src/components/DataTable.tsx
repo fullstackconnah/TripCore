@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useMemo, useRef, useEffect } from 'react'
 import { formatDateAu, getStatusColor, formatCurrency } from '@/lib/utils'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Check } from 'lucide-react'
-import { type DropdownItem } from '@/components/Dropdown'
+import { Dropdown, type DropdownItem } from '@/components/Dropdown'
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -230,7 +230,7 @@ export function DataTable<T>({
                   tabIndex={isSortable ? 0 : undefined}
                   role={isSortable ? 'button' : undefined}
                 >
-                  <span className={isSortable ? 'inline-flex items-center gap-1' : ''}>
+                  <span className="inline-flex items-center gap-1 flex-wrap">
                     {col.header}
                     {isSortable && (
                       isSorted
@@ -238,6 +238,17 @@ export function DataTable<T>({
                           ? <ChevronUp className="w-3.5 h-3.5" />
                           : <ChevronDown className="w-3.5 h-3.5" />
                         : <ChevronsUpDown className="w-3.5 h-3.5 opacity-30" />
+                    )}
+                    {col.bulkEditable && selectedRows && selectedRows.size > 0 && (
+                      <span onClick={e => e.stopPropagation()}>
+                        <Dropdown
+                          variant="pill"
+                          items={col.bulkEditable.items}
+                          label={`${selectedRows.size} row${selectedRows.size === 1 ? '' : 's'}`}
+                          colorClass="bg-[#396200]/15 text-[#396200]"
+                          onChange={value => col.bulkEditable!.onBulkChange(Array.from(selectedRows), value)}
+                        />
+                      </span>
                     )}
                   </span>
                 </th>

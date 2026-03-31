@@ -196,6 +196,34 @@ export default function TripDetailPage() {
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
   const patchBooking = usePatchBooking()
+  const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set())
+  const [bookingBulkLoading, setBookingBulkLoading] = useState(false)
+
+  async function bulkPatchBookings(
+    ids: string[],
+    patch: Partial<{ bookingStatus: BookingStatus; insuranceStatus: InsuranceStatus; paymentStatus: PaymentStatus }>
+  ) {
+    setBookingBulkLoading(true)
+    try {
+      await Promise.all(
+        ids.map(
+          id =>
+            new Promise<void>((resolve, reject) => {
+              patchBooking.mutate(
+                { id, data: patch },
+                { onSuccess: () => resolve(), onError: err => reject(err) }
+              )
+            })
+        )
+      )
+      setSelectedBookingIds(new Set())
+    } catch {
+      // individual mutation errors surface through TanStack Query
+    } finally {
+      setBookingBulkLoading(false)
+    }
+  }
+
   const generateSchedule = useGenerateSchedule()
   const deleteScheduledActivity = useDeleteScheduledActivity()
 
@@ -1136,6 +1164,10 @@ export default function TripDetailPage() {
               keyField="id"
               emptyMessage="No bookings yet"
               sortable
+              loading={bookingBulkLoading}
+              selectable
+              selectedRows={selectedBookingIds}
+              onSelectionChange={setSelectedBookingIds}
               columns={[
                 {
                   key: 'participantName',
@@ -1148,6 +1180,19 @@ export default function TripDetailPage() {
                   key: 'bookingStatus',
                   header: 'Status',
                   sortable: true,
+                  bulkEditable: {
+                    items: [
+                      { value: 'Enquiry', label: 'Enquiry' },
+                      { value: 'Held', label: 'Held' },
+                      { value: 'Confirmed', label: 'Confirmed' },
+                      { value: 'Waitlist', label: 'Waitlist' },
+                      { value: 'Cancelled', label: 'Cancelled' },
+                      { value: 'Completed', label: 'Completed' },
+                      { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                    ],
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { bookingStatus: value as BookingStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1200,6 +1245,17 @@ export default function TripDetailPage() {
                   header: 'Insurance',
                   align: 'center',
                   sortable: true,
+                  bulkEditable: {
+                    items: [
+                      { value: 'None', label: 'None' },
+                      { value: 'Pending', label: 'Pending' },
+                      { value: 'Confirmed', label: 'Confirmed' },
+                      { value: 'Expired', label: 'Expired' },
+                      { value: 'Cancelled', label: 'Cancelled' },
+                    ],
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { insuranceStatus: value as InsuranceStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1221,6 +1277,11 @@ export default function TripDetailPage() {
                   header: 'Payment',
                   align: 'center',
                   sortable: true,
+                  bulkEditable: {
+                    items: PAYMENT_STATUS_ITEMS,
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { paymentStatus: value as PaymentStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"

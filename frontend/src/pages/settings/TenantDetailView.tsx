@@ -40,7 +40,7 @@ export default function TenantDetailView({
   onEditUser,
 }: TenantDetailViewProps) {
   const { data: usersResponse, isLoading: usersLoading } = useAdminTenantUsers(tenant.id)
-  const users: TenantUserDto[] = usersResponse?.data ?? []
+  const users: TenantUserDto[] = useMemo(() => usersResponse?.data ?? [], [usersResponse?.data])
   const { data: providerSettings, isLoading: providerLoading } =
     useAdminTenantProviderSettings(tenant.id)
 

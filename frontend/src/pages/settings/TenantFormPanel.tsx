@@ -182,10 +182,12 @@ export default function TenantFormPanel({
         setSuccessMessage(null)
         onClose()
       }, 1500)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { errors?: string[]; message?: string } | string } }
       setError(
-        err?.response?.data?.errors?.[0] ||
-          err?.response?.data?.message ||
+        (typeof axiosErr?.response?.data === 'string'
+          ? axiosErr.response.data
+          : axiosErr?.response?.data?.errors?.[0] || axiosErr?.response?.data?.message) ||
           'Failed to save tenant.',
       )
     }

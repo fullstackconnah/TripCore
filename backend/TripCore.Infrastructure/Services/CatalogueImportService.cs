@@ -13,13 +13,22 @@ public class CatalogueImportService
 
     public CatalogueImportService(TripCoreDbContext db) => _db = db;
 
-    // Item number prefixes that identify day type for Category 04 group access items
+    // Item number prefixes → day type for Category 04 / Reg Group 0125 items
+    // Standard access (04_10x) and Intensive/Complex Behaviour (04_45x) — NDIS 2025-26
     private static readonly Dictionary<string, ClaimDayType> ItemPrefixToDayType = new()
     {
-        { "04_210_", ClaimDayType.Weekday },
-        { "04_212_", ClaimDayType.Saturday },
-        { "04_213_", ClaimDayType.Sunday },
-        { "04_214_", ClaimDayType.PublicHoliday }
+        // Standard community access
+        { "04_104_", ClaimDayType.Weekday },
+        { "04_103_", ClaimDayType.WeekdayEvening },
+        { "04_105_", ClaimDayType.Saturday },
+        { "04_106_", ClaimDayType.Sunday },
+        { "04_102_", ClaimDayType.PublicHoliday },
+        // Intensive and Complex Behaviour Supports
+        { "04_450_", ClaimDayType.Weekday },
+        { "04_451_", ClaimDayType.WeekdayEvening },
+        { "04_452_", ClaimDayType.Saturday },
+        { "04_453_", ClaimDayType.Sunday },
+        { "04_454_", ClaimDayType.PublicHoliday },
     };
 
     /// <summary>
@@ -44,12 +53,7 @@ public class CatalogueImportService
         {
             var existing = existingItems.FirstOrDefault(i => i.ItemNumber == row.ItemNumber);
             var isNew = existing == null;
-            var priceChanged = existing != null && (
-                existing.PriceLimit_Standard != row.PriceLimit_Standard ||
-                existing.PriceLimit_1to2 != row.PriceLimit_1to2 ||
-                existing.PriceLimit_1to3 != row.PriceLimit_1to3 ||
-                existing.PriceLimit_1to4 != row.PriceLimit_1to4 ||
-                existing.PriceLimit_1to5 != row.PriceLimit_1to5);
+            var priceChanged = existing != null && (existing.PriceLimit_VIC != row.PriceLimit_VIC || existing.IsIntensive != row.IsIntensive);
 
             previewRows.Add(row with { IsNew = isNew, PriceChanged = priceChanged });
         }
@@ -109,13 +113,17 @@ public class CatalogueImportService
                 Description = row.Description,
                 Unit = "H",
                 DayType = row.DayType,
-                PriceLimit_Standard = row.PriceLimit_Standard,
-                PriceLimit_1to2 = row.PriceLimit_1to2,
-                PriceLimit_1to3 = row.PriceLimit_1to3,
-                PriceLimit_1to4 = row.PriceLimit_1to4,
-                PriceLimit_1to5 = row.PriceLimit_1to5,
-                PriceLimit_Remote = 0,
-                PriceLimit_VeryRemote = 0,
+                IsIntensive = row.IsIntensive,
+                PriceLimit_ACT = row.PriceLimit_ACT,
+                PriceLimit_NSW = row.PriceLimit_NSW,
+                PriceLimit_NT  = row.PriceLimit_NT,
+                PriceLimit_QLD = row.PriceLimit_QLD,
+                PriceLimit_SA  = row.PriceLimit_SA,
+                PriceLimit_TAS = row.PriceLimit_TAS,
+                PriceLimit_VIC = row.PriceLimit_VIC,
+                PriceLimit_WA  = row.PriceLimit_WA,
+                PriceLimit_Remote     = row.PriceLimit_Remote,
+                PriceLimit_VeryRemote = row.PriceLimit_VeryRemote,
                 CatalogueVersion = dto.CatalogueVersion,
                 EffectiveFrom = today,
                 IsActive = true
@@ -172,11 +180,17 @@ public class CatalogueImportService
 
         var colItemNumber = ColIdx("Support Item Number", "SupportItemNumber", "Item Number");
         var colDescription = ColIdx("Support Item Name", "SupportItemName", "Item Name", "Description");
-        var col11 = ColIdx("1:1", "1 to 1", "Standard");
-        var col12 = ColIdx("1:2", "1 to 2");
-        var col13 = ColIdx("1:3", "1 to 3");
-        var col14 = ColIdx("1:4", "1 to 4");
-        var col15 = ColIdx("1:5", "1 to 5");
+        // Real NDIS catalogue uses per-state price columns
+        var colACT = ColIdx("ACT");
+        var colNSW = ColIdx("NSW");
+        var colNT  = ColIdx("NT");
+        var colQLD = ColIdx("QLD");
+        var colSA  = ColIdx("SA");
+        var colTAS = ColIdx("TAS");
+        var colVic = ColIdx("VIC", "Vic");
+        var colWA  = ColIdx("WA");
+        var colRemote     = ColIdx("Remote");
+        var colVeryRemote = ColIdx("Very Remote");
 
         if (colItemNumber == 0)
             return results;
@@ -187,12 +201,8 @@ public class CatalogueImportService
         {
             var itemNumber = ws.Cell(r, colItemNumber).GetString().Trim();
 
-            // Only Category 04 Registration Group 0125 group access items
+            // Only Category 04 Registration Group 0125 access items
             if (!itemNumber.StartsWith("04_") || !itemNumber.Contains("_0125_"))
-                continue;
-
-            // Skip evening (04_211) — not a distinct day type in our model
-            if (itemNumber.StartsWith("04_211_"))
                 continue;
 
             // Skip items whose prefix doesn't map to a known day type
@@ -201,22 +211,33 @@ public class CatalogueImportService
                 continue;
 
             var dayType = prefixMatch.Value;
+            var isIntensive = itemNumber.StartsWith("04_45");
 
             decimal Price(int col) => col > 0 &&
                 decimal.TryParse(
                     ws.Cell(r, col).GetString().Replace("$", "").Trim(),
                     out var v) ? v : 0m;
 
+            var vicPrice = Price(colVic);
+            if (vicPrice == 0)
+                continue; // Skip quote-only items with no listed price
+
             results.Add(new CatalogueImportRowDto
             {
                 ItemNumber = itemNumber,
                 Description = colDescription > 0 ? ws.Cell(r, colDescription).GetString().Trim() : itemNumber,
                 DayType = dayType,
-                PriceLimit_Standard = Price(col11),
-                PriceLimit_1to2 = Price(col12),
-                PriceLimit_1to3 = Price(col13),
-                PriceLimit_1to4 = Price(col14),
-                PriceLimit_1to5 = Price(col15)
+                IsIntensive = isIntensive,
+                PriceLimit_ACT = Price(colACT),
+                PriceLimit_NSW = Price(colNSW),
+                PriceLimit_NT  = Price(colNT),
+                PriceLimit_QLD = Price(colQLD),
+                PriceLimit_SA  = Price(colSA),
+                PriceLimit_TAS = Price(colTAS),
+                PriceLimit_VIC = vicPrice,
+                PriceLimit_WA  = Price(colWA),
+                PriceLimit_Remote     = Price(colRemote),
+                PriceLimit_VeryRemote = Price(colVeryRemote),
             });
         }
 

@@ -12,12 +12,16 @@ public class SupportCatalogueItem
     public string Description { get; set; } = string.Empty;
     public string Unit { get; set; } = "H";
     public ClaimDayType DayType { get; set; }
+    public bool IsIntensive { get; set; }
 
-    public decimal PriceLimit_Standard { get; set; }
-    public decimal PriceLimit_1to2 { get; set; }
-    public decimal PriceLimit_1to3 { get; set; }
-    public decimal PriceLimit_1to4 { get; set; }
-    public decimal PriceLimit_1to5 { get; set; }
+    public decimal PriceLimit_ACT { get; set; }
+    public decimal PriceLimit_NSW { get; set; }
+    public decimal PriceLimit_NT { get; set; }
+    public decimal PriceLimit_QLD { get; set; }
+    public decimal PriceLimit_SA { get; set; }
+    public decimal PriceLimit_TAS { get; set; }
+    public decimal PriceLimit_VIC { get; set; }
+    public decimal PriceLimit_WA { get; set; }
     public decimal PriceLimit_Remote { get; set; }
     public decimal PriceLimit_VeryRemote { get; set; }
 

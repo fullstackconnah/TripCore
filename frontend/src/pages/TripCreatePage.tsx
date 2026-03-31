@@ -48,7 +48,7 @@ export default function TripCreatePage() {
     if (tpl) {
       if (tpl.defaultDestination) setValue('destination', tpl.defaultDestination)
       if (tpl.defaultRegion) setValue('region', tpl.defaultRegion)
-      if (tpl.defaultDurationDays) setValue('durationDays', tpl.defaultDurationDays)
+      if (tpl.standardDurationDays) setValue('durationDays', tpl.standardDurationDays)
     }
   }
 
@@ -118,7 +118,7 @@ export default function TripCreatePage() {
                   label="None"
                   items={[
                     { value: '', label: 'None' },
-                    ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                    ...templates.map((t: any) => ({ value: String(t.id), label: t.eventName })),
                   ]}
                 />
               )}

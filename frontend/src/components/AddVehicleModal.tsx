@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { X, Search } from 'lucide-react'
 import { useVehicles, useCreateVehicleAssignment, useCreateVehicle } from '@/api/hooks'
+import type { VehicleType } from '@/api/types'
+import { Dropdown } from './Dropdown'
 
 interface AddVehicleModalProps {
   tripInstanceId: string
@@ -55,8 +57,8 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
     try {
       const res = await createVehicle.mutateAsync({
         vehicleName,
-        registration: registration || null,
-        vehicleType,
+        registration: registration || undefined,
+        vehicleType: vehicleType as VehicleType,
         totalSeats: Number(totalSeats),
         wheelchairPositions: Number(wheelchairPositions),
         isInternal,
@@ -212,16 +214,13 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
                 <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1">
                   Type <span className="text-[var(--color-destructive)]">*</span>
                 </label>
-                <select
+                <Dropdown
+                  variant="form"
+                  items={['Car', 'Van', 'Bus', 'MiniBus', 'AccessibleVan', 'Other'].map(t => ({ value: t, label: t }))}
                   value={vehicleType}
-                  onChange={e => setVehicleType(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
-                >
-                  <option value="">Select type</option>
-                  {['Car', 'Van', 'Bus', 'MiniBus', 'AccessibleVan', 'Other'].map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+                  onChange={setVehicleType}
+                  label="Select type"
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1">

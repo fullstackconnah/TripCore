@@ -9,7 +9,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Coordinator")]
+[Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
 [Route("api/v1/settings")]
 public class SettingsController : ControllerBase
 {

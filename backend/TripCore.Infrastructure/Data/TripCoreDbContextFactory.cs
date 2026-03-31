@@ -33,5 +33,6 @@ public class TripCoreDbContextFactory : IDesignTimeDbContextFactory<TripCoreDbCo
     {
         public Guid? TenantId => null;
         public bool IsSuperAdmin => true;
+        public Guid? ViewAsUserId => null;
     }
 }

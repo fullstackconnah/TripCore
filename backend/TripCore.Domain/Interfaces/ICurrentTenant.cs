@@ -12,4 +12,10 @@ public interface ICurrentTenant
 
     /// <summary>True when the authenticated user has the SuperAdmin role.</summary>
     bool IsSuperAdmin { get; }
+
+    /// <summary>
+    /// Set when a SuperAdmin is viewing as a specific user via X-View-As-User header.
+    /// Null when not impersonating.
+    /// </summary>
+    Guid? ViewAsUserId { get; }
 }

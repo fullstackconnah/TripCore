@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using TripCore.Domain.Interfaces;
 
@@ -7,12 +6,14 @@ namespace TripCore.Infrastructure.Services;
 /// <summary>
 /// Reads the current tenant from the JWT "tenant_id" claim via IHttpContextAccessor.
 /// When a SuperAdmin sends X-View-As-Tenant header, scopes them to that tenant.
+/// When X-View-As-User header is also present, sets ViewAsUserId for per-user scoping.
 /// Registered as Scoped in DI — one instance per HTTP request.
 /// </summary>
 public sealed class CurrentTenant : ICurrentTenant
 {
     public Guid? TenantId { get; private set; }
     public bool IsSuperAdmin { get; private set; }
+    public Guid? ViewAsUserId { get; private set; }
 
     public CurrentTenant(IHttpContextAccessor accessor)
     {
@@ -30,6 +31,14 @@ public sealed class CurrentTenant : ICurrentTenant
                 TenantId = overrideTenant;
                 IsSuperAdmin = false;
             }
+        }
+
+        // User-level view-as: record which user we're impersonating
+        if (TenantId.HasValue)
+        {
+            var userHeader = accessor.HttpContext?.Request.Headers["X-View-As-User"].FirstOrDefault();
+            if (Guid.TryParse(userHeader, out var viewUserId))
+                ViewAsUserId = viewUserId;
         }
     }
 }

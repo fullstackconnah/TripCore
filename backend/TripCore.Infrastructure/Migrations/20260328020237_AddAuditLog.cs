@@ -15,52 +15,26 @@ namespace TripCore.Infrastructure.Migrations
                 name: "FK_IncidentReports_TripInstances_TripInstanceId",
                 table: "IncidentReports");
 
-            migrationBuilder.DropColumn(
-                name: "OopPaymentStatus",
-                table: "ParticipantBookings");
+            // OopPaymentStatus may not exist on prod DBs that had it dropped by AddNdisClaiming
+            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" DROP COLUMN IF EXISTS "OopPaymentStatus";""");
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "DriverLicenceExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
+            // These columns may already exist if AddNdisClaiming ran on this database
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "FirstAidExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;""");
+            migrationBuilder.Sql("""ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;""");
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "FirstAidExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
+            // PaymentStatus may already exist if AddNdisClaiming ran on this database
+            migrationBuilder.Sql("""ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "PaymentStatus" integer NOT NULL DEFAULT 0;""");
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "ManualHandlingExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "MedicationCompetencyExpiryDate",
-                table: "Staff",
-                type: "date",
-                nullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentStatus",
-                table: "ParticipantBookings",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.CreateTable(
-                name: "AppSettings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    QualificationWarningDays = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AppSettings", x => x.Id);
-                });
+            // AppSettings may already exist if AddNdisClaiming ran on this database
+            migrationBuilder.Sql("""
+                CREATE TABLE IF NOT EXISTS "AppSettings" (
+                    "Id" integer NOT NULL,
+                    "QualificationWarningDays" integer NOT NULL,
+                    CONSTRAINT "PK_AppSettings" PRIMARY KEY ("Id")
+                );
+            """);
 
             migrationBuilder.CreateTable(
                 name: "AuditLogs",

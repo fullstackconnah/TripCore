@@ -1,6 +1,7 @@
-import { type ReactNode, useState, useMemo } from 'react'
+import { type ReactNode, useState, useMemo, useRef, useEffect } from 'react'
 import { formatDateAu, getStatusColor, formatCurrency } from '@/lib/utils'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Check } from 'lucide-react'
+import { Dropdown, type DropdownItem } from '@/components/Dropdown'
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -14,6 +15,10 @@ type ColumnBase<T> = {
   hidden?: boolean
   editable?: {
     render: (row: T, onChange: (value: unknown) => void) => ReactNode
+  }
+  bulkEditable?: {
+    items: DropdownItem[]
+    onBulkChange: (selectedIds: string[], value: string) => void
   }
   sortFn?: (a: T, b: T) => number
   className?: string
@@ -45,6 +50,9 @@ export type DataTableProps<T> = {
   onEditChange?: (row: T, key: string, value: unknown) => void
   className?: string
   compact?: boolean
+  selectable?: boolean
+  selectedRows?: Set<string>
+  onSelectionChange?: (ids: Set<string>) => void
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -114,6 +122,9 @@ export function DataTable<T>({
   onEditChange,
   className,
   compact = false,
+  selectable = false,
+  selectedRows,
+  onSelectionChange,
 }: DataTableProps<T>) {
   const [internalSort, setInternalSort] = useState<SortState | null>(defaultSort ?? null)
   const isControlled = controlledSort !== undefined

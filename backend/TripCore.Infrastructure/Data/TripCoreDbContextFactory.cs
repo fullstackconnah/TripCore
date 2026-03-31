@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using TripCore.Application.Services;
+using TripCore.Domain.Interfaces;
 
 namespace TripCore.Infrastructure.Data;
 

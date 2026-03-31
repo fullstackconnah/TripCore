@@ -28,12 +28,13 @@ public class ProviderSettingsController : ControllerBase
             OrganisationName = s.OrganisationName, Address = s.Address,
             GSTRegistered = s.GSTRegistered, IsPaceProvider = s.IsPaceProvider,
             BankAccountName = s.BankAccountName, BSB = s.BSB,
-            AccountNumber = s.AccountNumber, InvoiceFooterNotes = s.InvoiceFooterNotes
+            AccountNumber = s.AccountNumber, InvoiceFooterNotes = s.InvoiceFooterNotes,
+            State = s.State
         }));
     }
 
     [HttpPut]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Upsert([FromBody] UpsertProviderSettingsDto dto, CancellationToken ct)
     {
         var s = await _db.ProviderSettings.FirstOrDefaultAsync(ct);
@@ -48,6 +49,7 @@ public class ProviderSettingsController : ControllerBase
         s.GSTRegistered = dto.GSTRegistered; s.IsPaceProvider = dto.IsPaceProvider;
         s.BankAccountName = dto.BankAccountName; s.BSB = dto.BSB;
         s.AccountNumber = dto.AccountNumber; s.InvoiceFooterNotes = dto.InvoiceFooterNotes;
+        s.State = dto.State;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<bool>.Ok(true));

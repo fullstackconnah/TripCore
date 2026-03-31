@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TripCore.Application.Services;
 using TripCore.Domain.Entities;
 using TripCore.Domain.Enums;
 using TripCore.Domain.Interfaces;
@@ -449,7 +448,6 @@ public class TripCoreDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.PasswordHash).HasMaxLength(500).IsRequired();
             entity.Property(e => e.FirstName).HasMaxLength(100).IsRequired();
             entity.Property(e => e.LastName).HasMaxLength(100).IsRequired();
             entity.Ignore(e => e.FullName);
@@ -533,11 +531,14 @@ public class TripCoreDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Unit).HasMaxLength(10);
             entity.Property(e => e.CatalogueVersion).HasMaxLength(20);
-            entity.Property(e => e.PriceLimit_Standard).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to2).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to3).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to4).HasPrecision(18, 2);
-            entity.Property(e => e.PriceLimit_1to5).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_ACT).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_NSW).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_NT).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_QLD).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_SA).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_TAS).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_VIC).HasPrecision(18, 2);
+            entity.Property(e => e.PriceLimit_WA).HasPrecision(18, 2);
             entity.Property(e => e.PriceLimit_Remote).HasPrecision(18, 2);
             entity.Property(e => e.PriceLimit_VeryRemote).HasPrecision(18, 2);
 
@@ -563,6 +564,11 @@ public class TripCoreDbContext : DbContext
             entity.Property(e => e.BSB).HasMaxLength(10);
             entity.Property(e => e.AccountNumber).HasMaxLength(20);
             entity.Property(e => e.InvoiceFooterNotes).HasMaxLength(2000);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── PublicHoliday ─────────────────────────────────────────
@@ -631,6 +637,11 @@ public class TripCoreDbContext : DbContext
         modelBuilder.Entity<AppSettings>()
             .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
         modelBuilder.Entity<AppSettings>()
+            .HasIndex(e => e.TenantId);
+
+        modelBuilder.Entity<ProviderSettings>()
+            .HasQueryFilter(e => _tenant.IsSuperAdmin || e.TenantId == _tenant.TenantId);
+        modelBuilder.Entity<ProviderSettings>()
             .HasIndex(e => e.TenantId);
 
         // Tenants table — unique index on EmailDomain

@@ -1,9 +1,11 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TripCore.Application.Services;
+using TripCore.Domain.Interfaces;
 using TripCore.Infrastructure.Data;
 using TripCore.Infrastructure.Services;
 
@@ -53,11 +55,72 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// ── Firebase Admin SDK ───────────────────────────────────────
+// Priority: 1) full JSON from config/env  2) file path  3) individual env vars
+var firebaseServiceAccount = builder.Configuration["Firebase:ServiceAccountJson"];
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    firebaseServiceAccount = Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_JSON");
+
+// If value points to a .json file on disk, read its contents
+if (!string.IsNullOrEmpty(firebaseServiceAccount)
+    && firebaseServiceAccount.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+    && File.Exists(firebaseServiceAccount))
+{
+    firebaseServiceAccount = File.ReadAllText(firebaseServiceAccount);
+}
+
+// Fallback: build the JSON from individual env vars (avoids Compose interpolation issues)
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+{
+    var projectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID");
+    var privateKey = Environment.GetEnvironmentVariable("FIREBASE_PRIVATE_KEY");
+    var clientEmail = Environment.GetEnvironmentVariable("FIREBASE_CLIENT_EMAIL");
+
+    if (!string.IsNullOrEmpty(projectId) && !string.IsNullOrEmpty(privateKey) && !string.IsNullOrEmpty(clientEmail))
+    {
+        var privateKeyId = Environment.GetEnvironmentVariable("FIREBASE_PRIVATE_KEY_ID") ?? "";
+        var clientId = Environment.GetEnvironmentVariable("FIREBASE_CLIENT_ID") ?? "";
+        var tokenUri = Environment.GetEnvironmentVariable("FIREBASE_TOKEN_URI") ?? "https://oauth2.googleapis.com/token";
+
+        firebaseServiceAccount = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            type = "service_account",
+            project_id = projectId,
+            private_key_id = privateKeyId,
+            private_key = privateKey.Replace("\\n", "\n"),
+            client_email = clientEmail,
+            client_id = clientId,
+            auth_uri = "https://accounts.google.com/o/oauth2/auth",
+            token_uri = tokenUri,
+            auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs",
+            client_x509_cert_url = $"https://www.googleapis.com/robot/v1/metadata/x509/{Uri.EscapeDataString(clientEmail)}"
+        });
+    }
+}
+
+if (string.IsNullOrEmpty(firebaseServiceAccount))
+    throw new InvalidOperationException(
+        "Firebase credentials not configured. Provide one of: " +
+        "Firebase:ServiceAccountJson (config/env with full JSON), " +
+        "FIREBASE_SERVICE_ACCOUNT_JSON (file path), " +
+        "or FIREBASE_PROJECT_ID + FIREBASE_PRIVATE_KEY + FIREBASE_CLIENT_EMAIL (individual env vars).");
+
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromJson(firebaseServiceAccount)
+});
+
 // ── NDIS Claiming Services ────────────────────────────────────
 builder.Services.AddScoped<TripCore.Infrastructure.Services.ClaimGenerationService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.BprCsvService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.InvoiceService>();
 builder.Services.AddScoped<TripCore.Infrastructure.Services.CatalogueImportService>();
+
+// ── Public Holiday Sync ───────────────────────────────────────
+builder.Services.AddHttpClient<TripCore.Infrastructure.Services.NagerHolidayProvider>();
+builder.Services.AddScoped<TripCore.Infrastructure.Services.IHolidayProvider, TripCore.Infrastructure.Services.NagerHolidayProvider>();
+builder.Services.AddScoped<TripCore.Application.Interfaces.IPublicHolidaySyncService, TripCore.Infrastructure.Services.PublicHolidaySyncService>();
+builder.Services.AddHostedService<TripCore.Infrastructure.BackgroundServices.HolidaySyncBackgroundService>();
 
 // ── Rate Limiting ────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
@@ -247,7 +310,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-XSS-Protection"] = "0";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()";
-    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; script-src 'self' 'wasm-unsafe-eval'; frame-ancestors 'none'";
     context.Response.Headers["Cache-Control"] = "no-store";
     context.Response.Headers["Pragma"] = "no-cache";
     await next();

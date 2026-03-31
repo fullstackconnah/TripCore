@@ -1,3 +1,4 @@
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -119,6 +120,24 @@ public class TenantsController : ControllerBase
 
         await _db.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        // Create Firebase Auth user for initial admin (best-effort — after commit so DB records are preserved)
+        if (dto.InitialUser is { } firebaseIu)
+        {
+            try
+            {
+                await FirebaseAuth.DefaultInstance.CreateUserAsync(new UserRecordArgs
+                {
+                    Email = firebaseIu.Email,
+                    DisplayName = $"{firebaseIu.FirstName} {firebaseIu.LastName}",
+                    Disabled = false,
+                });
+            }
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
+            {
+                // Already exists in Firebase — OK
+            }
+        }
 
         return CreatedAtAction(nameof(GetAll), new TenantSummaryDto(
             tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt,

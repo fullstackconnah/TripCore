@@ -1,3 +1,4 @@
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -168,6 +169,21 @@ public class AdminUsersController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
+        // Create Firebase Auth user so they can sign in
+        try
+        {
+            await FirebaseAuth.DefaultInstance.CreateUserAsync(new UserRecordArgs
+            {
+                Email = dto.Email,
+                DisplayName = $"{dto.FirstName} {dto.LastName}",
+                Disabled = false,
+            }, ct);
+        }
+        catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
+        {
+            // User already exists in Firebase — that's OK, they'll be able to sign in
+        }
+
         var result = new AdminUserDto(
             user.Id,
             user.FirstName,
@@ -226,6 +242,24 @@ public class AdminUsersController : ControllerBase
         user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
+
+        // Sync changes to Firebase Auth
+        // NOTE: Email changes are not synced here — Firebase Admin SDK email updates
+        // require the user to re-authenticate, so we only sync DisplayName and Disabled.
+        try
+        {
+            var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(user.Email, ct);
+            await FirebaseAuth.DefaultInstance.UpdateUserAsync(new UserRecordArgs
+            {
+                Uid = firebaseUser.Uid,
+                DisplayName = $"{dto.FirstName} {dto.LastName}",
+                Disabled = !dto.IsActive,
+            }, ct);
+        }
+        catch (FirebaseAuthException)
+        {
+            // Firebase user may not exist if they were created before this feature — skip
+        }
 
         var result = new AdminUserDto(
             user.Id,

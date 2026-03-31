@@ -8,6 +8,12 @@ import { Dropdown } from '@/components/Dropdown'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
 import type { EventTemplateDto } from '@/api/types'
 import type { AxiosError } from 'axios'
+import TenantsTab from '@/pages/settings/TenantsTab'
+import TenantFormPanel from '@/pages/settings/TenantFormPanel'
+import UsersTab from '@/pages/settings/UsersTab'
+import UserFormPanel from '@/pages/settings/UserFormPanel'
+import TenantDetailView from '@/pages/settings/TenantDetailView'
+import type { TenantSummaryDto, AdminUserDto } from '@/api/types'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -56,7 +62,7 @@ function QualificationSettingsTab() {
 }
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications' | 'provider' | 'catalogue' | 'holidays'>('templates')
+  const [tab, setTab] = useState<'templates' | 'activities' | 'qualifications' | 'provider' | 'catalogue' | 'holidays' | 'tenants' | 'users'>('templates')
   const { data: templates = [] } = useEventTemplates()
   const [panelOpen, setPanelOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<EventTemplateDto | undefined>(undefined)
@@ -65,6 +71,13 @@ export default function SettingsPage() {
   const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
   const isSuperAdmin = user.role === 'SuperAdmin'
 
+  const [tenantPanelOpen, setTenantPanelOpen] = useState(false)
+  const [editingTenant, setEditingTenant] = useState<TenantSummaryDto | undefined>()
+  const [tenantDetail, setTenantDetail] = useState<TenantSummaryDto | undefined>()
+  const [userPanelOpen, setUserPanelOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<AdminUserDto | undefined>()
+  const [defaultTenantId, setDefaultTenantId] = useState<string | undefined>()
+
   const allTabs = [
     { key: 'templates' as const, label: 'Event Templates' },
     { key: 'activities' as const, label: 'Activity Library' },
@@ -72,6 +85,8 @@ export default function SettingsPage() {
     { key: 'provider' as const, label: 'Provider Settings' },
     { key: 'catalogue' as const, label: 'Support Catalogue', superAdminOnly: true },
     { key: 'holidays' as const, label: 'Public Holidays', superAdminOnly: true },
+    { key: 'tenants' as const, label: 'Tenants', superAdminOnly: true },
+    { key: 'users' as const, label: 'Users', superAdminOnly: true },
   ]
   const tabs = allTabs.filter(t => !t.superAdminOnly || isSuperAdmin)
 
@@ -86,7 +101,7 @@ export default function SettingsPage() {
 
       <div className="flex gap-4 border-b border-[var(--color-border)]">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
+          <button key={t.key} onClick={() => { setTab(t.key); if (t.key !== 'tenants') setTenantDetail(undefined) }}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               tab === t.key
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
@@ -168,6 +183,44 @@ export default function SettingsPage() {
       {tab === 'provider' && <ProviderSettingsTab />}
       {tab === 'catalogue' && <SupportCatalogueTab />}
       {tab === 'holidays' && <PublicHolidaysTab />}
+
+      {tab === 'tenants' && !tenantDetail && (
+        <TenantsTab
+          onAddTenant={() => { setEditingTenant(undefined); setTenantPanelOpen(true) }}
+          onEditTenant={(t) => { setEditingTenant(t); setTenantPanelOpen(true) }}
+          onViewTenantDetail={(t) => setTenantDetail(t)}
+        />
+      )}
+
+      {tab === 'tenants' && tenantDetail && (
+        <TenantDetailView
+          tenant={tenantDetail}
+          onBack={() => setTenantDetail(undefined)}
+          onEditTenant={() => { setEditingTenant(tenantDetail); setTenantPanelOpen(true) }}
+          onAddUser={(tid) => { setDefaultTenantId(tid); setEditingUser(undefined); setUserPanelOpen(true) }}
+          onEditUser={(_userId) => { setUserPanelOpen(true) }}
+        />
+      )}
+
+      {tab === 'users' && (
+        <UsersTab
+          onAddUser={(tid) => { setDefaultTenantId(tid); setEditingUser(undefined); setUserPanelOpen(true) }}
+          onEditUser={(u) => { setEditingUser(u); setUserPanelOpen(true) }}
+        />
+      )}
+
+      <TenantFormPanel
+        isOpen={tenantPanelOpen}
+        onClose={() => { setTenantPanelOpen(false); setEditingTenant(undefined) }}
+        tenant={editingTenant}
+      />
+
+      <UserFormPanel
+        isOpen={userPanelOpen}
+        onClose={() => { setUserPanelOpen(false); setEditingUser(undefined); setDefaultTenantId(undefined) }}
+        user={editingUser}
+        defaultTenantId={defaultTenantId}
+      />
     </div>
   )
 }

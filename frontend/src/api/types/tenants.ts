@@ -23,3 +23,39 @@ export interface UpdateTenantDto {
   emailDomain: string
   isActive: boolean
 }
+
+export interface TenantSummaryDto {
+  id: string
+  name: string
+  emailDomain: string
+  isActive: boolean
+  createdAt: string
+  userCount: number
+}
+
+export interface CreateInitialUserDto {
+  firstName: string
+  lastName: string
+  email: string
+  username: string
+  role: string
+}
+
+export interface CreateTenantWithSetupDto {
+  name: string
+  emailDomain: string
+  providerSettings?: {
+    registrationNumber: string
+    abn: string
+    organisationName: string
+    address: string
+    state?: string
+    gstRegistered: boolean
+    isPaceProvider: boolean
+    bankAccountName?: string
+    bsb?: string
+    accountNumber?: string
+    invoiceFooterNotes?: string
+  } | null
+  initialUser?: CreateInitialUserDto | null
+}

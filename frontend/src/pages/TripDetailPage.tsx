@@ -35,6 +35,34 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
   const updateClaim = useUpdateClaim()
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedClaimIds, setSelectedClaimIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
+
+  async function bulkUpdateClaimStatus(ids: string[], status: string) {
+    setBulkLoading(true)
+    try {
+      await Promise.all(
+        ids.map(
+          id =>
+            new Promise<void>((resolve, reject) => {
+              updateClaim.mutate(
+                { claimId: id, data: { status: status as TripClaimStatus } },
+                { onSuccess: () => resolve(), onError: err => reject(err) }
+              )
+            })
+        )
+      )
+      setSelectedClaimIds(new Set())
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.errors?.[0] ??
+        err?.response?.data?.message ??
+        'Failed to update claims.'
+      )
+    } finally {
+      setBulkLoading(false)
+    }
+  }
 
   function handleDelete(claimId: string) {
     if (!confirm('Delete this claim? This cannot be undone.')) return
@@ -71,6 +99,10 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
           data={claims}
           keyField="id"
           sortable
+          loading={bulkLoading}
+          selectable
+          selectedRows={selectedClaimIds}
+          onSelectionChange={setSelectedClaimIds}
           emptyMessage="No claims yet"
           columns={[
             { key: 'claimReference', header: 'Reference', sortable: true, className: 'font-medium font-mono text-sm' },
@@ -78,6 +110,10 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
               key: 'status',
               header: 'Status',
               sortable: true,
+              bulkEditable: {
+                items: CLAIM_STATUS_ITEMS,
+                onBulkChange: (ids, value) => bulkUpdateClaimStatus(ids, value),
+              },
               render: (c: any) => (
                 <Dropdown
                   variant="pill"
@@ -160,6 +196,34 @@ export default function TripDetailPage() {
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
   const patchBooking = usePatchBooking()
+  const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set())
+  const [bookingBulkLoading, setBookingBulkLoading] = useState(false)
+
+  async function bulkPatchBookings(
+    ids: string[],
+    patch: Partial<{ bookingStatus: BookingStatus; insuranceStatus: InsuranceStatus; paymentStatus: PaymentStatus }>
+  ) {
+    setBookingBulkLoading(true)
+    try {
+      await Promise.all(
+        ids.map(
+          id =>
+            new Promise<void>((resolve, reject) => {
+              patchBooking.mutate(
+                { id, data: patch },
+                { onSuccess: () => resolve(), onError: err => reject(err) }
+              )
+            })
+        )
+      )
+      setSelectedBookingIds(new Set())
+    } catch {
+      // individual mutation errors surface through TanStack Query
+    } finally {
+      setBookingBulkLoading(false)
+    }
+  }
+
   const generateSchedule = useGenerateSchedule()
   const deleteScheduledActivity = useDeleteScheduledActivity()
 
@@ -1100,6 +1164,10 @@ export default function TripDetailPage() {
               keyField="id"
               emptyMessage="No bookings yet"
               sortable
+              loading={bookingBulkLoading}
+              selectable
+              selectedRows={selectedBookingIds}
+              onSelectionChange={setSelectedBookingIds}
               columns={[
                 {
                   key: 'participantName',
@@ -1112,6 +1180,19 @@ export default function TripDetailPage() {
                   key: 'bookingStatus',
                   header: 'Status',
                   sortable: true,
+                  bulkEditable: {
+                    items: [
+                      { value: 'Enquiry', label: 'Enquiry' },
+                      { value: 'Held', label: 'Held' },
+                      { value: 'Confirmed', label: 'Confirmed' },
+                      { value: 'Waitlist', label: 'Waitlist' },
+                      { value: 'Cancelled', label: 'Cancelled' },
+                      { value: 'Completed', label: 'Completed' },
+                      { value: 'NoLongerAttending', label: 'No Longer Attending' },
+                    ],
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { bookingStatus: value as BookingStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1164,6 +1245,17 @@ export default function TripDetailPage() {
                   header: 'Insurance',
                   align: 'center',
                   sortable: true,
+                  bulkEditable: {
+                    items: [
+                      { value: 'None', label: 'None' },
+                      { value: 'Pending', label: 'Pending' },
+                      { value: 'Confirmed', label: 'Confirmed' },
+                      { value: 'Expired', label: 'Expired' },
+                      { value: 'Cancelled', label: 'Cancelled' },
+                    ],
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { insuranceStatus: value as InsuranceStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1185,6 +1277,11 @@ export default function TripDetailPage() {
                   header: 'Payment',
                   align: 'center',
                   sortable: true,
+                  bulkEditable: {
+                    items: PAYMENT_STATUS_ITEMS,
+                    onBulkChange: (ids, value) =>
+                      bulkPatchBookings(ids, { paymentStatus: value as PaymentStatus }),
+                  },
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"

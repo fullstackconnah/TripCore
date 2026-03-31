@@ -8,6 +8,7 @@ import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
+import type { BookingStatus, InsuranceStatus, PaymentStatus } from '@/api/types/enums'
 
 type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'history'
 
@@ -440,7 +441,7 @@ export default function TripDetailPage() {
       insuranceProvider: editForm.insuranceProvider || null,
       insurancePolicyNumber: editForm.insurancePolicyNumber || null,
       insuranceCoverageStart: editForm.insuranceCoverageStart || null,
-      insuranceCoverageEnd: editForm.insuranceCoverageEnd || null,
+      insuranceCoverageEnd: editForm.insuranceCoverageEnd || undefined,
     }}, {
       onSuccess: () => setEditingBooking(null),
     })
@@ -467,14 +468,14 @@ export default function TripDetailPage() {
     createBooking.mutate({
       tripInstanceId: id,
       participantId: selectedParticipantId,
-      bookingStatus,
+      bookingStatus: bookingStatus as BookingStatus,
       wheelchairRequired,
       highSupportRequired,
       nightSupportRequired,
       hasRestrictivePracticeFlag,
       ...(supportRatioOverride ? { supportRatioOverride } : {}),
       ...(bookingNotes ? { bookingNotes } : {}),
-      insuranceStatus,
+      insuranceStatus: insuranceStatus as InsuranceStatus,
       ...(insuranceProvider ? { insuranceProvider } : {}),
       ...(insurancePolicyNumber ? { insurancePolicyNumber } : {}),
       ...(insuranceCoverageStart ? { insuranceCoverageStart } : {}),
@@ -998,7 +999,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.bookingStatus}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { bookingStatus: val as BookingStatus } })}
                           colorClass={getStatusColor(b.bookingStatus)}
                           items={[
                             { value: 'Enquiry', label: 'Enquiry' },
@@ -1020,7 +1021,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.insuranceStatus || 'None'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { insuranceStatus: val as InsuranceStatus } })}
                           colorClass={getStatusColor(b.insuranceStatus || 'none')}
                           items={[
                             { value: 'None', label: 'None' },
@@ -1035,7 +1036,7 @@ export default function TripDetailPage() {
                         <Dropdown
                           variant="pill"
                           value={b.paymentStatus || 'NotInvoiced'}
-                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val } })}
+                          onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
                           colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
                           items={PAYMENT_STATUS_ITEMS}
                           disabled={isReadOnly}
@@ -2350,7 +2351,7 @@ export default function TripDetailPage() {
               <AddActivityModal
                 tripDayId={addActivityDayId}
                 editingActivity={editingScheduledActivity}
-                eventTemplateId={trip?.eventTemplateId}
+                eventTemplateId={trip?.eventTemplateId ?? undefined}
                 onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
               />
             )}

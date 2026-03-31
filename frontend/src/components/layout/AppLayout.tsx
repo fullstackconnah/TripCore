@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import TenantSwitcher from '@/components/layout/TenantSwitcher'
+import UserSwitcher from '@/components/layout/UserSwitcher'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard' },
@@ -24,11 +25,17 @@ const navItems = [
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
+  const isSuperAdmin = user.role === 'SuperAdmin' || !!localStorage.getItem('tripcore_superadmin_user')
+  const viewingUserId = localStorage.getItem('tripcore_viewing_user')
+  const viewingTenantId = localStorage.getItem('tripcore_viewing_tenant')
+  const savedAdminUser = JSON.parse(localStorage.getItem('tripcore_superadmin_user') || '{}')
 
   const handleLogout = () => {
     localStorage.removeItem('tripcore_token')
     localStorage.removeItem('tripcore_user')
     localStorage.removeItem('tripcore_viewing_tenant')
+    localStorage.removeItem('tripcore_viewing_user')
+    localStorage.removeItem('tripcore_superadmin_user')
     window.location.href = '/login'
   }
 
@@ -116,7 +123,8 @@ export default function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {user.role === 'SuperAdmin' && <TenantSwitcher />}
+              {isSuperAdmin && <TenantSwitcher />}
+              {isSuperAdmin && viewingTenantId && <UserSwitcher />}
               <button className="p-2 rounded-full hover:bg-[#efeeea] transition-colors">
                 <span className="material-symbols-outlined text-[#396200]" style={{ fontSize: '22px' }}>notifications</span>
               </button>
@@ -126,6 +134,30 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
+
+        {/* Impersonation banner */}
+        {viewingUserId && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 md:px-6 py-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-600 text-xs font-bold uppercase tracking-wide">Viewing as</span>
+              <span className="text-amber-800 text-sm font-semibold">{user.fullName}</span>
+              <span className="text-amber-600 text-xs">({user.role})</span>
+            </div>
+            <button
+              onClick={() => {
+                if (savedAdminUser.role) {
+                  localStorage.setItem('tripcore_user', JSON.stringify(savedAdminUser))
+                  localStorage.removeItem('tripcore_superadmin_user')
+                }
+                localStorage.removeItem('tripcore_viewing_user')
+                window.location.reload()
+              }}
+              className="text-xs text-amber-700 hover:text-amber-900 font-medium underline underline-offset-2"
+            >
+              Exit view
+            </button>
+          </div>
+        )}
 
         {/* Page content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 pb-24 lg:pb-8">

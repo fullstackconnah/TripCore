@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useMemo, useRef, useEffect } from 'react'
-import { formatDateAu, getStatusColor, formatCurrency } from '@/lib/utils'
+import { formatDateAu, formatCurrency } from '@/lib/utils'
+import { StatusBadge } from '@/components/StatusBadge'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Check } from 'lucide-react'
 import { Dropdown, type DropdownItem } from '@/components/Dropdown'
 
@@ -93,11 +94,7 @@ function renderCell<T>(row: T, col: Column<T>, rowIndex: number): ReactNode {
     case 'boolean':
       return value ? <Check className="w-4 h-4 text-[var(--color-primary)] mx-auto" /> : null
     case 'badge':
-      return value ? (
-        <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(String(value))}`}>
-          {String(value)}
-        </span>
-      ) : '—'
+      return value ? <StatusBadge status={String(value)} /> : '—'
     default:
       return value != null ? String(value) : '—'
   }

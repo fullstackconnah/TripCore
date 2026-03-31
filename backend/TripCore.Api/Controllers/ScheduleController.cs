@@ -53,6 +53,9 @@ public class ScheduleController : ControllerBase
             CurrentParticipantCount = t.Bookings.Count(b =>
                 b.BookingStatus != BookingStatus.Cancelled && b.BookingStatus != BookingStatus.NoLongerAttending),
             MinStaffRequired = t.MinStaffRequired,
+            StaffRequired = t.CalculatedStaffRequired > 0
+                ? (int)Math.Ceiling(t.CalculatedStaffRequired)
+                : t.MinStaffRequired,
             StaffAssignedCount = t.StaffAssignments.Count(a => a.Status != AssignmentStatus.Cancelled),
             VehicleAssignedCount = t.VehicleAssignments.Count(a =>
                 a.Status != VehicleAssignmentStatus.Cancelled && a.Status != VehicleAssignmentStatus.Unavailable),

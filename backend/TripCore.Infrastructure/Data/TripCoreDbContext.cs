@@ -48,6 +48,7 @@ public class TripCoreDbContext : DbContext
     public DbSet<SupportCatalogueItem> SupportCatalogueItems => Set<SupportCatalogueItem>();
     public DbSet<ProviderSettings> ProviderSettings => Set<ProviderSettings>();
     public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

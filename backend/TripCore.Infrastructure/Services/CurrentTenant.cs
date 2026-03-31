@@ -22,6 +22,9 @@ public sealed class CurrentTenant : ICurrentTenant
         TenantId = Guid.TryParse(claim, out var parsed) ? parsed : null;
         IsSuperAdmin = user?.IsInRole("SuperAdmin") ?? false;
 
+        // Store original SuperAdmin state before tenant override may clear it
+        var wasSuperAdmin = IsSuperAdmin;
+
         // SuperAdmin header override: scope to a specific tenant for this request
         if (IsSuperAdmin)
         {
@@ -33,8 +36,8 @@ public sealed class CurrentTenant : ICurrentTenant
             }
         }
 
-        // User-level view-as: record which user we're impersonating
-        if (TenantId.HasValue)
+        // User-level view-as: only a SuperAdmin who has scoped to a tenant may set this
+        if (wasSuperAdmin && TenantId.HasValue)
         {
             var userHeader = accessor.HttpContext?.Request.Headers["X-View-As-User"].FirstOrDefault();
             if (Guid.TryParse(userHeader, out var viewUserId))

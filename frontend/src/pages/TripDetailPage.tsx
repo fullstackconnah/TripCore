@@ -1,16 +1,126 @@
 import { useParams, Link } from 'react-router-dom'
-import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
-import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, ClockIcon } from 'lucide-react'
+import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, ClockIcon, FileText } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import AuditHistoryTab from '@/components/AuditHistoryTab'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import AddActivityModal from '@/components/AddActivityModal'
+import GenerateClaimModal from '@/components/GenerateClaimModal'
 import ItineraryTab from '@/components/ItineraryTab'
 import { Dropdown } from '@/components/Dropdown'
-import type { BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types/enums'
+import { DataTable } from '@/components/DataTable'
+import type { TripClaimStatus, BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio, SleepoverType } from '@/api/types/enums'
 
-type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'history'
+type Tab = 'overview' | 'bookings' | 'accommodation' | 'vehicles' | 'staff' | 'tasks' | 'activities' | 'claims' | 'history'
+
+const CLAIM_STATUS_ITEMS = [
+  { value: 'Draft', label: 'Draft' },
+  { value: 'Submitted', label: 'Submitted' },
+  { value: 'Paid', label: 'Paid' },
+  { value: 'Rejected', label: 'Rejected' },
+  { value: 'PartiallyPaid', label: 'Partially Paid' },
+]
+
+const CLAIM_STATUS_COLORS: Record<string, string> = {
+  Draft: 'bg-gray-100 text-gray-600',
+  Submitted: 'bg-blue-100 text-blue-700',
+  Paid: 'bg-[#bff285] text-[#294800]',
+  Rejected: 'bg-red-100 text-red-700',
+  PartiallyPaid: 'bg-amber-100 text-amber-700',
+}
+
+function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: any[]; trip: any }) {
+  const deleteClaim = useDeleteClaim()
+  const updateClaim = useUpdateClaim()
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function handleDelete(claimId: string) {
+    if (!confirm('Delete this claim? This cannot be undone.')) return
+    deleteClaim.mutate(claimId, {
+      onError: (err: any) => setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to delete claim.'),
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-[#1b1c1a]">NDIS Claims</h2>
+        <button
+          onClick={() => setShowGenerateModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all"
+        >
+          + Generate Claim
+        </button>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+          <span className="mt-0.5">⚠</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {claims.length === 0 ? (
+        <div className="bg-white rounded-2xl p-8 text-center text-[#43493a]">
+          No claims yet. Generate a claim once the trip is complete.
+        </div>
+      ) : (
+        <DataTable
+          data={claims}
+          keyField="id"
+          sortable
+          emptyMessage="No claims yet"
+          columns={[
+            { key: 'claimReference', header: 'Reference', sortable: true, className: 'font-medium font-mono text-sm' },
+            {
+              key: 'status',
+              header: 'Status',
+              sortable: true,
+              render: (c: any) => (
+                <Dropdown
+                  variant="pill"
+                  value={c.status}
+                  onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val as TripClaimStatus } })}
+                  colorClass={CLAIM_STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-600'}
+                  items={CLAIM_STATUS_ITEMS}
+                />
+              ),
+            },
+            { key: 'totalAmount', header: 'Total Amount', type: 'currency', sortable: true },
+            { key: 'createdAt', header: 'Created', type: 'date', sortable: true },
+            { key: 'submittedDate', header: 'Submitted', type: 'date', sortable: true },
+            {
+              key: 'actions',
+              header: '',
+              render: (c: any) => (
+                <div className="flex items-center gap-3">
+                  <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
+                  {c.status !== 'Submitted' && c.status !== 'Paid' && (
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      className="text-xs text-red-500 hover:underline"
+                    >Delete</button>
+                  )}
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
+
+      {showGenerateModal && (
+        <GenerateClaimModal
+          tripId={tripId}
+          trip={trip}
+          onClose={() => setShowGenerateModal(false)}
+          onSuccess={() => setShowGenerateModal(false)}
+        />
+      )}
+    </div>
+  )
+}
 
 export default function TripDetailPage() {
   const { id } = useParams()
@@ -45,6 +155,7 @@ export default function TripDetailPage() {
   const { data: staff = [] } = useTripStaff(id)
   const { data: tasks = [] } = useTripTasks(id)
   const { data: schedule = [] } = useTripSchedule(id)
+  const { data: claims = [] } = useTripClaims(id)
   const { data: participants = [] } = useParticipants()
   const createBooking = useCreateBooking()
   const updateBooking = useUpdateBooking()
@@ -508,6 +619,7 @@ export default function TripDetailPage() {
     { key: 'staff', label: 'Staff', icon: UserCog, count: staff.length },
     { key: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
     { key: 'activities', label: 'Activities', icon: Calendar, count: schedule.reduce((sum: number, d: any) => sum + (d.scheduledActivities?.length || 0), 0) },
+    { key: 'claims', label: 'Claims', icon: FileText, count: claims.length },
     ...(isAdmin ? [{ key: 'history' as Tab, label: 'History', icon: ClockIcon }] : []),
   ]
 
@@ -2395,6 +2507,10 @@ export default function TripDetailPage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'claims' && trip && (
+          <ClaimsTabContent tripId={String(trip.id)} claims={claims} trip={trip} />
         )}
 
         {activeTab === 'history' && isAdmin && trip && (

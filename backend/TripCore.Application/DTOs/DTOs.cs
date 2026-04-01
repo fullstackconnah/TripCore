@@ -40,6 +40,8 @@ public record ParticipantDetailDto : ParticipantListDto
     public string? Notes { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
+    public Guid? PreferredStaffId { get; init; }
+    public string? PreferredStaffName { get; init; }
 }
 
 public record CreateParticipantDto
@@ -77,6 +79,7 @@ public record CreateParticipantDto
     public string? BehaviourRiskSummary { get; init; }
     [StringLength(4000)]
     public string? Notes { get; init; }
+    public Guid? PreferredStaffId { get; init; }
 }
 
 public record UpdateParticipantDto : CreateParticipantDto

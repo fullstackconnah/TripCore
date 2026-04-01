@@ -2,6 +2,9 @@ import { useParams, Link } from 'react-router-dom'
 import { useParticipant, useParticipantBookings, useSupportProfile } from '@/api/hooks'
 import { formatDateAu, maskNdisNumber } from '@/lib/utils'
 import { DataTable } from '@/components/DataTable'
+import { TabNav } from '@/components/TabNav'
+import { StatusBadge } from '@/components/StatusBadge'
+import { Card } from '@/components/Card'
 import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import AuditHistoryTab from '@/components/AuditHistoryTab'
@@ -29,7 +32,7 @@ export default function ParticipantDetailPage() {
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold">{p.fullName}</h1>
-            <span className={`text-xs px-3 py-1 rounded-full ${p.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>{p.isActive ? 'Active' : 'Inactive'}</span>
+            <StatusBadge status={p.isActive ? 'Active' : 'Inactive'} />
           </div>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{p.region || 'No region'} · {p.planType} · Support Ratio: {p.supportRatio}</p>
         </div>
@@ -40,31 +43,20 @@ export default function ParticipantDetailPage() {
         )}
       </div>
 
-      <div className="flex gap-4 border-b border-[var(--color-border)]">
-        {[{ key: 'details' as const, label: 'Details', icon: Users }, { key: 'bookings' as const, label: 'Bookings', icon: ClipboardList }, { key: 'support' as const, label: 'Support Profile', icon: Shield }].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-muted-foreground)]'}`}>
-            <t.icon className="w-4 h-4" /> {t.label}
-          </button>
-        ))}
-        {isAdmin && (
-          <button
-            onClick={() => setTab('history')}
-            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
-              tab === 'history'
-                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            History
-          </button>
-        )}
-      </div>
+      <TabNav
+        tabs={[
+          { key: 'details', label: 'Details', icon: Users },
+          { key: 'bookings', label: 'Bookings', icon: ClipboardList },
+          { key: 'support', label: 'Support Profile', icon: Shield },
+          ...(isAdmin ? [{ key: 'history' as const, label: 'History' }] : []),
+        ]}
+        active={tab}
+        onChange={(key) => setTab(key as typeof tab)}
+      />
 
       {tab === 'details' && (
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
-            <h3 className="font-semibold">Personal Information</h3>
+          <Card title="Personal Information">
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <span className="text-[var(--color-muted-foreground)]">NDIS Number</span><span className="font-mono">{p.ndisNumber ? maskNdisNumber(p.maskedNdisNumber || p.ndisNumber) : '—'}</span>
               <span className="text-[var(--color-muted-foreground)]">Date of Birth</span><span>{formatDateAu(p.dateOfBirth)}</span>
@@ -72,26 +64,24 @@ export default function ParticipantDetailPage() {
               <span className="text-[var(--color-muted-foreground)]">Repeat Client</span><span>{p.isRepeatClient ? 'Yes' : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">Preferred Staff</span><span>{p.preferredStaffName ?? '—'}</span>
             </div>
-          </div>
-          <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">
-            <h3 className="font-semibold">Support Needs</h3>
+          </Card>
+          <Card title="Support Needs">
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <span className="text-[var(--color-muted-foreground)]">Wheelchair</span><span>{p.wheelchairRequired ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">High Support</span><span>{p.isHighSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">Overnight Support</span><span>{p.requiresOvernightSupport ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-[var(--color-primary)]">check_circle</span> Yes</span> : 'No'}</span>
               <span className="text-[var(--color-muted-foreground)]">Restrictive Practice</span><span>{p.hasRestrictivePracticeFlag ? <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-base leading-none text-amber-500">warning</span> Yes</span> : 'No'}</span>
             </div>
-          </div>
+          </Card>
           {(p.mobilityNotes || p.transportRequirements || p.equipmentRequirements || p.notes) && (
-            <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3 md:col-span-2">
-              <h3 className="font-semibold">Notes</h3>
+            <Card title="Notes" className="md:col-span-2">
               <div className="text-sm space-y-2 text-[var(--color-muted-foreground)]">
                 {p.mobilityNotes && <p><strong>Mobility:</strong> {p.mobilityNotes}</p>}
                 {p.transportRequirements && <p><strong>Transport:</strong> {p.transportRequirements}</p>}
                 {p.equipmentRequirements && <p><strong>Equipment:</strong> {p.equipmentRequirements}</p>}
                 {p.notes && <p><strong>General:</strong> {p.notes}</p>}
               </div>
-            </div>
+            </Card>
           )}
         </div>
       )}
@@ -118,7 +108,7 @@ export default function ParticipantDetailPage() {
       )}
 
       {tab === 'support' && (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5">
+        <Card>
           {!supportProfile ? (
             <p className="text-[var(--color-muted-foreground)]">No support profile recorded</p>
           ) : (
@@ -140,7 +130,7 @@ export default function ParticipantDetailPage() {
               {supportProfile.reviewDate && <p className="text-xs text-[var(--color-muted-foreground)]">Review Date: {formatDateAu(supportProfile.reviewDate)}</p>}
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {tab === 'history' && isAdmin && p && (

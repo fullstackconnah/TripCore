@@ -2,6 +2,9 @@ import { useVehicles, useDeleteVehicle, useUpdateVehicle } from '@/api/hooks'
 import { Link } from 'react-router-dom'
 import { formatDateAu } from '@/lib/utils'
 import { Plus, Pencil, Trash2, ArchiveRestore, Car, Bus, Truck, Users, Wrench, Calendar, Accessibility } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
+import { EmptyState } from '@/components/EmptyState'
+import { StatusBadge } from '@/components/StatusBadge'
 import { useState } from 'react'
 import { usePermissions } from '@/lib/permissions'
 
@@ -74,14 +77,10 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl md:text-2xl font-bold text-[var(--color-foreground)]">Vehicles</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
-            {vehicles.length} {showArchived ? 'archived' : 'active'} vehicle{vehicles.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        {!showArchived && canWrite && (
+      <PageHeader
+        title="Vehicles"
+        subtitle={`${vehicles.length} ${showArchived ? 'archived' : 'active'} vehicle${vehicles.length !== 1 ? 's' : ''}`}
+        action={!showArchived && canWrite && (
           <Link
             to="/vehicles/new"
             className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white text-sm font-bold hover:opacity-90 transition-all shadow-md flex-shrink-0"
@@ -89,7 +88,7 @@ export default function VehiclesPage() {
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Vehicle</span><span className="sm:hidden">Add</span>
           </Link>
         )}
-      </div>
+      />
 
       {/* Filter chips */}
       <div className="flex gap-2">
@@ -120,18 +119,11 @@ export default function VehiclesPage() {
         <div className="text-center py-16 text-[var(--color-muted-foreground)]">Loading...</div>
       ) : vehicles.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Bus className="w-16 h-16 text-[var(--color-foreground)] opacity-20" />
-          <p className="text-lg font-semibold text-[var(--color-muted-foreground)]">No vehicles found</p>
-          {!showArchived && (
-            <Link
-              to="/vehicles/new"
-              className="mt-2 text-sm font-bold text-[var(--color-primary)] hover:underline"
-            >
-              Add your first vehicle
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon={Bus}
+          title="No vehicles found"
+          action={!showArchived ? { label: 'Add your first vehicle', to: '/vehicles/new' } : undefined}
+        />
       ) : (
         /* Vehicle grid */
         <div className="grid md:grid-cols-2 gap-4 md:gap-6">
@@ -165,9 +157,7 @@ export default function VehiclesPage() {
                             {v.vehicleType} · {v.isInternal ? 'Internal' : 'External'}
                           </p>
                         </div>
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full shrink-0 font-semibold ${v.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
-                          {v.isActive ? 'ACTIVE' : 'ARCHIVED'}
-                        </span>
+                        <StatusBadge status={v.isActive ? 'Active' : 'Archived'} className="shrink-0 font-semibold" />
                       </div>
                     </div>
                   </div>

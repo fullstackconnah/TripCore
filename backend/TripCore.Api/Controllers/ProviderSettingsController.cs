@@ -9,7 +9,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = "SuperAdmin,Admin,Coordinator")]
 [Route("api/v1/provider-settings")]
 public class ProviderSettingsController : ControllerBase
 {
@@ -34,7 +34,7 @@ public class ProviderSettingsController : ControllerBase
     }
 
     [HttpPut]
-    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<ActionResult<ApiResponse<bool>>> Upsert([FromBody] UpsertProviderSettingsDto dto, CancellationToken ct)
     {
         var s = await _db.ProviderSettings.FirstOrDefaultAsync(ct);

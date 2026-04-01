@@ -1,24 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useAdminTenants } from '@/api/hooks'
-
-interface Tenant {
-  id: string
-  name: string
-  emailDomain: string
-  isActive: boolean
-}
-
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-}
+import { useAdminTenantsSummary } from '@/api/hooks'
 
 export default function TenantSwitcher() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const { data } = useAdminTenants()
-
-  const tenants: Tenant[] = (data as ApiResponse<Tenant[]>)?.data ?? []
+  const { data: tenants = [] } = useAdminTenantsSummary()
   const viewingId = localStorage.getItem('tripcore_viewing_tenant')
   const current = tenants.find(t => t.id === viewingId)
   const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')

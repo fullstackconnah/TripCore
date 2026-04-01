@@ -5,8 +5,10 @@ import { DataTable } from '@/components/DataTable'
 import { ArrowLeft, Users, Shield, ClipboardList, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import AuditHistoryTab from '@/components/AuditHistoryTab'
+import { usePermissions } from '@/lib/permissions'
 
 export default function ParticipantDetailPage() {
+  const { canWrite } = usePermissions()
   const { id } = useParams()
   const [tab, setTab] = useState<'details' | 'bookings' | 'support' | 'history'>('details')
   const currentUser = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
@@ -31,9 +33,11 @@ export default function ParticipantDetailPage() {
           </div>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{p.region || 'No region'} · {p.planType} · Support Ratio: {p.supportRatio}</p>
         </div>
-        <Link to={`/participants/${id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
-          <Pencil className="w-4 h-4" /> Edit
-        </Link>
+        {canWrite && (
+          <Link to={`/participants/${id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
+            <Pencil className="w-4 h-4" /> Edit
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-4 border-b border-[var(--color-border)]">

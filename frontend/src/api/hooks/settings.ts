@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGetWithDefault, apiPutRaw, apiClient } from '../client'
-import type { AppSettingsDto, UpdateAppSettingsDto, ApiResponse, TenantDto, TenantUserDto } from '../types'
+import type { AppSettingsDto, UpdateAppSettingsDto, ApiResponse, TenantUserDto } from '../types'
 
 export function useSettings() {
   return useQuery({
@@ -15,13 +15,6 @@ export function useUpdateSettings() {
   return useMutation({
     mutationFn: (data: UpdateAppSettingsDto) => apiPutRaw<AppSettingsDto>('/settings', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
-  })
-}
-
-export function useAdminTenants() {
-  return useQuery({
-    queryKey: ['admin-tenants'],
-    queryFn: () => apiClient.get<ApiResponse<TenantDto[]>>('/admin/tenants').then(r => r.data),
   })
 }
 

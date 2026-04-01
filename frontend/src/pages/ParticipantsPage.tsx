@@ -8,8 +8,10 @@ import { useArchiveRestore } from '@/hooks/useArchiveRestore'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { usePermissions } from '@/lib/permissions'
 
 export default function ParticipantsPage() {
+  const { canWrite } = usePermissions()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const deleteParticipant = useDeleteParticipant()
@@ -38,7 +40,7 @@ export default function ParticipantsPage() {
     { key: 'supportRatio', header: 'Support Ratio' },
     { key: 'isRepeatClient', header: 'Repeat', type: 'boolean', align: 'center' },
     { key: 'status', header: 'Status', sortable: true, render: (p) => <StatusBadge status={p.isActive ? 'Active' : 'Inactive'} /> },
-    { key: 'actions', header: '', render: (p) => actionButtons(p) },
+    { key: 'actions', header: '', render: (p) => canWrite ? actionButtons(p) : null },
   ]
 
   return (
@@ -46,7 +48,7 @@ export default function ParticipantsPage() {
       <PageHeader
         title="Participants"
         subtitle={`${participants.length} participant${participants.length !== 1 ? 's' : ''}`}
-        action={!showArchived && (
+        action={!showArchived && canWrite && (
           <Link to="/participants/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 shadow-md shadow-blue-500/20 transition-all">
             <Plus className="w-4 h-4" /> New Participant
           </Link>

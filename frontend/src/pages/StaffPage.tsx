@@ -5,8 +5,10 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { useArchiveRestore } from '@/hooks/useArchiveRestore'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
+import { usePermissions } from '@/lib/permissions'
 
 export default function StaffPage() {
+  const { canWrite } = usePermissions()
   const deleteStaff = useDeleteStaff()
   const updateStaff = useUpdateStaff()
 
@@ -38,7 +40,7 @@ export default function StaffPage() {
       <PageHeader
         title="Staff"
         subtitle={`${staff.length} staff member${staff.length !== 1 ? 's' : ''}`}
-        action={!showArchived && (
+        action={!showArchived && canWrite && (
           <Link to="/staff/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
             <Plus className="w-4 h-4" /> New Staff
           </Link>

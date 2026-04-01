@@ -10,6 +10,7 @@ import {
 } from '../api/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import { Dropdown } from '@/components/Dropdown'
+import { usePermissions } from '@/lib/permissions'
 
 // ── Status Pill Styles ──
 
@@ -532,6 +533,7 @@ const tripAccentText = [
 // ── Main Page ──
 
 export default function SchedulePage() {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const { data, isLoading, error } = useScheduleOverview()
   const [expandedStaff, setExpandedStaff] = useState<Set<string>>(new Set())
@@ -803,9 +805,9 @@ export default function SchedulePage() {
                               <StatusBadge
                                 status={ts.status}
                                 role={ts.assignmentRole}
-                                clickable={isAvailable}
-                                onClick={isAvailable ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
-                                onUnassign={ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
+                                clickable={isAvailable && canWrite}
+                                onClick={isAvailable && canWrite ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
+                                onUnassign={canWrite && ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
                                   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedule-overview'] })
                                 }) : undefined}
                               />
@@ -886,8 +888,8 @@ export default function SchedulePage() {
                         <td key={ts.tripId} className="px-3 py-2.5">
                           <StatusBadge
                             status={ts.status}
-                            clickable={isAvailable}
-                            onClick={isAvailable ? () => setAssignModal({ type: 'vehicle', resource: v, trip }) : undefined}
+                            clickable={isAvailable && canWrite}
+                            onClick={isAvailable && canWrite ? () => setAssignModal({ type: 'vehicle', resource: v, trip }) : undefined}
                           />
                         </td>
                       )

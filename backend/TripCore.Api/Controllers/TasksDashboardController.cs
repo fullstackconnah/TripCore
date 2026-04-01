@@ -408,6 +408,7 @@ public class ConflictsController : ControllerBase
 
     /// <summary>Recheck all conflicts across accommodation, vehicles, and staff.</summary>
     [HttpPost("recheck")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> Recheck(CancellationToken ct)
     {
         int updated = 0;

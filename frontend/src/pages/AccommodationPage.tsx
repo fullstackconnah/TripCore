@@ -2,8 +2,10 @@ import { useAccommodation, useDeleteAccommodation, useUpdateAccommodation } from
 import { Link } from 'react-router-dom'
 import { Search, Plus, Trash2, ArchiveRestore } from 'lucide-react'
 import { useState } from 'react'
+import { usePermissions } from '@/lib/permissions'
 
 export default function AccommodationPage() {
+  const { canWrite } = usePermissions()
   const [search, setSearch] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
@@ -38,7 +40,7 @@ export default function AccommodationPage() {
           <h1 className="text-xl md:text-2xl font-bold">Accommodation</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{filtered.length} properties</p>
         </div>
-        {!showArchived && (
+        {!showArchived && canWrite && (
           <Link to="/accommodation/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20 flex-shrink-0">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Accommodation</span><span className="sm:hidden">New</span>
           </Link>

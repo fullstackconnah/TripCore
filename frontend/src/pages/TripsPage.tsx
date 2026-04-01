@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Dropdown } from '@/components/Dropdown'
+import { usePermissions } from '@/lib/permissions'
 
 type Tab = 'active' | 'completed'
 
@@ -48,6 +49,7 @@ function buildEditForm(t: any) {
 }
 
 export default function TripsPage() {
+  const { canWrite } = usePermissions()
   const [tab, setTab] = useState<Tab>('active')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -134,10 +136,12 @@ export default function TripsPage() {
           <h1 className="text-xl md:text-2xl font-bold text-[#1b1c1a]">Trips</h1>
           <p className="text-sm text-[#43493a] mt-1">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link to="/trips/new"
-          className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all flex-shrink-0">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Trip</span><span className="sm:hidden">New</span>
-        </Link>
+        {canWrite && (
+          <Link to="/trips/new"
+            className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all flex-shrink-0">
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Trip</span><span className="sm:hidden">New</span>
+          </Link>
+        )}
       </div>
 
       {/* Tabs */}
@@ -220,15 +224,17 @@ export default function TripsPage() {
               {/* Footer: status (far left, edit slides in on hover) + participant info */}
               <div className="flex items-center justify-between pt-3 mt-1">
                 <div className="flex items-center gap-1">
-                  <div className="max-w-0 overflow-hidden group-hover:max-w-[2rem] transition-all duration-200">
-                    <button
-                      onClick={e => handleOpenEdit(t.id, e)}
-                      title="Edit trip"
-                      className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-opacity"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                    </button>
-                  </div>
+                  {canWrite && (
+                    <div className="max-w-0 overflow-hidden group-hover:max-w-[2rem] transition-all duration-200">
+                      <button
+                        onClick={e => handleOpenEdit(t.id, e)}
+                        title="Edit trip"
+                        className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-[#f5f3ef] transition-opacity"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                      </button>
+                    </div>
+                  )}
                   <Dropdown
                     variant="pill"
                     value={t.status}

@@ -6,8 +6,10 @@ import { useArchiveRestore } from '@/hooks/useArchiveRestore'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { Filter, CheckCircle, Plus } from 'lucide-react'
+import { usePermissions } from '@/lib/permissions'
 
 export default function TasksPage() {
+  const { canWrite } = usePermissions()
   const [statusFilter, setStatusFilter] = useState('')
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
@@ -56,7 +58,7 @@ export default function TasksPage() {
       render: (t) => <StatusBadge status={t.priority} />,
     },
     { key: 'status', header: 'Status', type: 'badge', sortable: true },
-    { key: 'actions', header: '', render: (t) => actionButtons(t) },
+    { key: 'actions', header: '', render: (t) => canWrite ? actionButtons(t) : null },
   ]
 
   return (
@@ -64,7 +66,7 @@ export default function TasksPage() {
       <PageHeader
         title="Tasks"
         subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
-        action={!showArchived && (
+        action={!showArchived && canWrite && (
           <Link to="/tasks/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
             <Plus className="w-4 h-4" /> New Task
           </Link>

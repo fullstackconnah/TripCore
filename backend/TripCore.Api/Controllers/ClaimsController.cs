@@ -10,7 +10,7 @@ using TripCore.Infrastructure.Services;
 namespace TripCore.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = "SuperAdmin,Admin,Coordinator")]
 [Route("api/v1")]
 public class ClaimsController : ControllerBase
 {

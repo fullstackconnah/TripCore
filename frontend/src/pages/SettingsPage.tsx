@@ -14,6 +14,7 @@ import UsersTab from '@/pages/settings/UsersTab'
 import UserFormPanel from '@/pages/settings/UserFormPanel'
 import TenantDetailView from '@/pages/settings/TenantDetailView'
 import type { TenantSummaryDto, AdminUserDto } from '@/api/types'
+import { usePermissions } from '@/lib/permissions'
 
 function QualificationSettingsTab() {
   const { data: settings } = useSettings()
@@ -68,8 +69,7 @@ export default function SettingsPage() {
   const [editingTemplate, setEditingTemplate] = useState<EventTemplateDto | undefined>(undefined)
   const { data: activities = [] } = useActivities()
 
-  const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
-  const isSuperAdmin = user.role === 'SuperAdmin'
+  const { isSuperAdmin } = usePermissions()
 
   const [tenantPanelOpen, setTenantPanelOpen] = useState(false)
   const [editingTenant, setEditingTenant] = useState<TenantSummaryDto | undefined>()
@@ -226,6 +226,7 @@ export default function SettingsPage() {
 }
 
 function ProviderSettingsTab() {
+  const { canEditProviderSettings, showBankDetails } = usePermissions()
   const { data: settings } = useProviderSettings()
   const upsert = useUpsertProviderSettings()
   const [form, setForm] = useState<any>({})
@@ -288,14 +289,16 @@ function ProviderSettingsTab() {
           </div>
         </div>
       </div>
-      <div>
-        <h2 className="font-semibold text-[#1b1c1a] mb-4">Bank Details</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <div><label className={labelClass}>Account Name</label><input {...f('bankAccountName')} /></div>
-          <div><label className={labelClass}>BSB</label><input {...f('bsb')} /></div>
-          <div><label className={labelClass}>Account Number</label><input {...f('accountNumber')} /></div>
+      {showBankDetails && (
+        <div>
+          <h2 className="font-semibold text-[#1b1c1a] mb-4">Bank Details</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div><label className={labelClass}>Account Name</label><input {...f('bankAccountName')} /></div>
+            <div><label className={labelClass}>BSB</label><input {...f('bsb')} /></div>
+            <div><label className={labelClass}>Account Number</label><input {...f('accountNumber')} /></div>
+          </div>
         </div>
-      </div>
+      )}
       <div>
         <h2 className="font-semibold text-[#1b1c1a] mb-2">Invoice Footer Notes</h2>
         <textarea {...f('invoiceFooterNotes')} rows={3} className={inputClass + ' resize-none'} placeholder="e.g. All services delivered in accordance with the NDIS Code of Conduct..." />
@@ -306,9 +309,11 @@ function ProviderSettingsTab() {
           <span>{error}</span>
         </div>
       )}
-      <button onClick={handleSave} disabled={upsert.isPending} className="px-6 py-2.5 bg-[#396200] text-white rounded-full font-semibold text-sm hover:bg-[#294800] transition-all disabled:opacity-50">
-        {upsert.isPending ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
-      </button>
+      {canEditProviderSettings && (
+        <button onClick={handleSave} disabled={upsert.isPending} className="px-6 py-2.5 bg-[#396200] text-white rounded-full font-semibold text-sm hover:bg-[#294800] transition-all disabled:opacity-50">
+          {upsert.isPending ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
+        </button>
+      )}
     </div>
   )
 }

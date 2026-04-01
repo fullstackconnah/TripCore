@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { formatDateAu } from '@/lib/utils'
 import { Plus, Pencil, Trash2, ArchiveRestore, Car, Bus, Truck, Users, Wrench, Calendar, Accessibility } from 'lucide-react'
 import { useState } from 'react'
+import { usePermissions } from '@/lib/permissions'
 
 type VehicleTypeKey = 'Car' | 'Van' | 'Bus' | 'MiniBus' | 'AccessibleVan' | 'Other'
 
@@ -45,6 +46,7 @@ function StatCell({ icon: Icon, label, value, status }: {
 }
 
 export default function VehiclesPage() {
+  const { canWrite } = usePermissions()
   const [showArchived, setShowArchived] = useState(false)
   const params: Record<string, string> = { isActive: showArchived ? 'false' : 'true' }
   const { data: vehicles = [], isLoading } = useVehicles(params)
@@ -79,7 +81,7 @@ export default function VehiclesPage() {
             {vehicles.length} {showArchived ? 'archived' : 'active'} vehicle{vehicles.length !== 1 ? 's' : ''}
           </p>
         </div>
-        {!showArchived && (
+        {!showArchived && canWrite && (
           <Link
             to="/vehicles/new"
             className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white text-sm font-bold hover:opacity-90 transition-all shadow-md flex-shrink-0"
@@ -206,30 +208,32 @@ export default function VehiclesPage() {
                   )}
 
                   {/* Action row */}
-                  <div className="border-t border-[rgba(195,201,181,0.15)] pt-4 flex gap-3">
-                    <Link
-                      to={`/vehicles/${v.id}/edit`}
-                      onClick={e => e.stopPropagation()}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-foreground)] text-sm font-bold hover:opacity-80 transition-all"
-                    >
-                      <Pencil className="w-4 h-4" /> Edit
-                    </Link>
-                    {showArchived ? (
-                      <button
-                        onClick={e => handleRestore(e, v)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-primary-fixed)] text-[var(--color-on-primary-fixed)] text-sm font-bold hover:opacity-80 transition-all"
+                  {canWrite && (
+                    <div className="border-t border-[rgba(195,201,181,0.15)] pt-4 flex gap-3">
+                      <Link
+                        to={`/vehicles/${v.id}/edit`}
+                        onClick={e => e.stopPropagation()}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-foreground)] text-sm font-bold hover:opacity-80 transition-all"
                       >
-                        <ArchiveRestore className="w-4 h-4" /> Restore
-                      </button>
-                    ) : (
-                      <button
-                        onClick={e => handleDelete(e, v.id, v.vehicleName)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-muted-foreground)] text-sm font-bold hover:bg-[var(--color-error-container)] hover:text-[var(--color-destructive)] transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" /> Archive
-                      </button>
-                    )}
-                  </div>
+                        <Pencil className="w-4 h-4" /> Edit
+                      </Link>
+                      {showArchived ? (
+                        <button
+                          onClick={e => handleRestore(e, v)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-primary-fixed)] text-[var(--color-on-primary-fixed)] text-sm font-bold hover:opacity-80 transition-all"
+                        >
+                          <ArchiveRestore className="w-4 h-4" /> Restore
+                        </button>
+                      ) : (
+                        <button
+                          onClick={e => handleDelete(e, v.id, v.vehicleName)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-muted-foreground)] text-sm font-bold hover:bg-[var(--color-error-container)] hover:text-[var(--color-destructive)] transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" /> Archive
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )

@@ -1,76 +1,56 @@
 import { useIncidents, useUpdateIncident, useDeleteIncident, useOverdueQscIncidents } from '@/api/hooks'
 import { DataTable, type Column } from '@/components/DataTable'
-import { getStatusColor } from '@/lib/utils'
+import { PageHeader } from '@/components/PageHeader'
+import { StatusBadge } from '@/components/StatusBadge'
+import { useArchiveRestore } from '@/hooks/useArchiveRestore'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { Filter, Plus, Pencil, Trash2, ArchiveRestore, AlertTriangle } from 'lucide-react'
+import { Filter, Plus, AlertTriangle } from 'lucide-react'
+import { usePermissions } from '@/lib/permissions'
 
-function getSeverityBadge(severity: string) {
-  switch (severity) {
-    case 'Low': return 'badge-info'
-    case 'Medium': return 'badge-pending'
-    case 'High': return 'badge-overdue'
-    case 'Critical': return 'badge-overdue'
-    default: return 'badge-info'
+function formatQscLabel(status: string): string {
+  switch (status) {
+    case 'ReportedWithin24h': return 'Reported (24h)'
+    case 'ReportedLate': return 'Reported Late'
+    case 'Required': return 'Required'
+    case 'Pending': return 'Pending'
+    default: return status
   }
-}
-
-function getQscBadge(qscStatus: string, isOverdue: boolean) {
-  if (qscStatus === 'NotRequired') return null
-  if (isOverdue) return 'badge-overdue animate-pulse'
-  if (qscStatus === 'ReportedWithin24h') return 'badge-confirmed'
-  if (qscStatus === 'ReportedLate') return 'badge-pending'
-  if (qscStatus === 'Required' || qscStatus === 'Pending') return 'badge-overdue'
-  return 'badge-info'
 }
 
 export default function IncidentsPage() {
+  const { canWrite, canCreateIncidents } = usePermissions()
   const [statusFilter, setStatusFilter] = useState('')
   const [severityFilter, setSeverityFilter] = useState('')
-  const [showArchived, setShowArchived] = useState(false)
-  const params: Record<string, string> = {}
-  if (showArchived) {
-    params.status = 'Closed'
-  } else {
-    if (statusFilter) params.status = statusFilter
-    if (severityFilter) params.severity = severityFilter
-  }
-
-  const { data: incidents = [], isLoading } = useIncidents(params)
   const updateIncident = useUpdateIncident()
   const deleteIncident = useDeleteIncident()
   const { data: overdueQsc = [] } = useOverdueQscIncidents()
 
-  const handleRestore = (e: React.MouseEvent, incident: any) => {
-    e.stopPropagation()
-    if (window.confirm(`Restore "${incident.title}"?`)) {
-      updateIncident.mutate({ id: incident.id, data: { ...incident, status: 'Draft', isActive: true } })
-    }
+  const { showArchived, params, toggleButtons, confirmDialog, actionButtons } = useArchiveRestore<any>({
+    deleteMutation: deleteIncident,
+    restoreMutation: updateIncident,
+    entityName: (i) => i.title,
+    entityId: (i) => i.id,
+    archiveVia: 'status',
+    archiveStatus: 'Closed',
+    restoreData: (i) => ({ ...i, status: 'Draft', isActive: true }),
+    editPath: (i) => `/incidents/${i.id}/edit`,
+  })
+
+  const queryParams = { ...params }
+  if (!showArchived) {
+    if (statusFilter) queryParams.status = statusFilter
+    if (severityFilter) queryParams.severity = severityFilter
   }
 
-  const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
-    e.stopPropagation()
-    if (window.confirm(`Archive "${title}"? This can be undone from the Archived view.`)) {
-      deleteIncident.mutate(id)
-    }
-  }
+  const { data: incidents = [], isLoading } = useIncidents(queryParams)
 
   const incidentColumns: Column<any>[] = [
     { key: 'title', header: 'Title', sortable: true, className: 'font-medium' },
     { key: 'tripName', header: 'Trip', sortable: true },
     { key: 'incidentType', header: 'Type', sortable: true },
-    {
-      key: 'severity',
-      header: 'Severity',
-      sortable: true,
-      render: (i) => <span className={`text-xs px-2 py-0.5 rounded-full ${getSeverityBadge(i.severity)}`}>{i.severity}</span>,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      render: (i) => <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(i.status)}`}>{i.status}</span>,
-    },
+    { key: 'severity', header: 'Severity', sortable: true, render: (i) => <StatusBadge status={i.severity} /> },
+    { key: 'status', header: 'Status', sortable: true, render: (i) => <StatusBadge status={i.status} /> },
     { key: 'reportedByName', header: 'Reported By' },
     { key: 'incidentDateTime', header: 'Date', type: 'date', sortable: true },
     {
@@ -79,71 +59,28 @@ export default function IncidentsPage() {
       render: (i) => i.qscReportingStatus === 'NotRequired' ? (
         <span className="text-[var(--color-muted-foreground)]">{'\u2014'}</span>
       ) : (
-        <span className={`text-xs px-2 py-0.5 rounded-full ${getQscBadge(i.qscReportingStatus, i.isOverdue24h)}`}>
-          {i.isOverdue24h ? 'OVERDUE' : i.qscReportingStatus}
-        </span>
+        <StatusBadge
+          status={i.qscReportingStatus}
+          label={i.isOverdue24h ? 'OVERDUE' : formatQscLabel(i.qscReportingStatus)}
+          pulse={i.isOverdue24h}
+        />
       ),
     },
-    {
-      key: 'actions',
-      header: '',
-      render: (i) => (
-        <div className="flex items-center gap-1">
-          <Link to={`/incidents/${i.id}/edit`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded hover:bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors inline-block" title="Edit">
-            <Pencil className="w-4 h-4" />
-          </Link>
-          {showArchived ? (
-            <button onClick={(e) => handleRestore(e, i)}
-              className="p-1.5 rounded hover:bg-green-500/20 text-[var(--color-muted-foreground)] hover:text-green-400 transition-colors" title="Restore">
-              <ArchiveRestore className="w-4 h-4" />
-            </button>
-          ) : (
-            <button onClick={(e) => handleDelete(e, i.id, i.title)}
-              className="p-1.5 rounded hover:bg-red-500/20 text-[var(--color-muted-foreground)] hover:text-red-400 transition-colors" title="Archive">
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      ),
-    },
+    { key: 'actions', header: '', render: (i) => canWrite ? actionButtons(i) : null },
   ]
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Incident Reports</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{incidents.length} incident{incidents.length !== 1 ? 's' : ''}</p>
-        </div>
-        {!showArchived && (
+      <PageHeader
+        title="Incident Reports"
+        subtitle={`${incidents.length} incident${incidents.length !== 1 ? 's' : ''}`}
+        action={!showArchived && canCreateIncidents && (
           <Link to="/incidents/new" className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary)]/90 transition-all shadow-md shadow-blue-500/20">
             <Plus className="w-4 h-4" /> Report Incident
           </Link>
         )}
-      </div>
-
-      {/* QSC Overdue Alert Banner */}
-      {!showArchived && overdueQsc.length > 0 && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <div>
-            <p className="font-semibold text-sm">{overdueQsc.length} incident{overdueQsc.length !== 1 ? 's' : ''} require QSC reporting — 24-hour deadline exceeded</p>
-            <p className="text-xs mt-0.5 opacity-80">NDIS Quality and Safeguards Commission requires reportable incidents to be escalated within 24 hours.</p>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex gap-2">
-          <button onClick={() => setShowArchived(false)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
-            Active
-          </button>
-          <button onClick={() => setShowArchived(true)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showArchived ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]'}`}>
-            Archived
-          </button>
-        </div>
+      >
+        {toggleButtons}
         {!showArchived && (
           <>
             <div className="relative">
@@ -171,7 +108,18 @@ export default function IncidentsPage() {
             </div>
           </>
         )}
-      </div>
+      </PageHeader>
+
+      {/* QSC Overdue Alert Banner */}
+      {!showArchived && overdueQsc.length > 0 && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-sm">{overdueQsc.length} incident{overdueQsc.length !== 1 ? 's' : ''} require QSC reporting — 24-hour deadline exceeded</p>
+            <p className="text-xs mt-0.5 opacity-80">NDIS Quality and Safeguards Commission requires reportable incidents to be escalated within 24 hours.</p>
+          </div>
+        </div>
+      )}
 
       <DataTable
         data={incidents}
@@ -181,6 +129,7 @@ export default function IncidentsPage() {
         loading={isLoading}
         emptyMessage="No incidents found"
       />
+      {confirmDialog}
     </div>
   )
 }

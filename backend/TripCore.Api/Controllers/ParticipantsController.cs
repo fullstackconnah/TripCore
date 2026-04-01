@@ -158,6 +158,7 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>Create or update support profile for a participant.</summary>
     [HttpPut("{id:guid}/support-profile")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<SupportProfileDto>>> UpdateSupportProfile(Guid id, [FromBody] UpdateSupportProfileDto dto, CancellationToken ct)
     {
         var sp = await _db.SupportProfiles.FirstOrDefaultAsync(s => s.ParticipantId == id, ct);

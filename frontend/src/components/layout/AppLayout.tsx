@@ -6,26 +6,28 @@ import {
 import { useState } from 'react'
 import TenantSwitcher from '@/components/layout/TenantSwitcher'
 import UserSwitcher from '@/components/layout/UserSwitcher'
+import { usePermissions, type PageKey } from '@/lib/permissions'
 
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard' },
-  { to: '/trips', icon: Map, label: 'Trips', msIcon: 'map' },
-  { to: '/schedule', icon: CalendarRange, label: 'Schedule', msIcon: 'calendar_month' },
-  { to: '/participants', icon: Users, label: 'Participants', msIcon: 'group' },
-  { to: '/accommodation', icon: Building2, label: 'Accommodation', msIcon: 'home_work' },
-  { to: '/vehicles', icon: Truck, label: 'Vehicles', msIcon: 'directions_car' },
-  { to: '/staff', icon: UserCog, label: 'Staff', msIcon: 'manage_accounts' },
-  { to: '/tasks', icon: ListChecks, label: 'Tasks', msIcon: 'checklist' },
-  { to: '/incidents', icon: AlertTriangle, label: 'Incidents', msIcon: 'emergency' },
-  { to: '/bookings', icon: ClipboardList, label: 'Bookings', msIcon: 'description' },
-  { to: '/qualifications', icon: Settings, label: 'Qualifications', msIcon: 'health_and_safety' },
-  { to: '/settings', icon: Settings, label: 'Settings', msIcon: 'settings' },
+const navItems: { to: string; icon: React.ElementType; label: string; msIcon: string; page: PageKey }[] = [
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard', msIcon: 'dashboard', page: 'dashboard' },
+  { to: '/trips', icon: Map, label: 'Trips', msIcon: 'map', page: 'trips' },
+  { to: '/schedule', icon: CalendarRange, label: 'Schedule', msIcon: 'calendar_month', page: 'schedule' },
+  { to: '/participants', icon: Users, label: 'Participants', msIcon: 'group', page: 'participants' },
+  { to: '/accommodation', icon: Building2, label: 'Accommodation', msIcon: 'home_work', page: 'accommodation' },
+  { to: '/vehicles', icon: Truck, label: 'Vehicles', msIcon: 'directions_car', page: 'vehicles' },
+  { to: '/staff', icon: UserCog, label: 'Staff', msIcon: 'manage_accounts', page: 'staff' },
+  { to: '/tasks', icon: ListChecks, label: 'Tasks', msIcon: 'checklist', page: 'tasks' },
+  { to: '/incidents', icon: AlertTriangle, label: 'Incidents', msIcon: 'emergency', page: 'incidents' },
+  { to: '/bookings', icon: ClipboardList, label: 'Bookings', msIcon: 'description', page: 'bookings' },
+  { to: '/qualifications', icon: Settings, label: 'Qualifications', msIcon: 'health_and_safety', page: 'qualifications' },
+  { to: '/settings', icon: Settings, label: 'Settings', msIcon: 'settings', page: 'settings' },
 ]
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const permissions = usePermissions()
   const user = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
-  const isSuperAdmin = user.role === 'SuperAdmin' || !!localStorage.getItem('tripcore_superadmin_user')
+  const isSuperAdmin = permissions.isSuperAdmin || !!localStorage.getItem('tripcore_superadmin_user')
   const viewingUserId = localStorage.getItem('tripcore_viewing_user')
   const viewingTenantId = localStorage.getItem('tripcore_viewing_tenant')
   const savedAdminUser = JSON.parse(localStorage.getItem('tripcore_superadmin_user') || '{}')
@@ -65,7 +67,7 @@ export default function AppLayout() {
 
         {/* Nav */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, label, msIcon }) => (
+          {navItems.filter(item => permissions.canAccessPage(item.page)).map(({ to, label, msIcon }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>
                 `flex items-center gap-4 px-6 py-3 rounded-full text-sm transition-all duration-150 ${
@@ -83,11 +85,13 @@ export default function AppLayout() {
         </nav>
 
         {/* New Trip CTA */}
-        <Link to="/trips/new"
-          className="mx-4 mt-4 py-3 px-4 flex items-center justify-center gap-2 bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:scale-[0.98] transition-all text-sm">
-          <Plus className="w-4 h-4" />
-          New Trip
-        </Link>
+        {permissions.canWrite && (
+          <Link to="/trips/new"
+            className="mx-4 mt-4 py-3 px-4 flex items-center justify-center gap-2 bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white rounded-full font-bold shadow-lg shadow-[#396200]/20 hover:scale-[0.98] transition-all text-sm">
+            <Plus className="w-4 h-4" />
+            New Trip
+          </Link>
+        )}
 
         {/* Bottom */}
         <div className="mt-4 pt-4 space-y-1">

@@ -343,6 +343,7 @@ public class TripsController : ControllerBase
 
     /// <summary>Ensure TripDay records exist for a trip, reconciling with DurationDays.</summary>
     [HttpPost("{id:guid}/schedule/generate")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<List<TripDayDto>>>> GenerateSchedule(Guid id, CancellationToken ct)
     {
         var trip = await _db.TripInstances.FirstOrDefaultAsync(t => t.Id == id, ct);

@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
+import { usePermissions } from '@/lib/permissions'
 import { useTrip, useTripBookings, useTripAccommodation, useTripVehicles, useTripStaff, useTripTasks, useTripSchedule, useTripClaims, useDeleteClaim, useUpdateClaim, useParticipants, useCreateBooking, useUpdateBooking, usePatchBooking, useDeleteBooking, useCancelBooking, useUpdateStaffAssignment, useDeleteStaffAssignment, useStaff, useAvailableStaff, useCreateStaffAssignment, useAccommodation, useCreateAccommodation, useCreateReservation, useUpdateReservation, useDeleteReservation, useCancelReservation, useGenerateSchedule, useDeleteScheduledActivity, useUpdateTrip, useEventTemplates, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { ArrowLeft, Users, Building2, Truck, UserCog, ListChecks, Calendar, AlertTriangle, Car, Plus, X, XCircle, Pencil, ExternalLink, Trash2, ChevronDown, ChevronRight, ClipboardList, ClockIcon, FileText } from 'lucide-react'
@@ -30,7 +31,7 @@ const CLAIM_STATUS_COLORS: Record<string, string> = {
   PartiallyPaid: 'bg-amber-100 text-amber-700',
 }
 
-function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: any[]; trip: any }) {
+function ClaimsTabContent({ tripId, claims, trip, canWrite }: { tripId: string; claims: any[]; trip: any; canWrite: boolean }) {
   const deleteClaim = useDeleteClaim()
   const updateClaim = useUpdateClaim()
   const [showGenerateModal, setShowGenerateModal] = useState(false)
@@ -75,12 +76,14 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-[#1b1c1a]">NDIS Claims</h2>
-        <button
-          onClick={() => setShowGenerateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all"
-        >
-          + Generate Claim
-        </button>
+        {canWrite && (
+          <button
+            onClick={() => setShowGenerateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#396200] text-white text-sm font-medium hover:bg-[#294800] transition-all"
+          >
+            + Generate Claim
+          </button>
+        )}
       </div>
 
       {error && (
@@ -133,7 +136,7 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
               render: (c: any) => (
                 <div className="flex items-center gap-3">
                   <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
-                  {c.status !== 'Submitted' && c.status !== 'Paid' && (
+                  {canWrite && c.status !== 'Submitted' && c.status !== 'Paid' && (
                     <button
                       onClick={() => handleDelete(c.id)}
                       className="text-xs text-red-500 hover:underline"
@@ -159,6 +162,7 @@ function ClaimsTabContent({ tripId, claims, trip }: { tripId: string; claims: an
 }
 
 export default function TripDetailPage() {
+  const { canWrite } = usePermissions()
   const { id } = useParams()
   const currentUser = JSON.parse(localStorage.getItem('tripcore_user') || '{}')
   const isAdmin = currentUser.role === 'Admin'
@@ -719,13 +723,15 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <button
-            onClick={handleOpenTripEdit}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all"
-          >
-            <Pencil className="w-4 h-4" />
-            Edit Trip
-          </button>
+          {canWrite && (
+            <button
+              onClick={handleOpenTripEdit}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit Trip
+            </button>
+          )}
         </div>
       </section>
 
@@ -1001,10 +1007,12 @@ export default function TripDetailPage() {
               <p className="text-sm text-[#43493a]">
                 {bookings.length}{trip.maxParticipants ? `/${trip.maxParticipants}` : ''} spots filled
               </p>
-              <button onClick={() => setShowAddBooking(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#396200] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium">
-                <Plus className="w-4 h-4" /> Add Participant
-              </button>
+              {canWrite && (
+                <button onClick={() => setShowAddBooking(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#396200] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium">
+                  <Plus className="w-4 h-4" /> Add Participant
+                </button>
+              )}
             </div>
 
             {/* Add Booking Modal */}
@@ -1300,15 +1308,19 @@ export default function TripDetailPage() {
                   render: (b: any) => (
                     <div className="flex items-center justify-center gap-2">
                       {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                      <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
-                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                      </button>
+                      {canWrite && (
+                        <button onClick={() => openEditModal(b)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit booking">
+                          <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                        </button>
+                      )}
                       <Link to={`/participants/${b.participantId}`} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="View participant">
                         <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
                       </Link>
-                      <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                      </button>
+                      {canWrite && (
+                        <button onClick={() => setDeletingBooking(b)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                          <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                        </button>
+                      )}
                     </div>
                   ),
                 },
@@ -1566,10 +1578,12 @@ export default function TripDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-[#43493a]">{accommodation.length} reservation{accommodation.length !== 1 ? 's' : ''}</p>
-              <button onClick={() => { resetAccommForm(); setShowAddAccommodation(true) }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity">
-                <Plus className="w-4 h-4" /> Add Accommodation
-              </button>
+              {canWrite && (
+                <button onClick={() => { resetAccommForm(); setShowAddAccommodation(true) }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                  <Plus className="w-4 h-4" /> Add Accommodation
+                </button>
+              )}
             </div>
 
             {/* Stay Timeline */}
@@ -1687,15 +1701,19 @@ export default function TripDetailPage() {
                           )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <button onClick={() => openEditReservation(r)} className="p-1.5 rounded hover:bg-[#efeeea] transition-colors" title="Edit reservation">
-                            <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                          </button>
+                          {canWrite && (
+                            <button onClick={() => openEditReservation(r)} className="p-1.5 rounded hover:bg-[#efeeea] transition-colors" title="Edit reservation">
+                              <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                            </button>
+                          )}
                           <Link to={`/accommodation/${r.accommodationPropertyId}`} className="p-1.5 rounded hover:bg-[#efeeea] transition-colors" title="View property details">
                             <ExternalLink className="w-3.5 h-3.5 text-[#43493a]" />
                           </Link>
-                          <button onClick={() => setDeletingReservation(r)} className="p-1.5 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove reservation">
-                            <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                          </button>
+                          {canWrite && (
+                            <button onClick={() => setDeletingReservation(r)} className="p-1.5 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove reservation">
+                              <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -2117,12 +2135,14 @@ export default function TripDetailPage() {
                       </span>
                     </div>
                   )}
-                  <button
-                    onClick={() => setShowAddVehicle(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                  >
-                    <Plus className="w-4 h-4" /> Add Vehicle
-                  </button>
+                  {canWrite && (
+                    <button
+                      onClick={() => setShowAddVehicle(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                    >
+                      <Plus className="w-4 h-4" /> Add Vehicle
+                    </button>
+                  )}
                 </div>
               )
             })()}
@@ -2178,10 +2198,12 @@ export default function TripDetailPage() {
                     <span className="text-xs font-normal">({rawTotal.toFixed(2)} required from ratios)</span>
                     {!isStaffed && <span className="text-xs">— need {required - assigned} more</span>}
                   </div>
-                  <button onClick={() => { resetStaffForm(); setShowAddStaff(true) }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity">
-                    <Plus className="w-4 h-4" /> Add Staff
-                  </button>
+                  {canWrite && (
+                    <button onClick={() => { resetStaffForm(); setShowAddStaff(true) }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#396200] text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                      <Plus className="w-4 h-4" /> Add Staff
+                    </button>
+                  )}
                 </div>
               )
             })()}
@@ -2236,12 +2258,16 @@ export default function TripDetailPage() {
                   render: (s: any) => (
                     <div className="flex items-center justify-center gap-2">
                       {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
-                      <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
-                        <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
-                      </button>
-                      <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
-                        <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
-                      </button>
+                      {canWrite && (
+                        <button onClick={() => openEditStaffModal(s)} className="p-1 rounded hover:bg-[#efeeea] transition-colors" title="Edit assignment">
+                          <Pencil className="w-3.5 h-3.5 text-[#43493a]" />
+                        </button>
+                      )}
+                      {canWrite && (
+                        <button onClick={() => setDeletingStaff(s)} className="p-1 rounded hover:bg-[#ffdad6]/60 transition-colors" title="Remove from trip">
+                          <Trash2 className="w-3.5 h-3.5 text-[#43493a] hover:text-[#ba1a1a]" />
+                        </button>
+                      )}
                     </div>
                   ),
                 },
@@ -2577,7 +2603,7 @@ export default function TripDetailPage() {
                       <p className="text-xs text-[#43493a]">{formatDateAu(day.date)}</p>
                     </div>
                   </div>
-                  {!isReadOnly && (
+                  {!isReadOnly && canWrite && (
                     <button onClick={() => { setAddActivityDayId(day.id); setShowAddActivity(true) }}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm bg-[#396200] text-white rounded-lg hover:opacity-90">
                       <Plus className="w-3.5 h-3.5" /> Add Activity
@@ -2604,7 +2630,7 @@ export default function TripDetailPage() {
                                 {a.bookingReference && <span>Ref: {a.bookingReference}</span>}
                               </div>
                             </div>
-                            {!isReadOnly && (
+                            {!isReadOnly && canWrite && (
                               <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                                 <button onClick={() => { setEditingScheduledActivity(a); setAddActivityDayId(a.tripDayId); setShowAddActivity(true) }}
                                   className="p-1.5 hover:bg-[#efeeea] rounded-lg" title="Edit">
@@ -2689,7 +2715,7 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'claims' && trip && (
-          <ClaimsTabContent tripId={String(trip.id)} claims={claims} trip={trip} />
+          <ClaimsTabContent tripId={String(trip.id)} claims={claims} trip={trip} canWrite={canWrite} />
         )}
 
         {activeTab === 'history' && isAdmin && trip && (

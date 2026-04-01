@@ -51,7 +51,7 @@ public class TenantsController : ControllerBase
         };
         _db.Tenants.Add(tenant);
         await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetAll), new TenantDto(tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt));
+        return CreatedAtAction(nameof(GetAll), null, ApiResponse<TenantDto>.Ok(new TenantDto(tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt)));
     }
 
     // POST api/v1/admin/tenants/with-setup
@@ -140,9 +140,9 @@ public class TenantsController : ControllerBase
             }
         }
 
-        return CreatedAtAction(nameof(GetAll), new TenantSummaryDto(
+        return CreatedAtAction(nameof(GetAll), null, ApiResponse<TenantSummaryDto>.Ok(new TenantSummaryDto(
             tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt,
-            dto.InitialUser is not null ? 1 : 0));
+            dto.InitialUser is not null ? 1 : 0)));
     }
 
     // PUT api/v1/admin/tenants/{id}
@@ -161,7 +161,7 @@ public class TenantsController : ControllerBase
         tenant.EmailDomain = dto.EmailDomain.ToLower();
         tenant.IsActive = dto.IsActive;
         await _db.SaveChangesAsync();
-        return Ok(new TenantDto(tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt));
+        return Ok(ApiResponse<TenantDto>.Ok(new TenantDto(tenant.Id, tenant.Name, tenant.EmailDomain, tenant.IsActive, tenant.CreatedAt)));
     }
 
     // GET api/v1/admin/tenants/{id}/users

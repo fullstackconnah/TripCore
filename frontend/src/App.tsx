@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { usePermissions, type PageKey } from './lib/permissions'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import TripsPage from './pages/TripsPage'
@@ -33,9 +34,13 @@ const queryClient = new QueryClient({
   },
 })
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children, page, requiresWrite }: { children: React.ReactNode; page?: PageKey; requiresWrite?: boolean }) {
   const token = localStorage.getItem('tripcore_token')
-  return token ? <>{children}</> : <Navigate to="/login" replace />
+  const permissions = usePermissions()
+  if (!token) return <Navigate to="/login" replace />
+  if (page && !permissions.canAccessPage(page)) return <Navigate to="/" replace />
+  if (requiresWrite && !permissions.canWrite) return <Navigate to="/" replace />
+  return <>{children}</>
 }
 
 export default function App() {
@@ -45,35 +50,35 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/trips" element={<TripsPage />} />
-            <Route path="/trips/new" element={<TripCreatePage />} />
-            <Route path="/trips/:id" element={<TripDetailPage />} />
-            <Route path="/schedule" element={<SchedulePage />} />
-            <Route path="/participants" element={<ParticipantsPage />} />
-            <Route path="/participants/new" element={<ParticipantCreatePage />} />
-            <Route path="/participants/:id" element={<ParticipantDetailPage />} />
-            <Route path="/participants/:id/edit" element={<ParticipantCreatePage />} />
-            <Route path="/accommodation" element={<AccommodationPage />} />
-            <Route path="/accommodation/new" element={<AccommodationCreatePage />} />
-            <Route path="/accommodation/:id" element={<AccommodationDetailPage />} />
-            <Route path="/accommodation/:id/edit" element={<AccommodationCreatePage />} />
-            <Route path="/vehicles" element={<VehiclesPage />} />
-            <Route path="/vehicles/new" element={<VehicleCreatePage />} />
-            <Route path="/vehicles/:id/edit" element={<VehicleCreatePage />} />
-            <Route path="/staff" element={<StaffPage />} />
-            <Route path="/staff/new" element={<StaffCreatePage />} />
-            <Route path="/staff/:id/edit" element={<StaffCreatePage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/tasks/new" element={<TaskCreatePage />} />
-            <Route path="/tasks/:id/edit" element={<TaskCreatePage />} />
-            <Route path="/incidents" element={<IncidentsPage />} />
-            <Route path="/incidents/new" element={<IncidentCreatePage />} />
-            <Route path="/incidents/:id/edit" element={<IncidentCreatePage />} />
-            <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/qualifications" element={<QualificationsPage />} />
-            <Route path="/claims/:id" element={<ClaimDetailPage />} />
+            <Route path="/" element={<PrivateRoute page="dashboard"><DashboardPage /></PrivateRoute>} />
+            <Route path="/trips" element={<PrivateRoute page="trips"><TripsPage /></PrivateRoute>} />
+            <Route path="/trips/new" element={<PrivateRoute page="trips" requiresWrite><TripCreatePage /></PrivateRoute>} />
+            <Route path="/trips/:id" element={<PrivateRoute page="trips"><TripDetailPage /></PrivateRoute>} />
+            <Route path="/schedule" element={<PrivateRoute page="schedule"><SchedulePage /></PrivateRoute>} />
+            <Route path="/participants" element={<PrivateRoute page="participants"><ParticipantsPage /></PrivateRoute>} />
+            <Route path="/participants/new" element={<PrivateRoute page="participants" requiresWrite><ParticipantCreatePage /></PrivateRoute>} />
+            <Route path="/participants/:id" element={<PrivateRoute page="participants"><ParticipantDetailPage /></PrivateRoute>} />
+            <Route path="/participants/:id/edit" element={<PrivateRoute page="participants" requiresWrite><ParticipantCreatePage /></PrivateRoute>} />
+            <Route path="/accommodation" element={<PrivateRoute page="accommodation"><AccommodationPage /></PrivateRoute>} />
+            <Route path="/accommodation/new" element={<PrivateRoute page="accommodation"><AccommodationCreatePage /></PrivateRoute>} />
+            <Route path="/accommodation/:id" element={<PrivateRoute page="accommodation"><AccommodationDetailPage /></PrivateRoute>} />
+            <Route path="/accommodation/:id/edit" element={<PrivateRoute page="accommodation"><AccommodationCreatePage /></PrivateRoute>} />
+            <Route path="/vehicles" element={<PrivateRoute page="vehicles"><VehiclesPage /></PrivateRoute>} />
+            <Route path="/vehicles/new" element={<PrivateRoute page="vehicles"><VehicleCreatePage /></PrivateRoute>} />
+            <Route path="/vehicles/:id/edit" element={<PrivateRoute page="vehicles"><VehicleCreatePage /></PrivateRoute>} />
+            <Route path="/staff" element={<PrivateRoute page="staff"><StaffPage /></PrivateRoute>} />
+            <Route path="/staff/new" element={<PrivateRoute page="staff"><StaffCreatePage /></PrivateRoute>} />
+            <Route path="/staff/:id/edit" element={<PrivateRoute page="staff"><StaffCreatePage /></PrivateRoute>} />
+            <Route path="/tasks" element={<PrivateRoute page="tasks"><TasksPage /></PrivateRoute>} />
+            <Route path="/tasks/new" element={<PrivateRoute page="tasks" requiresWrite><TaskCreatePage /></PrivateRoute>} />
+            <Route path="/tasks/:id/edit" element={<PrivateRoute page="tasks" requiresWrite><TaskCreatePage /></PrivateRoute>} />
+            <Route path="/incidents" element={<PrivateRoute page="incidents"><IncidentsPage /></PrivateRoute>} />
+            <Route path="/incidents/new" element={<PrivateRoute page="incidents"><IncidentCreatePage /></PrivateRoute>} />
+            <Route path="/incidents/:id/edit" element={<PrivateRoute page="incidents"><IncidentCreatePage /></PrivateRoute>} />
+            <Route path="/bookings" element={<PrivateRoute page="bookings"><BookingsPage /></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute page="settings"><SettingsPage /></PrivateRoute>} />
+            <Route path="/qualifications" element={<PrivateRoute page="qualifications"><QualificationsPage /></PrivateRoute>} />
+            <Route path="/claims/:id" element={<PrivateRoute page="claims"><ClaimDetailPage /></PrivateRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

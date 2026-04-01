@@ -321,6 +321,7 @@ app.UseRateLimiter();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<TripCore.Api.Middleware.ReadOnlyMiddleware>();
 app.MapControllers();
 
 app.Run();

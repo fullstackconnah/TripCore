@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStaff, useSettings, useUpdateStaff } from '@/api/hooks'
 import { DataTable } from '@/components/DataTable'
+import { usePermissions } from '@/lib/permissions'
 
 type QualStatus = 'expired' | 'expiring' | 'no-date' | 'ok'
 type FilterTab = 'all' | 'expired' | 'expiring' | 'no-date'
@@ -91,6 +92,7 @@ function getStatusBadge(row: QualRow): { label: string; cls: string } {
 }
 
 export default function QualificationsPage() {
+  const { canWrite } = usePermissions()
   const { data: settings } = useSettings()
   const { data: allStaff = [], isLoading } = useStaff({ isActive: 'true' })
   const updateStaff = useUpdateStaff()
@@ -303,14 +305,14 @@ export default function QualificationsPage() {
                                 Cancel
                               </button>
                             </div>
-                          ) : (
+                          ) : canWrite ? (
                             <button
                               onClick={() => handleEdit(q)}
                               className="text-xs font-medium text-[var(--color-primary)] hover:underline"
                             >
                               Edit
                             </button>
-                          )
+                          ) : null
                         },
                       },
                     ]}

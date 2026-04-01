@@ -192,6 +192,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
+    [Authorize(Roles = "Admin,Coordinator,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Patch(Guid id, [FromBody] PatchBookingDto dto, CancellationToken ct)
     {
         var b = await _db.ParticipantBookings.FirstOrDefaultAsync(x => x.Id == id, ct);

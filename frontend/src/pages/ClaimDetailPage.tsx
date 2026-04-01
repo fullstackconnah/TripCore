@@ -7,37 +7,10 @@ import { apiClient } from '@/api/client'
 import { NoShowModal } from '@/components/NoShowModal'
 import { DataTable } from '@/components/DataTable'
 import { formatCurrency } from '@/lib/utils'
+import { StatusBadge } from '@/components/StatusBadge'
 
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 
-function claimStatusColor(status: string) {
-  switch (status) {
-    case 'Draft': return 'bg-gray-100 text-gray-600'
-    case 'Submitted': return 'bg-blue-100 text-blue-700'
-    case 'Paid': return 'bg-[#bff285] text-[#294800]'
-    case 'Rejected': return 'bg-red-100 text-red-700'
-    case 'PartiallyPaid': return 'bg-amber-100 text-amber-700'
-    default: return 'bg-gray-100 text-gray-600'
-  }
-}
-
-function lineItemStatusColor(status: string) {
-  switch (status) {
-    case 'Pending': return 'bg-gray-100 text-gray-600'
-    case 'Paid': return 'bg-[#bff285] text-[#294800]'
-    case 'Rejected': return 'bg-red-100 text-red-700'
-    default: return 'bg-gray-100 text-gray-600'
-  }
-}
-
-function planTypeColor(planType: string) {
-  switch (planType) {
-    case 'NdiaManaged': return 'bg-blue-100 text-blue-700'
-    case 'PlanManaged': return 'bg-purple-100 text-purple-700'
-    case 'SelfManaged': return 'bg-orange-100 text-orange-700'
-    default: return 'bg-gray-100 text-gray-600'
-  }
-}
 
 function planTypeLabel(planType: string) {
   switch (planType) {
@@ -114,7 +87,7 @@ export default function ClaimDetailPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-[#1b1c1a]">Claim {claim.claimReference}</h1>
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${claimStatusColor(claim.status)}`}>{claim.status}</span>
+          <StatusBadge status={claim.status} />
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -212,9 +185,7 @@ export default function ClaimDetailPage() {
                 <div>
                   <p className="font-medium text-[#1b1c1a]">{item.participantName}</p>
                   <p className="text-xs text-[#43493a] font-mono">{item.ndisNumber}</p>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${planTypeColor(item.planType)}`}>
-                    {planTypeLabel(item.planType)}
-                  </span>
+                  <StatusBadge status={item.planType} label={planTypeLabel(item.planType)} />
                 </div>
               ),
             },
@@ -268,7 +239,7 @@ export default function ClaimDetailPage() {
               key: 'status',
               header: 'Status',
               render: (item: any) => (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${lineItemStatusColor(item.status)}`}>{item.status}</span>
+                <StatusBadge status={item.status} />
               ),
             },
             {

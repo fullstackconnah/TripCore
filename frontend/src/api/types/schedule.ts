@@ -24,6 +24,12 @@ export interface ScheduleTripDto {
   staffAssignedCount: number
   vehicleAssignedCount: number
   leadCoordinatorName: string | null
+  preferenceMatchCount: number
+}
+
+export interface TripPreferenceDto {
+  tripId: string
+  participantCount: number
 }
 
 export interface ScheduleStaffDto {
@@ -40,6 +46,7 @@ export interface ScheduleStaffDto {
   isOvernightEligible: boolean
   tripStatuses: ScheduleStaffTripStatusDto[]
   availability: StaffAvailabilityDto[]
+  preferredForTrips: TripPreferenceDto[]
 }
 
 export interface ScheduleStaffTripStatusDto {

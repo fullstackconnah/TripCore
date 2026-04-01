@@ -33,6 +33,8 @@ export interface ParticipantDetailDto extends ParticipantListDto {
   notes: string | null
   createdAt: string
   updatedAt: string
+  preferredStaffId: string | null
+  preferredStaffName: string | null
 }
 
 export interface CreateParticipantDto {
@@ -57,6 +59,7 @@ export interface CreateParticipantDto {
   medicalSummary?: string
   behaviourRiskSummary?: string
   notes?: string
+  preferredStaffId?: string | null
 }
 
 export interface UpdateParticipantDto extends CreateParticipantDto {

@@ -2,7 +2,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCreateParticipant, useUpdateParticipant, useParticipant } from '@/api/hooks'
+import { useCreateParticipant, useUpdateParticipant, useParticipant, useStaff } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 
@@ -28,6 +28,7 @@ const participantSchema = z.object({
   medicalSummary: z.string().optional(),
   behaviourRiskSummary: z.string().optional(),
   notes: z.string().optional(),
+  preferredStaffId: z.string().optional().nullable(),
 })
 
 type ParticipantFormData = z.infer<typeof participantSchema>
@@ -44,6 +45,8 @@ export default function ParticipantCreatePage() {
   const createParticipant = useCreateParticipant()
   const updateParticipant = useUpdateParticipant()
   const { data: existing, isLoading: isLoadingExisting } = useParticipant(isEdit ? id : undefined)
+  const { data: staffList = [] } = useStaff()
+  const activeStaff = staffList.filter(s => s.isActive)
   const mutation = isEdit ? updateParticipant : createParticipant
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ParticipantFormData>({
@@ -57,6 +60,7 @@ export default function ParticipantCreatePage() {
       isIntensiveSupport: false,
       requiresOvernightSupport: false,
       hasRestrictivePracticeFlag: false,
+      preferredStaffId: null,
     },
   })
 
@@ -84,6 +88,7 @@ export default function ParticipantCreatePage() {
         medicalSummary: existing.medicalSummary ?? '',
         behaviourRiskSummary: existing.behaviourRiskSummary ?? '',
         notes: existing.notes ?? '',
+        preferredStaffId: existing.preferredStaffId ?? '',
       })
     }
   }, [existing, reset])
@@ -258,6 +263,20 @@ export default function ParticipantCreatePage() {
           <div>
             <label className={labelClass}>General Notes</label>
             <textarea {...register('notes')} rows={2} className={inputClass} placeholder="Any additional notes..." />
+          </div>
+        </div>
+
+        {/* Staff Preferences */}
+        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
+          <h3 className="font-semibold">Staff Preferences</h3>
+          <div>
+            <label className={labelClass}>Preferred Staff Member</label>
+            <select {...register('preferredStaffId')} className={inputClass}>
+              <option value="">None</option>
+              {activeStaff.map(s => (
+                <option key={s.id} value={s.id}>{s.fullName}</option>
+              ))}
+            </select>
           </div>
         </div>
 

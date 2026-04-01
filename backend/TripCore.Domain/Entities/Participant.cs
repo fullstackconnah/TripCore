@@ -40,6 +40,8 @@ public class Participant : ITenantEntity
     public DateOnly? PlanEndDate { get; set; }
     public Guid? PlanManagerContactId { get; set; }
     public Contact? PlanManagerContact { get; set; }
+    public Guid? PreferredStaffId { get; set; }
+    public Staff? PreferredStaff { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

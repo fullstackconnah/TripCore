@@ -597,6 +597,13 @@ public class TripCoreDbContext : DbContext
             .HasForeignKey(p => p.PlanManagerContactId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // ── Participant — new FK to Staff (PreferredStaff) ────────
+        modelBuilder.Entity<Participant>()
+            .HasOne(p => p.PreferredStaff)
+            .WithMany()
+            .HasForeignKey(p => p.PreferredStaffId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // ── Multi-Tenancy Query Filters ─────────────────────────────────────────────
         // Applied to all root aggregate entities. SuperAdmin bypasses all filters.
 

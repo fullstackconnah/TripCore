@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
 import { usePreviewClaim, useGenerateClaim } from '@/api/hooks'
+import { Modal } from '@/components/Modal'
 import { DataTable } from '@/components/DataTable'
 
 interface GenerateClaimModalProps {
@@ -71,21 +71,55 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
   const labelClass = "block text-sm text-[var(--color-muted-foreground)] mb-1"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] shadow-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">
-            {step === 'input' ? 'Generate NDIS Claim' : 'Claim Preview'}
-          </h3>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--color-accent)] rounded-lg">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
+    <Modal
+      open
+      onClose={onClose}
+      title={step === 'input' ? 'Generate NDIS Claim' : 'Claim Preview'}
+      size="lg"
+      footer={
+        step === 'input' ? (
+          <>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handlePreview}
+              disabled={previewClaim.isPending}
+              className="px-4 py-2 text-sm rounded-full bg-[#396200] text-white font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
+            >
+              {previewClaim.isPending ? 'Loading...' : 'Preview Claim \u2192'}
+            </button>
+          </>
+        ) : (
+          <div className="flex justify-between w-full">
+            <button
+              onClick={() => { setStep('input'); setError(null) }}
+              className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
+            >
+              &larr; Back
+            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerate}
+                disabled={generateClaim.isPending}
+                className="px-4 py-2 text-sm rounded-full bg-[#396200] text-white font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
+              >
+                {generateClaim.isPending ? 'Generating...' : 'Confirm & Generate'}
+              </button>
+            </div>
+          </div>
+        )
+      }
+    >
         {error && (
           <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-sm text-red-700 flex items-start gap-2 mb-4">
             <span className="mt-0.5">&#9888;</span>
@@ -155,22 +189,6 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePreview}
-                disabled={previewClaim.isPending}
-                className="px-4 py-2 text-sm rounded-full bg-[#396200] text-white font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
-              >
-                {previewClaim.isPending ? 'Loading...' : 'Preview Claim \u2192'}
-              </button>
-            </div>
           </>
         )}
 
@@ -222,33 +240,8 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
               />
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-between">
-              <button
-                onClick={() => { setStep('input'); setError(null) }}
-                className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
-              >
-                &larr; Back
-              </button>
-              <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm rounded-full border border-[var(--color-border)] text-[var(--color-muted-foreground)] font-medium hover:bg-[var(--color-accent)] transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={generateClaim.isPending}
-                  className="px-4 py-2 text-sm rounded-full bg-[#396200] text-white font-medium hover:bg-[#294800] transition-all disabled:opacity-50"
-                >
-                  {generateClaim.isPending ? 'Generating...' : 'Confirm & Generate'}
-                </button>
-              </div>
-            </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

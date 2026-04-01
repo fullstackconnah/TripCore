@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { X, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useVehicles, useCreateVehicleAssignment, useCreateVehicle } from '@/api/hooks'
+import { Modal } from '@/components/Modal'
 import type { VehicleType } from '@/api/types'
 import { Dropdown } from './Dropdown'
 
@@ -90,21 +91,40 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
     !createVehicle.isPending && !createAssignment.isPending
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={onClose}
+    <Modal
+      open
+      onClose={onClose}
+      title="Add Vehicle"
+      footer={
+        activeTab === 'existing' ? (
+          <>
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)] transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={handleAssignExisting}
+              disabled={!tab1CanSubmit}
+              className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {createAssignment.isPending ? 'Assigning...' : 'Assign Vehicle'}
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)] transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateAndAssign}
+              disabled={!tab2CanSubmit}
+              className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {createVehicle.isPending || createAssignment.isPending ? 'Saving...' : 'Create Vehicle & Assign'}
+            </button>
+          </>
+        )
+      }
     >
-      <div
-        className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4 md:p-6 w-full max-w-lg max-h-[90vh] mx-2 overflow-y-auto shadow-xl"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-lg">Add Vehicle</h3>
-          <button onClick={onClose} className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
         {/* Tabs */}
         <div className="flex border-b border-[var(--color-border)] mb-5">
@@ -167,19 +187,6 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
             {createAssignment.isError && (
               <p className="text-sm text-[var(--color-destructive)]">Failed to assign vehicle. Please try again.</p>
             )}
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)] transition-colors">
-                Cancel
-              </button>
-              <button
-                onClick={handleAssignExisting}
-                disabled={!tab1CanSubmit}
-                className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {createAssignment.isPending ? 'Assigning...' : 'Assign Vehicle'}
-              </button>
-            </div>
           </div>
         )}
 
@@ -265,22 +272,8 @@ export default function AddVehicleModal({ tripInstanceId, assignedVehicleIds, on
                 Vehicle was created but could not be assigned. Find it in the Vehicles list and assign it manually.
               </p>
             )}
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)] transition-colors">
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateAndAssign}
-                disabled={!tab2CanSubmit}
-                className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {createVehicle.isPending || createAssignment.isPending ? 'Saving...' : 'Create Vehicle & Assign'}
-              </button>
-            </div>
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

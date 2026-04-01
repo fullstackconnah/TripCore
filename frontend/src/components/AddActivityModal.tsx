@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
 import { useActivities, useCreateScheduledActivity, useUpdateScheduledActivity } from '@/api/hooks'
+import { Modal } from '@/components/Modal'
 import { Dropdown } from './Dropdown'
 
 interface AddActivityModalProps {
@@ -111,14 +111,20 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
   const labelClass = "block text-sm font-medium mb-1"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4 md:p-6 w-full max-w-lg max-h-[90vh] mx-2 overflow-y-auto"
-        onClick={e => e.stopPropagation()}>
-
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{editingActivity ? 'Edit Activity' : 'Add Activity'}</h3>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--color-accent)] rounded-lg"><X className="w-5 h-5" /></button>
-        </div>
+    <Modal
+      open
+      onClose={onClose}
+      title={editingActivity ? 'Edit Activity' : 'Add Activity'}
+      footer={
+        <>
+          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)]">Cancel</button>
+          <button onClick={handleSubmit} disabled={!title.trim() || isSubmitting}
+            className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 disabled:opacity-50">
+            {isSubmitting ? 'Saving...' : editingActivity ? 'Update' : 'Add Activity'}
+          </button>
+        </>
+      }
+    >
 
         {!editingActivity && (
           <div className="flex gap-1 mb-4 bg-[var(--color-surface)] rounded-lg p-1">
@@ -239,14 +245,6 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
           <p className="mt-3 text-sm text-red-500">Failed to save activity. Please try again.</p>
         )}
 
-        <div className="flex justify-end gap-3 mt-6">
-          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-accent)]">Cancel</button>
-          <button onClick={handleSubmit} disabled={!title.trim() || isSubmitting}
-            className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 disabled:opacity-50">
-            {isSubmitting ? 'Saving...' : editingActivity ? 'Update' : 'Add Activity'}
-          </button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStaff, useSettings, useUpdateStaff } from '@/api/hooks'
 import { DataTable } from '@/components/DataTable'
+import { TabNav } from '@/components/TabNav'
+import { StatusBadge } from '@/components/StatusBadge'
+import { Card } from '@/components/Card'
 import { usePermissions } from '@/lib/permissions'
 
 type QualStatus = 'expired' | 'expiring' | 'no-date' | 'ok'
@@ -82,13 +85,13 @@ function buildGroups(staff: any[], warningDays: number): StaffGroup[] {
   return groups
 }
 
-function getStatusBadge(row: QualRow): { label: string; cls: string } {
-  if (row.status === 'expired') return { label: 'EXPIRED', cls: 'badge-cancelled' }
-  if (row.status === 'no-date') return { label: 'No date set', cls: 'badge-draft' }
-  if (row.status === 'ok') return { label: 'Current', cls: 'badge-confirmed' }
+function getStatusInfo(row: QualRow): { label: string; status: string } {
+  if (row.status === 'expired') return { label: 'EXPIRED', status: 'Cancelled' }
+  if (row.status === 'no-date') return { label: 'No date set', status: 'Draft' }
+  if (row.status === 'ok') return { label: 'Current', status: 'Confirmed' }
   const days = row.daysUntilExpiry!
   const label = days === 0 ? 'Expires today' : `${days} day${days === 1 ? '' : 's'}`
-  return { label, cls: 'badge-pending' }
+  return { label, status: 'Pending' }
 }
 
 export default function QualificationsPage() {
@@ -191,28 +194,22 @@ export default function QualificationsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-4 border-b border-[var(--color-border)] overflow-x-auto">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setFilterTab(t.key)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              filterTab === t.key
-                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[var(--color-muted-foreground)]'
-            }`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <TabNav
+        tabs={tabs.map(t => ({ key: t.key, label: t.label }))}
+        active={filterTab}
+        onChange={(key) => setFilterTab(key as FilterTab)}
+        className="overflow-x-auto"
+      />
 
       {/* Empty state */}
       {filteredGroups.length === 0 ? (
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-12 text-center">
+        <Card className="p-12 text-center">
           <span className="material-symbols-outlined text-5xl leading-none text-[var(--color-primary)] mb-3 block">check_circle</span>
           <p className="font-semibold text-[var(--color-foreground)]">All qualifications are current</p>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
             No issues found within the {warningDays}-day warning window
           </p>
-        </div>
+        </Card>
       ) : (
         <div className="space-y-3">
           {filteredGroups.map(group => (
@@ -228,9 +225,7 @@ export default function QualificationsPage() {
                   </span>
                   <span className="font-medium">{group.staffName}</span>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full badge-cancelled font-medium">
-                  {group.issueCount} issue{group.issueCount !== 1 ? 's' : ''}
-                </span>
+                <StatusBadge status="Cancelled" label={`${group.issueCount} issue${group.issueCount !== 1 ? 's' : ''}`} />
               </div>
 
               {/* Accordion body */}
@@ -275,12 +270,8 @@ export default function QualificationsPage() {
                         key: 'status',
                         header: 'Status',
                         render: (q) => {
-                          const badge = getStatusBadge(q)
-                          return (
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
-                              {badge.label}
-                            </span>
-                          )
+                          const info = getStatusInfo(q)
+                          return <StatusBadge status={info.status} label={info.label} />
                         },
                       },
                       {

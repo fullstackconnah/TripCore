@@ -66,6 +66,7 @@ export default function ParticipantDetailPage() {
               <span className="text-[var(--color-muted-foreground)]">Date of Birth</span><span>{formatDateAu(p.dateOfBirth)}</span>
               <span className="text-[var(--color-muted-foreground)]">Funding Org</span><span>{p.fundingOrganisation || '—'}</span>
               <span className="text-[var(--color-muted-foreground)]">Repeat Client</span><span>{p.isRepeatClient ? 'Yes' : 'No'}</span>
+              <span className="text-[var(--color-muted-foreground)]">Preferred Staff</span><span>{p.preferredStaffName ?? '—'}</span>
             </div>
           </div>
           <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-3">

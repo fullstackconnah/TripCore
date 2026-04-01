@@ -38,6 +38,64 @@ public class ScheduleController : ControllerBase
             .OrderBy(t => t.StartDate)
             .ToListAsync(ct);
 
+        if (trips.Count == 0)
+        {
+            return Ok(ApiResponse<ScheduleOverviewDto>.Ok(new ScheduleOverviewDto
+            {
+                Trips = trips.Select(t => new ScheduleTripDto
+                {
+                    Id = t.Id,
+                    TripName = t.TripName,
+                    TripCode = t.TripCode,
+                    Destination = t.Destination,
+                    Region = t.Region,
+                    StartDate = t.StartDate,
+                    EndDate = t.StartDate.AddDays(t.DurationDays - 1),
+                    DurationDays = t.DurationDays,
+                    Status = t.Status,
+                    MaxParticipants = t.MaxParticipants,
+                    CurrentParticipantCount = t.Bookings.Count(b =>
+                        b.BookingStatus != BookingStatus.Cancelled && b.BookingStatus != BookingStatus.NoLongerAttending),
+                    MinStaffRequired = t.MinStaffRequired,
+                    StaffRequired = t.CalculatedStaffRequired > 0
+                        ? (int)Math.Ceiling(t.CalculatedStaffRequired)
+                        : t.MinStaffRequired,
+                    StaffAssignedCount = t.StaffAssignments.Count(a => a.Status != AssignmentStatus.Cancelled),
+                    VehicleAssignedCount = t.VehicleAssignments.Count(a =>
+                        a.Status != VehicleAssignmentStatus.Cancelled && a.Status != VehicleAssignmentStatus.Unavailable),
+                    LeadCoordinatorName = t.LeadCoordinator != null
+                        ? t.LeadCoordinator.FirstName + " " + t.LeadCoordinator.LastName : null,
+                }).ToList(),
+                Staff = new(), Vehicles = new()
+            }));
+        }
+
+        // ── 1b. Compute staff preference counts ──
+        var tripIds = trips.Select(t => t.Id).ToList();
+        var preferenceRows = await (
+            from b in _db.ParticipantBookings
+            join p in _db.Participants on b.ParticipantId equals p.Id
+            where tripIds.Contains(b.TripInstanceId)
+               && (b.BookingStatus == BookingStatus.Confirmed
+                   || b.BookingStatus == BookingStatus.Held)
+               && p.PreferredStaffId != null
+            select new { b.TripInstanceId, StaffId = p.PreferredStaffId!.Value }
+        ).ToListAsync(ct);
+
+        // prefsByStaff[staffId][tripId] = count
+        var prefsByStaff = preferenceRows
+            .GroupBy(p => p.StaffId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.GroupBy(x => x.TripInstanceId)
+                      .ToDictionary(t => t.Key, t => t.Count())
+            );
+
+        // prefsByTrip[tripId] = total preference matches
+        var prefsByTrip = preferenceRows
+            .GroupBy(p => p.TripInstanceId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
         var tripDtos = trips.Select(t => new ScheduleTripDto
         {
             Id = t.Id,
@@ -61,15 +119,8 @@ public class ScheduleController : ControllerBase
                 a.Status != VehicleAssignmentStatus.Cancelled && a.Status != VehicleAssignmentStatus.Unavailable),
             LeadCoordinatorName = t.LeadCoordinator != null
                 ? t.LeadCoordinator.FirstName + " " + t.LeadCoordinator.LastName : null,
+            PreferenceMatchCount = prefsByTrip.GetValueOrDefault(t.Id, 0),
         }).ToList();
-
-        if (trips.Count == 0)
-        {
-            return Ok(ApiResponse<ScheduleOverviewDto>.Ok(new ScheduleOverviewDto
-            {
-                Trips = tripDtos, Staff = new(), Vehicles = new()
-            }));
-        }
 
         // ── 2. Load all active staff with assignments & availability ──
         var allStaff = await _db.Staff
@@ -168,7 +219,10 @@ public class ScheduleController : ControllerBase
                     StartDateTime = a.StartDateTime, EndDateTime = a.EndDateTime,
                     AvailabilityType = a.AvailabilityType,
                     IsRecurring = a.IsRecurring, RecurrenceNotes = a.RecurrenceNotes, Notes = a.Notes
-                }).ToList()
+                }).ToList(),
+                PreferredForTrips = prefsByStaff.TryGetValue(s.Id, out var staffPrefs)
+                    ? staffPrefs.Select(kv => new TripPreferenceDto(kv.Key, kv.Value)).ToList()
+                    : new List<TripPreferenceDto>(),
             };
         }).ToList();
 

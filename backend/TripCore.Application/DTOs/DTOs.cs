@@ -1076,6 +1076,7 @@ public record ScheduleTripDto
     public int StaffAssignedCount { get; init; }
     public int VehicleAssignedCount { get; init; }
     public string? LeadCoordinatorName { get; init; }
+    public int PreferenceMatchCount { get; init; }
 }
 
 public record ScheduleStaffDto
@@ -1093,6 +1094,7 @@ public record ScheduleStaffDto
     public bool IsOvernightEligible { get; init; }
     public List<ScheduleStaffTripStatusDto> TripStatuses { get; init; } = new();
     public List<StaffAvailabilityDto> Availability { get; init; } = new();
+    public List<TripPreferenceDto> PreferredForTrips { get; init; } = new();
 }
 
 public record ScheduleStaffTripStatusDto
@@ -1104,6 +1106,8 @@ public record ScheduleStaffTripStatusDto
     public AssignmentStatus? AssignmentStatus { get; init; }
     public Guid? AssignmentId { get; init; }
 }
+
+public record TripPreferenceDto(Guid TripId, int ParticipantCount);
 
 public record ScheduleVehicleDto
 {

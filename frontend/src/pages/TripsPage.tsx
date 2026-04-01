@@ -3,6 +3,7 @@ import type { TripStatus } from '@/api/types'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
 import { useState, useEffect, useRef } from 'react'
 import { Dropdown } from '@/components/Dropdown'
 import { usePermissions } from '@/lib/permissions'
@@ -131,18 +132,16 @@ export default function TripsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl md:text-2xl font-bold text-[#1b1c1a]">Trips</h1>
-          <p className="text-sm text-[#43493a] mt-1">{trips.length} trip{trips.length !== 1 ? 's' : ''}</p>
-        </div>
-        {canWrite && (
+      <PageHeader
+        title="Trips"
+        subtitle={`${trips.length} trip${trips.length !== 1 ? 's' : ''}`}
+        action={canWrite && (
           <Link to="/trips/new"
             className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[#396200] to-[#4d7c0f] text-white text-sm font-bold shadow-lg shadow-[#396200]/20 hover:opacity-90 transition-all flex-shrink-0">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Trip</span><span className="sm:hidden">New</span>
           </Link>
         )}
-      </div>
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-full bg-[#efeeea] w-fit">

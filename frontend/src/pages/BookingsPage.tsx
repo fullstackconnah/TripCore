@@ -1,6 +1,7 @@
 import { useBookings } from '@/api/hooks'
 import { Link } from 'react-router-dom'
 import { DataTable } from '@/components/DataTable'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function BookingsPage() {
   const { data: bookings = [], isLoading, isError } = useBookings()
@@ -11,10 +12,10 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold">Bookings</h1>
-        <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{bookings.length} booking{bookings.length !== 1 ? 's' : ''}</p>
-      </div>
+      <PageHeader
+        title="Bookings"
+        subtitle={`${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`}
+      />
 
       {isLoading ? <div className="text-center py-12 text-[var(--color-muted-foreground)]">Loading...</div> : (
         <DataTable

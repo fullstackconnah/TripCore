@@ -1,9 +1,10 @@
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateParticipant, useUpdateParticipant, useParticipant, useStaff } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
+import { Dropdown } from '@/components/Dropdown'
 import { useEffect } from 'react'
 
 const participantSchema = z.object({
@@ -49,7 +50,7 @@ export default function ParticipantCreatePage() {
   const activeStaff = staffList.filter(s => s.isActive)
   const mutation = isEdit ? updateParticipant : createParticipant
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ParticipantFormData>({
+  const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ParticipantFormData>({
     resolver: zodResolver(participantSchema),
     defaultValues: {
       planType: 'SelfManaged',
@@ -167,11 +168,23 @@ export default function ParticipantCreatePage() {
 
           <div>
             <label className={labelClass}>Plan Type *</label>
-            <select {...register('planType')} className={inputClass}>
-              <option value="SelfManaged">Self Managed</option>
-              <option value="PlanManaged">Plan Managed</option>
-              <option value="AgencyManaged">Agency Managed</option>
-            </select>
+            <Controller
+              control={control}
+              name="planType"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  items={[
+                    { value: 'SelfManaged', label: 'Self Managed' },
+                    { value: 'PlanManaged', label: 'Plan Managed' },
+                    { value: 'AgencyManaged', label: 'Agency Managed' },
+                  ]}
+                />
+              )}
+            />
           </div>
 
           <div>
@@ -221,13 +234,25 @@ export default function ParticipantCreatePage() {
 
           <div>
             <label className={labelClass}>Support Ratio *</label>
-            <select {...register('supportRatio')} className={inputClass}>
-              <option value="SharedSupport">Shared Support</option>
-              <option value="OneToOne">1:1</option>
-              <option value="OneToTwo">1:2</option>
-              <option value="TwoToOne">2:1</option>
-              <option value="Other">Other</option>
-            </select>
+            <Controller
+              control={control}
+              name="supportRatio"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  items={[
+                    { value: 'SharedSupport', label: 'Shared Support' },
+                    { value: 'OneToOne', label: '1:1' },
+                    { value: 'OneToTwo', label: '1:2' },
+                    { value: 'TwoToOne', label: '2:1' },
+                    { value: 'Other', label: 'Other' },
+                  ]}
+                />
+              )}
+            />
           </div>
         </div>
 
@@ -271,12 +296,24 @@ export default function ParticipantCreatePage() {
           <h3 className="font-semibold">Staff Preferences</h3>
           <div>
             <label className={labelClass}>Preferred Staff Member</label>
-            <select {...register('preferredStaffId')} className={inputClass}>
-              <option value="">None</option>
-              {activeStaff.map(s => (
-                <option key={s.id} value={s.id}>{s.fullName}</option>
-              ))}
-            </select>
+            <Controller
+              control={control}
+              name="preferredStaffId"
+              render={({ field }) => (
+                <Dropdown
+                  variant="form"
+                  label="None"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  searchable
+                  items={[
+                    { value: '', label: 'None' },
+                    ...activeStaff.map(s => ({ value: s.id, label: s.fullName })),
+                  ]}
+                />
+              )}
+            />
           </div>
         </div>
 

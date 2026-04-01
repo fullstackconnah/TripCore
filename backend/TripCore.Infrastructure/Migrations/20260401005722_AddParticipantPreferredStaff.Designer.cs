@@ -12,7 +12,7 @@ using TripCore.Infrastructure.Data;
 namespace TripCore.Infrastructure.Migrations
 {
     [DbContext(typeof(TripCoreDbContext))]
-    [Migration("20260401004923_AddParticipantPreferredStaff")]
+    [Migration("20260401005722_AddParticipantPreferredStaff")]
     partial class AddParticipantPreferredStaff
     {
         /// <inheritdoc />

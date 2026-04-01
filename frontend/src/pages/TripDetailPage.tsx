@@ -113,10 +113,10 @@ function ClaimsTabContent({ tripId, claims, trip, canWrite }: { tripId: string; 
               key: 'status',
               header: 'Status',
               sortable: true,
-              bulkEditable: {
+              ...(canWrite ? { bulkEditable: {
                 items: CLAIM_STATUS_ITEMS,
-                onBulkChange: (ids, value) => bulkUpdateClaimStatus(ids, value),
-              },
+                onBulkChange: (ids: string[], value: string) => bulkUpdateClaimStatus(ids, value),
+              } } : {}),
               render: (c: any) => (
                 <Dropdown
                   variant="pill"
@@ -124,6 +124,7 @@ function ClaimsTabContent({ tripId, claims, trip, canWrite }: { tripId: string; 
                   onChange={val => updateClaim.mutate({ claimId: c.id, data: { status: val as TripClaimStatus } })}
                   colorClass={CLAIM_STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-600'}
                   items={CLAIM_STATUS_ITEMS}
+                  disabled={!canWrite}
                 />
               ),
             },
@@ -1188,7 +1189,7 @@ export default function TripDetailPage() {
                   key: 'bookingStatus',
                   header: 'Status',
                   sortable: true,
-                  bulkEditable: {
+                  ...(canWrite ? { bulkEditable: {
                     items: [
                       { value: 'Enquiry', label: 'Enquiry' },
                       { value: 'Held', label: 'Held' },
@@ -1198,9 +1199,9 @@ export default function TripDetailPage() {
                       { value: 'Completed', label: 'Completed' },
                       { value: 'NoLongerAttending', label: 'No Longer Attending' },
                     ],
-                    onBulkChange: (ids, value) =>
+                    onBulkChange: (ids: string[], value: string) =>
                       bulkPatchBookings(ids, { bookingStatus: value as BookingStatus }),
-                  },
+                  } } : {}),
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1216,6 +1217,7 @@ export default function TripDetailPage() {
                         { value: 'Completed', label: 'Completed' },
                         { value: 'NoLongerAttending', label: 'No Longer Attending' },
                       ]}
+                      disabled={!canWrite}
                     />
                   ),
                 },
@@ -1253,7 +1255,7 @@ export default function TripDetailPage() {
                   header: 'Insurance',
                   align: 'center',
                   sortable: true,
-                  bulkEditable: {
+                  ...(canWrite ? { bulkEditable: {
                     items: [
                       { value: 'None', label: 'None' },
                       { value: 'Pending', label: 'Pending' },
@@ -1261,9 +1263,9 @@ export default function TripDetailPage() {
                       { value: 'Expired', label: 'Expired' },
                       { value: 'Cancelled', label: 'Cancelled' },
                     ],
-                    onBulkChange: (ids, value) =>
+                    onBulkChange: (ids: string[], value: string) =>
                       bulkPatchBookings(ids, { insuranceStatus: value as InsuranceStatus }),
-                  },
+                  } } : {}),
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1277,6 +1279,7 @@ export default function TripDetailPage() {
                         { value: 'Expired', label: 'Expired' },
                         { value: 'Cancelled', label: 'Cancelled' },
                       ]}
+                      disabled={!canWrite}
                     />
                   ),
                 },
@@ -1285,11 +1288,11 @@ export default function TripDetailPage() {
                   header: 'Payment',
                   align: 'center',
                   sortable: true,
-                  bulkEditable: {
+                  ...(canWrite ? { bulkEditable: {
                     items: PAYMENT_STATUS_ITEMS,
-                    onBulkChange: (ids, value) =>
+                    onBulkChange: (ids: string[], value: string) =>
                       bulkPatchBookings(ids, { paymentStatus: value as PaymentStatus }),
-                  },
+                  } } : {}),
                   render: (b: any) => (
                     <Dropdown
                       variant="pill"
@@ -1297,7 +1300,7 @@ export default function TripDetailPage() {
                       onChange={val => patchBooking.mutate({ id: b.id, data: { paymentStatus: val as PaymentStatus } })}
                       colorClass={PAYMENT_STATUS_COLORS[b.paymentStatus || 'NotInvoiced'] ?? 'bg-neutral-100 text-neutral-600'}
                       items={PAYMENT_STATUS_ITEMS}
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || !canWrite}
                     />
                   ),
                 },

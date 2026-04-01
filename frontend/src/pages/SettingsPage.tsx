@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { Pencil } from 'lucide-react'
+import { TabNav } from '@/components/TabNav'
+import { StatusBadge } from '@/components/StatusBadge'
 import { DataTable } from '@/components/DataTable'
 import { Dropdown } from '@/components/Dropdown'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
@@ -99,18 +101,11 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="flex gap-4 border-b border-[var(--color-border)]">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => { setTab(t.key); if (t.key !== 'tenants') setTenantDetail(undefined) }}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              tab === t.key
-                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[var(--color-muted-foreground)]'
-            }`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <TabNav
+        tabs={tabs.map(t => ({ key: t.key, label: t.label }))}
+        active={tab}
+        onChange={(key) => { setTab(key as typeof tab); if (key !== 'tenants') setTenantDetail(undefined) }}
+      />
 
       {tab === 'templates' && (
         <div className="space-y-4">
@@ -170,9 +165,7 @@ export default function SettingsPage() {
               header: 'Status',
               sortable: true,
               render: (a: any) => (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${a.isActive ? 'badge-confirmed' : 'badge-cancelled'}`}>
-                  {a.isActive ? 'Active' : 'Inactive'}
-                </span>
+                <StatusBadge status={a.isActive ? 'Active' : 'Inactive'} />
               ),
             },
           ]}

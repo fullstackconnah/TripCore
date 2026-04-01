@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateStaff, useUpdateStaff, useStaffDetail } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const staffSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -26,11 +28,6 @@ const staffSchema = z.object({
 })
 
 type StaffFormData = z.infer<typeof staffSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
-const checkboxWrapperClass = 'flex items-center gap-3 py-1'
-const checkboxLabelClass = 'text-sm text-[var(--color-foreground)]'
 
 export default function StaffCreatePage() {
   const navigate = useNavigate()
@@ -113,113 +110,97 @@ export default function StaffCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Personal Information</h3>
+        <Card title="Personal Information" className="space-y-4">
+          <FormField label="First Name" required error={errors.firstName?.message}>
+            <input {...register('firstName')} placeholder="e.g. Sarah" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>First Name *</label>
-            <input {...register('firstName')} className={inputClass} placeholder="e.g. Sarah" autoFocus />
-            {errors.firstName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.firstName.message}</p>}
-          </div>
+          <FormField label="Last Name" required error={errors.lastName?.message}>
+            <input {...register('lastName')} placeholder="e.g. Mitchell" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Last Name *</label>
-            <input {...register('lastName')} className={inputClass} placeholder="e.g. Mitchell" />
-            {errors.lastName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.lastName.message}</p>}
-          </div>
-
-          <div>
-            <label className={labelClass}>Role *</label>
-            <select {...register('role')} className={inputClass}>
+          <FormField label="Role" required>
+            <select {...register('role')}>
               <option value="SupportWorker">Support Worker</option>
               <option value="SeniorSupportWorker">Senior Support Worker</option>
               <option value="Coordinator">Coordinator</option>
               <option value="TeamLeader">Team Leader</option>
               <option value="Other">Other</option>
             </select>
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Region</label>
-            <input {...register('region')} className={inputClass} placeholder="e.g. South East QLD" />
-          </div>
-        </div>
+          <FormField label="Region">
+            <input {...register('region')} placeholder="e.g. South East QLD" />
+          </FormField>
+        </Card>
 
         {/* Contact */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Contact</h3>
+        <Card title="Contact" className="space-y-4">
+          <FormField label="Email">
+            <input type="email" {...register('email')} placeholder="e.g. sarah@tripcore.com.au" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Email</label>
-            <input type="email" {...register('email')} className={inputClass} placeholder="e.g. sarah@tripcore.com.au" />
-          </div>
+          <FormField label="Mobile">
+            <input {...register('mobile')} placeholder="e.g. 0412 345 678" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Mobile</label>
-            <input {...register('mobile')} className={inputClass} placeholder="e.g. 0412 345 678" />
-          </div>
-
-          <div>
-            <label className={labelClass}>Notes</label>
-            <textarea {...register('notes')} rows={4} className={inputClass} placeholder="Any additional notes..." />
-          </div>
-        </div>
+          <FormField label="Notes">
+            <textarea {...register('notes')} rows={4} placeholder="Any additional notes..." />
+          </FormField>
+        </Card>
 
         {/* Qualifications */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4 md:col-span-2">
-          <h3 className="font-semibold">Qualifications & Eligibility</h3>
-
+        <Card title="Qualifications & Eligibility" className="space-y-4 md:col-span-2">
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <div className={checkboxWrapperClass}>
-                <input type="checkbox" {...register('isFirstAidQualified')} id="isFirstAidQualified" className="w-4 h-4 rounded border-[var(--color-border)]" />
-                <label htmlFor="isFirstAidQualified" className={checkboxLabelClass}>First Aid Qualified</label>
-              </div>
+              <FormField label="First Aid Qualified" layout="checkbox">
+                <input type="checkbox" {...register('isFirstAidQualified')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+              </FormField>
               <div className="ml-7">
-                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
-                <input type="date" {...register('firstAidExpiryDate')} className={inputClass} />
+                <FormField label="Expiry date">
+                  <input type="date" {...register('firstAidExpiryDate')} />
+                </FormField>
               </div>
             </div>
 
             <div className="space-y-1">
-              <div className={checkboxWrapperClass}>
-                <input type="checkbox" {...register('isDriverEligible')} id="isDriverEligible" className="w-4 h-4 rounded border-[var(--color-border)]" />
-                <label htmlFor="isDriverEligible" className={checkboxLabelClass}>Driver Eligible</label>
-              </div>
+              <FormField label="Driver Eligible" layout="checkbox">
+                <input type="checkbox" {...register('isDriverEligible')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+              </FormField>
               <div className="ml-7">
-                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Licence expiry date</label>
-                <input type="date" {...register('driverLicenceExpiryDate')} className={inputClass} />
+                <FormField label="Licence expiry date">
+                  <input type="date" {...register('driverLicenceExpiryDate')} />
+                </FormField>
               </div>
             </div>
 
             <div className="space-y-1">
-              <div className={checkboxWrapperClass}>
-                <input type="checkbox" {...register('isManualHandlingCompetent')} id="isManualHandlingCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
-                <label htmlFor="isManualHandlingCompetent" className={checkboxLabelClass}>Manual Handling Competent</label>
-              </div>
+              <FormField label="Manual Handling Competent" layout="checkbox">
+                <input type="checkbox" {...register('isManualHandlingCompetent')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+              </FormField>
               <div className="ml-7">
-                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
-                <input type="date" {...register('manualHandlingExpiryDate')} className={inputClass} />
+                <FormField label="Expiry date">
+                  <input type="date" {...register('manualHandlingExpiryDate')} />
+                </FormField>
               </div>
             </div>
 
             <div className="space-y-1">
-              <div className={checkboxWrapperClass}>
-                <input type="checkbox" {...register('isMedicationCompetent')} id="isMedicationCompetent" className="w-4 h-4 rounded border-[var(--color-border)]" />
-                <label htmlFor="isMedicationCompetent" className={checkboxLabelClass}>Medication Competent</label>
-              </div>
+              <FormField label="Medication Competent" layout="checkbox">
+                <input type="checkbox" {...register('isMedicationCompetent')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+              </FormField>
               <div className="ml-7">
-                <label className="block text-xs text-[var(--color-muted-foreground)] mb-1">Expiry date</label>
-                <input type="date" {...register('medicationCompetencyExpiryDate')} className={inputClass} />
+                <FormField label="Expiry date">
+                  <input type="date" {...register('medicationCompetencyExpiryDate')} />
+                </FormField>
               </div>
             </div>
 
-            <div className={checkboxWrapperClass}>
-              <input type="checkbox" {...register('isOvernightEligible')} id="isOvernightEligible" className="w-4 h-4 rounded border-[var(--color-border)]" />
-              <label htmlFor="isOvernightEligible" className={checkboxLabelClass}>Overnight Eligible</label>
-            </div>
+            <FormField label="Overnight Eligible" layout="checkbox">
+              <input type="checkbox" {...register('isOvernightEligible')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+            </FormField>
           </div>
-        </div>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

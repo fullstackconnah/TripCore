@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateAccommodation, useUpdateAccommodation, useAccommodationDetail } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const accommodationSchema = z.object({
   propertyName: z.string().min(1, 'Property name is required'),
@@ -33,11 +35,6 @@ const accommodationSchema = z.object({
 })
 
 type AccommodationFormData = z.infer<typeof accommodationSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
-const checkboxWrapperClass = 'flex items-center gap-3 py-1'
-const checkboxLabelClass = 'text-sm text-[var(--color-foreground)]'
 
 export default function AccommodationCreatePage() {
   const navigate = useNavigate()
@@ -128,142 +125,110 @@ export default function AccommodationCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Property Information */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Property Information</h3>
+        <Card title="Property Information" className="space-y-4">
+          <FormField label="Property Name" required error={errors.propertyName?.message}>
+            <input {...register('propertyName')} placeholder="e.g. Sunrise Beach House" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Property Name *</label>
-            <input {...register('propertyName')} className={inputClass} placeholder="e.g. Sunrise Beach House" autoFocus />
-            {errors.propertyName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.propertyName.message}</p>}
-          </div>
+          <FormField label="Provider / Owner">
+            <input {...register('providerOwner')} placeholder="e.g. Coastal Properties" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Provider / Owner</label>
-            <input {...register('providerOwner')} className={inputClass} placeholder="e.g. Coastal Properties" />
-          </div>
+          <FormField label="Location">
+            <input {...register('location')} placeholder="e.g. Gold Coast" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Location</label>
-            <input {...register('location')} className={inputClass} placeholder="e.g. Gold Coast" />
-          </div>
-
-          <div>
-            <label className={labelClass}>Region</label>
-            <input {...register('region')} className={inputClass} placeholder="e.g. South East QLD" />
-          </div>
-        </div>
+          <FormField label="Region">
+            <input {...register('region')} placeholder="e.g. South East QLD" />
+          </FormField>
+        </Card>
 
         {/* Address & Contact */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Address & Contact</h3>
-
-          <div>
-            <label className={labelClass}>Address</label>
-            <input {...register('address')} className={inputClass} placeholder="e.g. 123 Ocean Drive" />
-          </div>
+        <Card title="Address & Contact" className="space-y-4">
+          <FormField label="Address">
+            <input {...register('address')} placeholder="e.g. 123 Ocean Drive" />
+          </FormField>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div>
-              <label className={labelClass}>Suburb</label>
-              <input {...register('suburb')} className={inputClass} placeholder="e.g. Surfers Paradise" />
-            </div>
-            <div>
-              <label className={labelClass}>State</label>
-              <input {...register('state')} className={inputClass} placeholder="e.g. QLD" />
-            </div>
-            <div>
-              <label className={labelClass}>Postcode</label>
-              <input {...register('postcode')} className={inputClass} placeholder="e.g. 4217" />
-            </div>
+            <FormField label="Suburb">
+              <input {...register('suburb')} placeholder="e.g. Surfers Paradise" />
+            </FormField>
+            <FormField label="State">
+              <input {...register('state')} placeholder="e.g. QLD" />
+            </FormField>
+            <FormField label="Postcode">
+              <input {...register('postcode')} placeholder="e.g. 4217" />
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Contact Person</label>
-            <input {...register('contactPerson')} className={inputClass} placeholder="e.g. Jane Smith" />
+          <FormField label="Contact Person">
+            <input {...register('contactPerson')} placeholder="e.g. Jane Smith" />
+          </FormField>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField label="Email">
+              <input type="email" {...register('email')} placeholder="e.g. jane@example.com" />
+            </FormField>
+            <FormField label="Phone">
+              <input {...register('phone')} placeholder="e.g. 07 1234 5678" />
+            </FormField>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Email</label>
-              <input type="email" {...register('email')} className={inputClass} placeholder="e.g. jane@example.com" />
-            </div>
-            <div>
-              <label className={labelClass}>Phone</label>
-              <input {...register('phone')} className={inputClass} placeholder="e.g. 07 1234 5678" />
-            </div>
+            <FormField label="Mobile">
+              <input {...register('mobile')} placeholder="e.g. 0412 345 678" />
+            </FormField>
+            <FormField label="Website">
+              <input {...register('website')} placeholder="e.g. https://..." />
+            </FormField>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Mobile</label>
-              <input {...register('mobile')} className={inputClass} placeholder="e.g. 0412 345 678" />
-            </div>
-            <div>
-              <label className={labelClass}>Website</label>
-              <input {...register('website')} className={inputClass} placeholder="e.g. https://..." />
-            </div>
-          </div>
-        </div>
+        </Card>
 
         {/* Capacity & Accessibility */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Capacity & Accessibility</h3>
-
+        <Card title="Capacity & Accessibility" className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div>
-              <label className={labelClass}>Bedrooms</label>
-              <input type="number" min="0" {...register('bedroomCount')} className={inputClass} placeholder="0" />
-            </div>
-            <div>
-              <label className={labelClass}>Beds</label>
-              <input type="number" min="0" {...register('bedCount')} className={inputClass} placeholder="0" />
-            </div>
-            <div>
-              <label className={labelClass}>Max Capacity</label>
-              <input type="number" min="0" {...register('maxCapacity')} className={inputClass} placeholder="0" />
-            </div>
+            <FormField label="Bedrooms">
+              <input type="number" min="0" {...register('bedroomCount')} placeholder="0" />
+            </FormField>
+            <FormField label="Beds">
+              <input type="number" min="0" {...register('bedCount')} placeholder="0" />
+            </FormField>
+            <FormField label="Max Capacity">
+              <input type="number" min="0" {...register('maxCapacity')} placeholder="0" />
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Bedding Configuration</label>
-            <input {...register('beddingConfiguration')} className={inputClass} placeholder="e.g. 2 queen, 4 single" />
-          </div>
+          <FormField label="Bedding Configuration">
+            <input {...register('beddingConfiguration')} placeholder="e.g. 2 queen, 4 single" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isWheelchairAccessible')} id="isWheelchairAccessible" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isWheelchairAccessible" className={checkboxLabelClass}>Wheelchair Accessible</label>
-          </div>
+          <FormField label="Wheelchair Accessible" layout="checkbox">
+            <input type="checkbox" {...register('isWheelchairAccessible')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isFullyModified')} id="isFullyModified" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isFullyModified" className={checkboxLabelClass}>Fully Modified</label>
-          </div>
+          <FormField label="Fully Modified" layout="checkbox">
+            <input type="checkbox" {...register('isFullyModified')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isSemiModified')} id="isSemiModified" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isSemiModified" className={checkboxLabelClass}>Semi Modified</label>
-          </div>
-        </div>
+          <FormField label="Semi Modified" layout="checkbox">
+            <input type="checkbox" {...register('isSemiModified')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
+        </Card>
 
         {/* Notes */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Notes</h3>
+        <Card title="Notes" className="space-y-4">
+          <FormField label="Accessibility Notes">
+            <textarea {...register('accessibilityNotes')} rows={2} placeholder="Accessibility details..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Accessibility Notes</label>
-            <textarea {...register('accessibilityNotes')} rows={2} className={inputClass} placeholder="Accessibility details..." />
-          </div>
+          <FormField label="Hoist / Bathroom Notes">
+            <textarea {...register('hoistBathroomNotes')} rows={2} placeholder="Hoist or bathroom details..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Hoist / Bathroom Notes</label>
-            <textarea {...register('hoistBathroomNotes')} rows={2} className={inputClass} placeholder="Hoist or bathroom details..." />
-          </div>
-
-          <div>
-            <label className={labelClass}>General Notes</label>
-            <textarea {...register('generalNotes')} rows={3} className={inputClass} placeholder="Any additional notes..." />
-          </div>
-        </div>
+          <FormField label="General Notes">
+            <textarea {...register('generalNotes')} rows={3} placeholder="Any additional notes..." />
+          </FormField>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

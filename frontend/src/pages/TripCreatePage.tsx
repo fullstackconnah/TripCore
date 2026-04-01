@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateTrip, useStaff, useEventTemplates } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { Dropdown } from '@/components/Dropdown'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const tripSchema = z.object({
   tripName: z.string().min(1, 'Trip name is required'),
@@ -27,9 +29,6 @@ const tripSchema = z.object({
 })
 
 type TripFormData = z.infer<typeof tripSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
 
 export default function TripCreatePage() {
   const navigate = useNavigate()
@@ -90,22 +89,16 @@ export default function TripCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Trip Details */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Trip Details</h3>
+        <Card title="Trip Details" className="space-y-4">
+          <FormField label="Trip Name" required error={errors.tripName?.message}>
+            <input {...register('tripName')} placeholder="e.g. Beach Getaway 2026" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Trip Name *</label>
-            <input {...register('tripName')} className={inputClass} placeholder="e.g. Beach Getaway 2026" autoFocus />
-            {errors.tripName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.tripName.message}</p>}
-          </div>
+          <FormField label="Trip Code">
+            <input {...register('tripCode')} placeholder="e.g. BG-2026-01" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Trip Code</label>
-            <input {...register('tripCode')} className={inputClass} placeholder="e.g. BG-2026-01" />
-          </div>
-
-          <div>
-            <label className={labelClass}>Event Template</label>
+          <FormField label="Event Template">
             <Controller
               control={control}
               name="eventTemplateId"
@@ -123,42 +116,32 @@ export default function TripCreatePage() {
                 />
               )}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Destination</label>
-            <input {...register('destination')} className={inputClass} placeholder="e.g. Gold Coast" />
-          </div>
+          <FormField label="Destination">
+            <input {...register('destination')} placeholder="e.g. Gold Coast" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Region</label>
-            <input {...register('region')} className={inputClass} placeholder="e.g. QLD" />
-          </div>
-        </div>
+          <FormField label="Region">
+            <input {...register('region')} placeholder="e.g. QLD" />
+          </FormField>
+        </Card>
 
         {/* Dates */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Dates</h3>
+        <Card title="Dates" className="space-y-4">
+          <FormField label="Start Date" required error={errors.startDate?.message}>
+            <input type="date" {...register('startDate')} />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Start Date *</label>
-            <input type="date" {...register('startDate')} className={inputClass} />
-            {errors.startDate && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.startDate.message}</p>}
-          </div>
+          <FormField label="Duration (Days)" required error={errors.durationDays?.message}>
+            <input type="number" min={1} {...register('durationDays')} />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Duration (Days) *</label>
-            <input type="number" min={1} {...register('durationDays')} className={inputClass} />
-            {errors.durationDays && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.durationDays.message}</p>}
-          </div>
+          <FormField label="Booking Cutoff Date">
+            <input type="date" {...register('bookingCutoffDate')} />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Booking Cutoff Date</label>
-            <input type="date" {...register('bookingCutoffDate')} className={inputClass} />
-          </div>
-
-          <div>
-            <label className={labelClass}>Status</label>
+          <FormField label="Status">
             <Controller
               control={control}
               name="status"
@@ -176,10 +159,9 @@ export default function TripCreatePage() {
                 />
               )}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Lead Coordinator</label>
+          <FormField label="Lead Coordinator">
             <Controller
               control={control}
               name="leadCoordinatorId"
@@ -197,51 +179,44 @@ export default function TripCreatePage() {
                 />
               )}
             />
-          </div>
-        </div>
+          </FormField>
+        </Card>
 
         {/* Capacity & Requirements */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Capacity & Requirements</h3>
+        <Card title="Capacity & Requirements" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Min Participants">
+              <input type="number" min={0} {...register('minParticipants')} />
+            </FormField>
+            <FormField label="Max Participants">
+              <input type="number" min={0} {...register('maxParticipants')} />
+            </FormField>
+          </div>
+
+          <FormField label="Wheelchair Capacity">
+            <input type="number" min={0} {...register('requiredWheelchairCapacity')} />
+          </FormField>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Min Participants</label>
-              <input type="number" min={0} {...register('minParticipants')} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Max Participants</label>
-              <input type="number" min={0} {...register('maxParticipants')} className={inputClass} />
-            </div>
+            <FormField label="Required Beds">
+              <input type="number" min={0} {...register('requiredBeds')} />
+            </FormField>
+            <FormField label="Required Bedrooms">
+              <input type="number" min={0} {...register('requiredBedrooms')} />
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Wheelchair Capacity</label>
-            <input type="number" min={0} {...register('requiredWheelchairCapacity')} className={inputClass} />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Required Beds</label>
-              <input type="number" min={0} {...register('requiredBeds')} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Required Bedrooms</label>
-              <input type="number" min={0} {...register('requiredBedrooms')} className={inputClass} />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Min Staff Required</label>
-            <input type="number" min={0} {...register('minStaffRequired')} className={inputClass} />
-          </div>
-        </div>
+          <FormField label="Min Staff Required">
+            <input type="number" min={0} {...register('minStaffRequired')} />
+          </FormField>
+        </Card>
 
         {/* Notes */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Notes</h3>
-          <textarea {...register('notes')} rows={6} className={inputClass} placeholder="Any additional notes..." />
-        </div>
+        <Card title="Notes" className="space-y-4">
+          <FormField label="Notes">
+            <textarea {...register('notes')} rows={6} placeholder="Any additional notes..." />
+          </FormField>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

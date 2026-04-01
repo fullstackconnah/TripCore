@@ -6,6 +6,8 @@ import { useCreateTask, useUpdateTask, useTrips, useStaff } from '@/api/hooks'
 import { apiClient } from '@/api/client'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const taskSchema = z.object({
   tripInstanceId: z.string().min(1, 'Trip is required'),
@@ -20,9 +22,6 @@ const taskSchema = z.object({
 })
 
 type TaskFormData = z.infer<typeof taskSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
 
 export default function TaskCreatePage() {
   const navigate = useNavigate()
@@ -111,29 +110,22 @@ export default function TaskCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Task Details */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Task Details</h3>
+        <Card title="Task Details" className="space-y-4">
+          <FormField label="Title" required error={errors.title?.message}>
+            <input {...register('title')} placeholder="e.g. Confirm accommodation booking" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Title *</label>
-            <input {...register('title')} className={inputClass} placeholder="e.g. Confirm accommodation booking" autoFocus />
-            {errors.title && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.title.message}</p>}
-          </div>
-
-          <div>
-            <label className={labelClass}>Trip *</label>
-            <select {...register('tripInstanceId')} className={inputClass}>
+          <FormField label="Trip" required error={errors.tripInstanceId?.message}>
+            <select {...register('tripInstanceId')}>
               <option value="">Select a trip...</option>
               {trips.map((t: any) => (
                 <option key={t.id} value={t.id}>{t.tripName}</option>
               ))}
             </select>
-            {errors.tripInstanceId && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.tripInstanceId.message}</p>}
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Task Type *</label>
-            <select {...register('taskType')} className={inputClass}>
+          <FormField label="Task Type" required>
+            <select {...register('taskType')}>
               <option value="AccommodationRequest">Accommodation Request</option>
               <option value="AccommodationConfirmation">Accommodation Confirmation</option>
               <option value="VehicleRequest">Vehicle Request</option>
@@ -148,62 +140,54 @@ export default function TaskCreatePage() {
               <option value="PostTrip">Post-Trip</option>
               <option value="Other">Other</option>
             </select>
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Notes</label>
-            <textarea {...register('notes')} rows={3} className={inputClass} placeholder="Any additional details..." />
-          </div>
-        </div>
+          <FormField label="Notes">
+            <textarea {...register('notes')} rows={3} placeholder="Any additional details..." />
+          </FormField>
+        </Card>
 
         {/* Assignment & Priority */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Assignment & Priority</h3>
-
-          <div>
-            <label className={labelClass}>Owner</label>
-            <select {...register('ownerId')} className={inputClass}>
+        <Card title="Assignment & Priority" className="space-y-4">
+          <FormField label="Owner">
+            <select {...register('ownerId')}>
               <option value="">Unassigned</option>
               {staff.map((s: any) => (
                 <option key={s.id} value={s.id}>{s.fullName}</option>
               ))}
             </select>
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Priority *</label>
-            <select {...register('priority')} className={inputClass}>
+          <FormField label="Priority" required>
+            <select {...register('priority')}>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
               <option value="Urgent">Urgent</option>
             </select>
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Due Date</label>
-            <input type="date" {...register('dueDate')} className={inputClass} />
-          </div>
+          <FormField label="Due Date">
+            <input type="date" {...register('dueDate')} />
+          </FormField>
 
           {isEdit && (
             <>
-              <div>
-                <label className={labelClass}>Status</label>
-                <select {...register('status')} className={inputClass}>
+              <FormField label="Status">
+                <select {...register('status')}>
                   <option value="NotStarted">Not Started</option>
                   <option value="InProgress">In Progress</option>
                   <option value="Completed">Completed</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
-              </div>
+              </FormField>
 
-              <div>
-                <label className={labelClass}>Completed Date</label>
-                <input type="date" {...register('completedDate')} className={inputClass} />
-              </div>
+              <FormField label="Completed Date">
+                <input type="date" {...register('completedDate')} />
+              </FormField>
             </>
           )}
-        </div>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateVehicle, useUpdateVehicle, useVehicleDetail } from '@/api/hooks'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const vehicleSchema = z.object({
   vehicleName: z.string().min(1, 'Vehicle name is required'),
@@ -21,11 +23,6 @@ const vehicleSchema = z.object({
 })
 
 type VehicleFormData = z.infer<typeof vehicleSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
-const checkboxWrapperClass = 'flex items-center gap-3 py-1'
-const checkboxLabelClass = 'text-sm text-[var(--color-foreground)]'
 
 export default function VehicleCreatePage() {
   const navigate = useNavigate()
@@ -103,23 +100,17 @@ export default function VehicleCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Vehicle Information */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Vehicle Information</h3>
+        <Card title="Vehicle Information" className="space-y-4">
+          <FormField label="Vehicle Name" required error={errors.vehicleName?.message}>
+            <input {...register('vehicleName')} placeholder="e.g. Blue Van 1" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Vehicle Name *</label>
-            <input {...register('vehicleName')} className={inputClass} placeholder="e.g. Blue Van 1" autoFocus />
-            {errors.vehicleName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.vehicleName.message}</p>}
-          </div>
+          <FormField label="Registration">
+            <input {...register('registration')} placeholder="e.g. ABC-123" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Registration</label>
-            <input {...register('registration')} className={inputClass} placeholder="e.g. ABC-123" />
-          </div>
-
-          <div>
-            <label className={labelClass}>Vehicle Type *</label>
-            <select {...register('vehicleType')} className={inputClass}>
+          <FormField label="Vehicle Type" required>
+            <select {...register('vehicleType')}>
               <option value="Car">Car</option>
               <option value="Van">Van</option>
               <option value="Bus">Bus</option>
@@ -127,61 +118,48 @@ export default function VehicleCreatePage() {
               <option value="AccessibleVan">Accessible Van</option>
               <option value="Other">Other</option>
             </select>
-          </div>
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isInternal')} id="isInternal" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isInternal" className={checkboxLabelClass}>Internal Vehicle</label>
-          </div>
-        </div>
+          <FormField label="Internal Vehicle" layout="checkbox">
+            <input type="checkbox" {...register('isInternal')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
+        </Card>
 
         {/* Capacity & Accessibility */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Capacity & Accessibility</h3>
-
+        <Card title="Capacity & Accessibility" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Total Seats *</label>
-              <input type="number" min="0" {...register('totalSeats')} className={inputClass} />
-              {errors.totalSeats && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.totalSeats.message}</p>}
-            </div>
-            <div>
-              <label className={labelClass}>Wheelchair Positions</label>
-              <input type="number" min="0" {...register('wheelchairPositions')} className={inputClass} />
-            </div>
+            <FormField label="Total Seats" required error={errors.totalSeats?.message}>
+              <input type="number" min="0" {...register('totalSeats')} />
+            </FormField>
+            <FormField label="Wheelchair Positions">
+              <input type="number" min="0" {...register('wheelchairPositions')} />
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Ramp / Hoist Details</label>
-            <textarea {...register('rampHoistDetails')} rows={2} className={inputClass} placeholder="Ramp or hoist specifications..." />
-          </div>
+          <FormField label="Ramp / Hoist Details">
+            <textarea {...register('rampHoistDetails')} rows={2} placeholder="Ramp or hoist specifications..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Driver Requirements</label>
-            <textarea {...register('driverRequirements')} rows={2} className={inputClass} placeholder="e.g. LR licence required" />
-          </div>
-        </div>
+          <FormField label="Driver Requirements">
+            <textarea {...register('driverRequirements')} rows={2} placeholder="e.g. LR licence required" />
+          </FormField>
+        </Card>
 
         {/* Dates & Notes */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4 md:col-span-2">
-          <h3 className="font-semibold">Service & Notes</h3>
-
+        <Card title="Service & Notes" className="space-y-4 md:col-span-2">
           <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Service Due Date</label>
-              <input type="date" {...register('serviceDueDate')} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Registration Due Date</label>
-              <input type="date" {...register('registrationDueDate')} className={inputClass} />
-            </div>
+            <FormField label="Service Due Date">
+              <input type="date" {...register('serviceDueDate')} />
+            </FormField>
+            <FormField label="Registration Due Date">
+              <input type="date" {...register('registrationDueDate')} />
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Notes</label>
-            <textarea {...register('notes')} rows={3} className={inputClass} placeholder="Any additional notes..." />
-          </div>
-        </div>
+          <FormField label="Notes">
+            <textarea {...register('notes')} rows={3} placeholder="Any additional notes..." />
+          </FormField>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

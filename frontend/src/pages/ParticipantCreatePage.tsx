@@ -6,6 +6,8 @@ import { useCreateParticipant, useUpdateParticipant, useParticipant, useStaff } 
 import { ArrowLeft } from 'lucide-react'
 import { Dropdown } from '@/components/Dropdown'
 import { useEffect } from 'react'
+import { FormField } from '@/components/FormField'
+import { Card } from '@/components/Card'
 
 const participantSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -33,11 +35,6 @@ const participantSchema = z.object({
 })
 
 type ParticipantFormData = z.infer<typeof participantSchema>
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] transition-shadow'
-const labelClass = 'block text-sm font-medium mb-1.5 text-[var(--color-muted-foreground)]'
-const checkboxWrapperClass = 'flex items-center gap-3 py-1'
-const checkboxLabelClass = 'text-sm text-[var(--color-foreground)]'
 
 export default function ParticipantCreatePage() {
   const navigate = useNavigate()
@@ -131,43 +128,31 @@ export default function ParticipantCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Personal Information</h3>
+        <Card title="Personal Information" className="space-y-4">
+          <FormField label="First Name" required error={errors.firstName?.message}>
+            <input {...register('firstName')} placeholder="e.g. John" autoFocus />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>First Name *</label>
-            <input {...register('firstName')} className={inputClass} placeholder="e.g. John" autoFocus />
-            {errors.firstName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.firstName.message}</p>}
-          </div>
+          <FormField label="Last Name" required error={errors.lastName?.message}>
+            <input {...register('lastName')} placeholder="e.g. Smith" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Last Name *</label>
-            <input {...register('lastName')} className={inputClass} placeholder="e.g. Smith" />
-            {errors.lastName && <p className="text-xs text-[var(--color-destructive)] mt-1">{errors.lastName.message}</p>}
-          </div>
+          <FormField label="Preferred Name">
+            <input {...register('preferredName')} placeholder="e.g. Johnny" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Preferred Name</label>
-            <input {...register('preferredName')} className={inputClass} placeholder="e.g. Johnny" />
-          </div>
+          <FormField label="Date of Birth">
+            <input type="date" {...register('dateOfBirth')} />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Date of Birth</label>
-            <input type="date" {...register('dateOfBirth')} className={inputClass} />
-          </div>
-
-          <div>
-            <label className={labelClass}>NDIS Number</label>
-            <input {...register('ndisNumber')} className={inputClass} placeholder="e.g. 431234567" />
-          </div>
-        </div>
+          <FormField label="NDIS Number">
+            <input {...register('ndisNumber')} placeholder="e.g. 431234567" />
+          </FormField>
+        </Card>
 
         {/* Plan & Region */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Plan & Region</h3>
-
-          <div>
-            <label className={labelClass}>Plan Type *</label>
+        <Card title="Plan & Region" className="space-y-4">
+          <FormField label="Plan Type" required>
             <Controller
               control={control}
               name="planType"
@@ -185,55 +170,44 @@ export default function ParticipantCreatePage() {
                 />
               )}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Region</label>
-            <input {...register('region')} className={inputClass} placeholder="e.g. QLD" />
-          </div>
+          <FormField label="Region">
+            <input {...register('region')} placeholder="e.g. QLD" />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Funding Organisation</label>
-            <input {...register('fundingOrganisation')} className={inputClass} placeholder="e.g. Plan Partners" />
-          </div>
+          <FormField label="Funding Organisation">
+            <input {...register('fundingOrganisation')} placeholder="e.g. Plan Partners" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isRepeatClient')} id="isRepeatClient" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isRepeatClient" className={checkboxLabelClass}>Repeat Client</label>
-          </div>
-        </div>
+          <FormField label="Repeat Client" layout="checkbox">
+            <input type="checkbox" {...register('isRepeatClient')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
+        </Card>
 
         {/* Support Needs */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Support Needs</h3>
+        <Card title="Support Needs" className="space-y-4">
+          <FormField label="Wheelchair Required" layout="checkbox">
+            <input type="checkbox" {...register('wheelchairRequired')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('wheelchairRequired')} id="wheelchairRequired" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="wheelchairRequired" className={checkboxLabelClass}>Wheelchair Required</label>
-          </div>
+          <FormField label="High Support" layout="checkbox">
+            <input type="checkbox" {...register('isHighSupport')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isHighSupport')} id="isHighSupport" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isHighSupport" className={checkboxLabelClass}>High Support</label>
-          </div>
+          <FormField label="Intensive Support (NDIS billing)" layout="checkbox">
+            <input type="checkbox" {...register('isIntensiveSupport')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('isIntensiveSupport')} id="isIntensiveSupport" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="isIntensiveSupport" className={checkboxLabelClass}>Intensive Support (NDIS billing)</label>
-          </div>
+          <FormField label="Requires Overnight Support" layout="checkbox">
+            <input type="checkbox" {...register('requiresOvernightSupport')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('requiresOvernightSupport')} id="requiresOvernightSupport" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="requiresOvernightSupport" className={checkboxLabelClass}>Requires Overnight Support</label>
-          </div>
+          <FormField label="Restrictive Practice Flag" layout="checkbox">
+            <input type="checkbox" {...register('hasRestrictivePracticeFlag')} className="w-4 h-4 rounded border-[var(--color-border)]" />
+          </FormField>
 
-          <div className={checkboxWrapperClass}>
-            <input type="checkbox" {...register('hasRestrictivePracticeFlag')} id="hasRestrictivePracticeFlag" className="w-4 h-4 rounded border-[var(--color-border)]" />
-            <label htmlFor="hasRestrictivePracticeFlag" className={checkboxLabelClass}>Restrictive Practice Flag</label>
-          </div>
-
-          <div>
-            <label className={labelClass}>Support Ratio *</label>
+          <FormField label="Support Ratio" required>
             <Controller
               control={control}
               name="supportRatio"
@@ -253,49 +227,39 @@ export default function ParticipantCreatePage() {
                 />
               )}
             />
-          </div>
-        </div>
+          </FormField>
+        </Card>
 
         {/* Notes & Requirements */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Notes & Requirements</h3>
+        <Card title="Notes & Requirements" className="space-y-4">
+          <FormField label="Mobility Notes">
+            <textarea {...register('mobilityNotes')} rows={2} placeholder="Any mobility considerations..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Mobility Notes</label>
-            <textarea {...register('mobilityNotes')} rows={2} className={inputClass} placeholder="Any mobility considerations..." />
-          </div>
+          <FormField label="Equipment Requirements">
+            <textarea {...register('equipmentRequirements')} rows={2} placeholder="Required equipment..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Equipment Requirements</label>
-            <textarea {...register('equipmentRequirements')} rows={2} className={inputClass} placeholder="Required equipment..." />
-          </div>
+          <FormField label="Transport Requirements">
+            <textarea {...register('transportRequirements')} rows={2} placeholder="Transport needs..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Transport Requirements</label>
-            <textarea {...register('transportRequirements')} rows={2} className={inputClass} placeholder="Transport needs..." />
-          </div>
+          <FormField label="Medical Summary">
+            <textarea {...register('medicalSummary')} rows={2} placeholder="Medical information..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Medical Summary</label>
-            <textarea {...register('medicalSummary')} rows={2} className={inputClass} placeholder="Medical information..." />
-          </div>
+          <FormField label="Behaviour Risk Summary">
+            <textarea {...register('behaviourRiskSummary')} rows={2} placeholder="Behaviour risk notes..." />
+          </FormField>
 
-          <div>
-            <label className={labelClass}>Behaviour Risk Summary</label>
-            <textarea {...register('behaviourRiskSummary')} rows={2} className={inputClass} placeholder="Behaviour risk notes..." />
-          </div>
-
-          <div>
-            <label className={labelClass}>General Notes</label>
-            <textarea {...register('notes')} rows={2} className={inputClass} placeholder="Any additional notes..." />
-          </div>
-        </div>
+          <FormField label="General Notes">
+            <textarea {...register('notes')} rows={2} placeholder="Any additional notes..." />
+          </FormField>
+        </Card>
 
         {/* Staff Preferences */}
-        <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
-          <h3 className="font-semibold">Staff Preferences</h3>
-          <div>
-            <label className={labelClass}>Preferred Staff Member</label>
+        <Card title="Staff Preferences" className="space-y-4">
+          <FormField label="Preferred Staff Member">
             <Controller
               control={control}
               name="preferredStaffId"
@@ -314,8 +278,8 @@ export default function ParticipantCreatePage() {
                 />
               )}
             />
-          </div>
-        </div>
+          </FormField>
+        </Card>
 
         {/* Submit */}
         <div className="md:col-span-2 flex justify-end gap-3">

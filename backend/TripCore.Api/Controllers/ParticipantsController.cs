@@ -52,7 +52,9 @@ public class ParticipantsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ParticipantDetailDto>>> GetById(Guid id, CancellationToken ct)
     {
-        var p = await _db.Participants.FirstOrDefaultAsync(x => x.Id == id, ct);
+        var p = await _db.Participants
+            .Include(x => x.PreferredStaff)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
         if (p == null) return NotFound(ApiResponse<ParticipantDetailDto>.Fail("Participant not found"));
 
         return Ok(ApiResponse<ParticipantDetailDto>.Ok(new ParticipantDetailDto
@@ -67,7 +69,11 @@ public class ParticipantsController : ControllerBase
             MobilityNotes = p.MobilityNotes, EquipmentRequirements = p.EquipmentRequirements,
             TransportRequirements = p.TransportRequirements, MedicalSummary = p.MedicalSummary,
             BehaviourRiskSummary = p.BehaviourRiskSummary, Notes = p.Notes,
-            CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt
+            CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt,
+            PreferredStaffId = p.PreferredStaffId,
+            PreferredStaffName = p.PreferredStaff != null
+                ? p.PreferredStaff.FirstName + " " + p.PreferredStaff.LastName
+                : null,
         }));
     }
 
@@ -85,7 +91,8 @@ public class ParticipantsController : ControllerBase
             RequiresOvernightSupport = dto.RequiresOvernightSupport, HasRestrictivePracticeFlag = dto.HasRestrictivePracticeFlag,
             SupportRatio = dto.SupportRatio, MobilityNotes = dto.MobilityNotes,
             EquipmentRequirements = dto.EquipmentRequirements, TransportRequirements = dto.TransportRequirements,
-            MedicalSummary = dto.MedicalSummary, BehaviourRiskSummary = dto.BehaviourRiskSummary, Notes = dto.Notes
+            MedicalSummary = dto.MedicalSummary, BehaviourRiskSummary = dto.BehaviourRiskSummary, Notes = dto.Notes,
+            PreferredStaffId = dto.PreferredStaffId,
         };
         _db.Participants.Add(participant);
         await _db.SaveChangesAsync(ct);
@@ -109,7 +116,7 @@ public class ParticipantsController : ControllerBase
         p.SupportRatio = dto.SupportRatio; p.MobilityNotes = dto.MobilityNotes;
         p.EquipmentRequirements = dto.EquipmentRequirements; p.TransportRequirements = dto.TransportRequirements;
         p.MedicalSummary = dto.MedicalSummary; p.BehaviourRiskSummary = dto.BehaviourRiskSummary;
-        p.Notes = dto.Notes; p.UpdatedAt = DateTime.UtcNow;
+        p.Notes = dto.Notes; p.PreferredStaffId = dto.PreferredStaffId; p.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
         return Ok(ApiResponse<ParticipantDetailDto>.Ok(new ParticipantDetailDto { Id = p.Id, FirstName = p.FirstName, LastName = p.LastName, FullName = p.FullName, IsActive = p.IsActive, UpdatedAt = p.UpdatedAt }));

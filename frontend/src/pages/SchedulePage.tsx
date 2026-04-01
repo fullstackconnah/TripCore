@@ -724,6 +724,11 @@ export default function SchedulePage() {
                         <div className="text-[10px] text-[var(--color-muted-foreground)]">
                           {trip.staffAssignedCount}/{trip.staffRequired ?? '?'} staff · {trip.currentParticipantCount}/{trip.maxParticipants ?? '?'} pax
                         </div>
+                        {trip.preferenceMatchCount > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: '#fef3c7', color: '#b45309' }}>
+                            ★ {trip.preferenceMatchCount} preferred
+                          </span>
+                        )}
                       </div>
                     </th>
                   ))}
@@ -791,17 +796,29 @@ export default function SchedulePage() {
                       {s.tripStatuses?.map((ts: any, idx: number) => {
                         const trip = trips[idx]
                         const isAvailable = ts.status === 'Available'
+                        const prefEntry = s.preferredForTrips?.find((p: any) => p.tripId === ts.tripId)
                         return (
                           <td key={ts.tripId} className="px-3 py-2.5">
-                            <StatusBadge
-                              status={ts.status}
-                              role={ts.assignmentRole}
-                              clickable={isAvailable}
-                              onClick={isAvailable ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
-                              onUnassign={ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
-                                onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedule-overview'] })
-                              }) : undefined}
-                            />
+                            <div className="relative inline-block">
+                              <StatusBadge
+                                status={ts.status}
+                                role={ts.assignmentRole}
+                                clickable={isAvailable}
+                                onClick={isAvailable ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
+                                onUnassign={ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
+                                  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedule-overview'] })
+                                }) : undefined}
+                              />
+                              {prefEntry && (
+                                <span
+                                  className="absolute -top-1.5 -right-1.5 text-[9px] font-bold leading-none px-1 py-0.5 rounded-full"
+                                  style={{ background: '#f59e0b', color: '#000' }}
+                                  title={`${prefEntry.participantCount} participant${prefEntry.participantCount > 1 ? 's' : ''} prefer this staff member`}
+                                >
+                                  ★{prefEntry.participantCount > 1 ? ` ${prefEntry.participantCount}` : ''}
+                                </span>
+                              )}
+                            </div>
                           </td>
                         )
                       })}

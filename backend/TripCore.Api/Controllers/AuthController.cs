@@ -56,8 +56,9 @@ public class AuthController : ControllerBase
 
         var domain = email.Split('@').Last().ToLower();
 
-        // 2. SuperAdmin path — @tripcore.com.au bypasses tenant resolution
-        if (domain == "tripcore.com.au")
+        // 2. SuperAdmin path — bypasses tenant resolution
+        var superAdminDomain = _config["Auth:SuperAdminDomain"] ?? "tripcore.com.au";
+        if (domain == superAdminDomain)
         {
             var superAdmin = await _db.Users
                 .IgnoreQueryFilters()

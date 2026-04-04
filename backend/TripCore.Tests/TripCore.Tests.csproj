@@ -16,6 +16,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TripCore.Api\TripCore.Api.csproj" />
     <ProjectReference Include="..\TripCore.Application\TripCore.Application.csproj" />
     <ProjectReference Include="..\TripCore.Domain\TripCore.Domain.csproj" />
     <ProjectReference Include="..\TripCore.Infrastructure\TripCore.Infrastructure.csproj" />

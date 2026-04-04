@@ -6,18 +6,20 @@ import { DataTable } from '@/components/DataTable'
 import { getStatusColor } from '@/lib/utils'
 import type { BookingStatus, InsuranceStatus, PaymentStatus, SupportRatio } from '@/api/types/enums'
 import { Plus, X, AlertTriangle, Pencil, ExternalLink, Trash2 } from 'lucide-react'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { BookingListDto } from '@/api/types/bookings'
+import type { ParticipantListDto } from '@/api/types/participants'
 
 interface BookingsTabProps {
   tripId: string
-  trip: any
-  bookings: any[]
-  participants: any[]
-  staff: any[]
+  trip: TripDetailDto
+  bookings: BookingListDto[]
+  participants: ParticipantListDto[]
   canWrite: boolean
   isReadOnly: boolean
 }
 
-export default function BookingsTab({ tripId, trip, bookings, participants, staff, canWrite, isReadOnly }: BookingsTabProps) {
+export default function BookingsTab({ tripId, trip, bookings, participants, canWrite, isReadOnly }: BookingsTabProps) {
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [selectedParticipantId, setSelectedParticipantId] = useState('')
   const [bookingStatus, setBookingStatus] = useState('Enquiry')
@@ -33,7 +35,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
   const [insuranceCoverageEnd, setInsuranceCoverageEnd] = useState('')
   const [insuranceStatus, setInsuranceStatus] = useState('None')
 
-  const [editingBooking, setEditingBooking] = useState<any>(null)
+  const [editingBooking, setEditingBooking] = useState<BookingListDto | null>(null)
   const [editForm, setEditForm] = useState<{
     bookingStatus: string
     supportRatioOverride: string
@@ -63,7 +65,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
     insuranceCoverageEnd: '',
   })
 
-  const [deletingBooking, setDeletingBooking] = useState<any>(null)
+  const [deletingBooking, setDeletingBooking] = useState<BookingListDto | null>(null)
   const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set())
   const [bookingBulkLoading, setBookingBulkLoading] = useState(false)
 
@@ -74,13 +76,13 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
   const cancelBooking = useCancelBooking()
 
   // Filter out participants already booked on this trip
-  const bookedParticipantIds = new Set(bookings.map((b: any) => b.participantId))
-  const availableParticipants = participants.filter((p: any) => !bookedParticipantIds.has(p.id) && p.isActive)
+  const bookedParticipantIds = new Set(bookings.map((b: BookingListDto) => b.participantId))
+  const availableParticipants = participants.filter((p: ParticipantListDto) => !bookedParticipantIds.has(p.id) && p.isActive)
 
   // Auto-populate support fields when participant changes
   useEffect(() => {
     if (!selectedParticipantId) return
-    const p = participants.find((p: any) => p.id === selectedParticipantId)
+    const p = participants.find((p: ParticipantListDto) => p.id === selectedParticipantId)
     if (p) {
       setWheelchairRequired(p.wheelchairRequired ?? false)
       setHighSupportRequired(p.isHighSupport ?? false)
@@ -156,7 +158,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
     })
   }
 
-  const openEditModal = (booking: any) => {
+  const openEditModal = (booking: BookingListDto) => {
     setEditingBooking(booking)
     setEditForm({
       tripInstanceId: booking.tripInstanceId,
@@ -228,7 +230,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
                 <select value={selectedParticipantId} onChange={e => setSelectedParticipantId(e.target.value)}
                   className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
                   <option value="">Select a participant...</option>
-                  {availableParticipants.map((p: any) => (
+                  {availableParticipants.map((p: ParticipantListDto) => (
                     <option key={p.id} value={p.id}>{p.fullName}</option>
                   ))}
                 </select>
@@ -377,7 +379,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
             header: 'Participant',
             className: 'font-medium',
             sortable: true,
-            render: (b: any) => b.participantName || '—',
+            render: (b: BookingListDto) => b.participantName || '—',
           },
           {
             key: 'bookingStatus',
@@ -396,7 +398,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
               onBulkChange: (ids: string[], value: string) =>
                 bulkPatchBookings(ids, { bookingStatus: value as BookingStatus }),
             } } : {}),
-            render: (b: any) => (
+            render: (b: BookingListDto) => (
               <Dropdown
                 variant="pill"
                 value={b.bookingStatus}
@@ -424,7 +426,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
           {
             key: 'supportRatioOverride',
             header: 'Ratio',
-            render: (b: any) => (({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' } as Record<string, string>)[b.supportRatioOverride as string]) || '—',
+            render: (b: BookingListDto) => (({ OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared', Other: 'Other' } as Record<string, string>)[b.supportRatioOverride as string]) || '—',
           },
           {
             key: 'wheelchairRequired',
@@ -460,7 +462,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
               onBulkChange: (ids: string[], value: string) =>
                 bulkPatchBookings(ids, { insuranceStatus: value as InsuranceStatus }),
             } } : {}),
-            render: (b: any) => (
+            render: (b: BookingListDto) => (
               <Dropdown
                 variant="pill"
                 value={b.insuranceStatus || 'None'}
@@ -487,7 +489,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
               onBulkChange: (ids: string[], value: string) =>
                 bulkPatchBookings(ids, { paymentStatus: value as PaymentStatus }),
             } } : {}),
-            render: (b: any) => (
+            render: (b: BookingListDto) => (
               <Dropdown
                 variant="pill"
                 value={b.paymentStatus || 'NotInvoiced'}
@@ -502,7 +504,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
             key: 'actions',
             header: '',
             align: 'center',
-            render: (b: any) => (
+            render: (b: BookingListDto) => (
               <div className="flex items-center justify-center gap-2">
                 {b.actionRequired && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
                 {canWrite && (
@@ -528,10 +530,10 @@ export default function BookingsTab({ tripId, trip, bookings, participants, staf
       {bookings.length > 0 && (() => {
         const ratioToStaff: Record<string, number> = { OneToOne: 1, OneToTwo: 0.5, OneToThree: 1/3, OneToFour: 0.25, OneToFive: 0.2, TwoToOne: 2, SharedSupport: 0.25 }
         const ratioLabels: Record<string, string> = { OneToOne: '1:1', OneToTwo: '1:2', OneToThree: '1:3', OneToFour: '1:4', OneToFive: '1:5', TwoToOne: '2:1', SharedSupport: 'Shared' }
-        const activeBookings = bookings.filter((b: any) => !['Cancelled', 'NoLongerAttending'].includes(b.bookingStatus))
-        const rawTotal = activeBookings.reduce((sum: number, b: any) => sum + (ratioToStaff[b.supportRatioOverride] ?? 0), 0)
+        const activeBookings = bookings.filter((b: BookingListDto) => !['Cancelled', 'NoLongerAttending'].includes(b.bookingStatus))
+        const rawTotal = activeBookings.reduce((sum: number, b: BookingListDto) => sum + (ratioToStaff[b.supportRatioOverride ?? ''] ?? 0), 0)
         const rounded = Math.ceil(rawTotal)
-        const noRatioCount = activeBookings.filter((b: any) => !b.supportRatioOverride || !(b.supportRatioOverride in ratioToStaff)).length
+        const noRatioCount = activeBookings.filter((b: BookingListDto) => !b.supportRatioOverride || !(b.supportRatioOverride in ratioToStaff)).length
         const assigned = trip.staffAssignedCount ?? 0
         const isStaffed = assigned >= rounded
         const gap = rounded - rawTotal

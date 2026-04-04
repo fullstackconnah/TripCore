@@ -67,8 +67,8 @@ export default function TaskCreatePage() {
               notes: task.notes ?? '',
             })
           }
-        } catch {
-          // ignore
+        } catch (err) {
+          console.error('Failed to load task:', err)
         }
       }
       fetchTask()

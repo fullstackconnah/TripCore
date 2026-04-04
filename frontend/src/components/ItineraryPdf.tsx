@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer'
+import type { ItineraryDto, ItineraryAccommodationDto, ItineraryVehicleDto, ItineraryStaffDto, ItineraryParticipantDto, ItineraryDayDto, ItineraryActivityDto, ItineraryDayAccommodationEventDto } from '@/api/types'
 
 type ExportVersion = 'staff' | 'participant'
 
@@ -83,7 +84,7 @@ function formatDayName(date: string) {
   return parseLocalDate(date).toLocaleDateString('en-AU', { weekday: 'long' })
 }
 
-function ItineraryDocument({ data, version }: { data: any; version: ExportVersion }) {
+function ItineraryDocument({ data, version }: { data: ItineraryDto; version: ExportVersion }) {
   const isStaff = version === 'staff'
 
   return (
@@ -129,7 +130,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
           <View>
             <Text style={styles.sectionTitle}>Accommodation</Text>
             <View style={styles.grid}>
-              {data.accommodation.map((a: any, i: number) => (
+              {data.accommodation.map((a: ItineraryAccommodationDto, i: number) => (
                 <View key={i} style={[styles.infoCard, styles.gridHalf]}>
                   <Text style={styles.infoName}>{a.propertyName}</Text>
                   {(a.address || a.suburb) && <Text style={styles.infoDetail}>{[a.address, a.suburb, a.state].filter(Boolean).join(', ')}</Text>}

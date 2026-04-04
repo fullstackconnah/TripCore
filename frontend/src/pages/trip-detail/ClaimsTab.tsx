@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useDeleteClaim, useUpdateClaim, PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import { useDeleteClaim, useUpdateClaim } from '@/api/hooks'
 import { Dropdown } from '@/components/Dropdown'
 import { DataTable } from '@/components/DataTable'
 import GenerateClaimModal from '@/components/GenerateClaimModal'
 import type { TripClaimStatus } from '@/api/types/enums'
+import type { TripClaimListDto } from '@/api/types/claims'
+import type { TripDetailDto } from '@/api/types/trips'
 
 const CLAIM_STATUS_ITEMS = [
   { value: 'Draft', label: 'Draft' },
@@ -22,7 +24,7 @@ const CLAIM_STATUS_COLORS: Record<string, string> = {
   PartiallyPaid: 'bg-amber-100 text-amber-700',
 }
 
-export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: string; claims: any[]; trip: any; canWrite: boolean }) {
+export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: string; claims: TripClaimListDto[]; trip: TripDetailDto; canWrite: boolean }) {
   const deleteClaim = useDeleteClaim()
   const updateClaim = useUpdateClaim()
   const [showGenerateModal, setShowGenerateModal] = useState(false)
@@ -45,10 +47,11 @@ export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: 
         )
       )
       setSelectedClaimIds(new Set())
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { errors?: string[]; message?: string } } }
       setError(
-        err?.response?.data?.errors?.[0] ??
-        err?.response?.data?.message ??
+        axiosErr?.response?.data?.errors?.[0] ??
+        axiosErr?.response?.data?.message ??
         'Failed to update claims.'
       )
     } finally {
@@ -59,7 +62,10 @@ export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: 
   function handleDelete(claimId: string) {
     if (!confirm('Delete this claim? This cannot be undone.')) return
     deleteClaim.mutate(claimId, {
-      onError: (err: any) => setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to delete claim.'),
+      onError: (err: unknown) => {
+        const axiosErr = err as { response?: { data?: { errors?: string[]; message?: string } } }
+        setError(axiosErr?.response?.data?.errors?.[0] || axiosErr?.response?.data?.message || 'Failed to delete claim.')
+      },
     })
   }
 
@@ -108,7 +114,7 @@ export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: 
                 items: CLAIM_STATUS_ITEMS,
                 onBulkChange: (ids: string[], value: string) => bulkUpdateClaimStatus(ids, value),
               } } : {}),
-              render: (c: any) => (
+              render: (c: TripClaimListDto) => (
                 <Dropdown
                   variant="pill"
                   value={c.status}
@@ -125,7 +131,7 @@ export default function ClaimsTab({ tripId, claims, trip, canWrite }: { tripId: 
             {
               key: 'actions',
               header: '',
-              render: (c: any) => (
+              render: (c: TripClaimListDto) => (
                 <div className="flex items-center gap-3">
                   <Link to={`/claims/${c.id}`} className="text-xs text-[#396200] hover:underline">View</Link>
                   {canWrite && c.status !== 'Submitted' && c.status !== 'Paid' && (

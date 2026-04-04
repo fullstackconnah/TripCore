@@ -9,13 +9,28 @@ import {
 } from '@/api/hooks'
 import { DataTable } from '@/components/DataTable'
 import { formatDateAu } from '@/lib/utils'
-import { SleepoverType } from '@/api/types/enums'
+import type { SleepoverType } from '@/api/types/enums'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { StaffAssignmentDto, StaffListDto } from '@/api/types/staff'
+import type { BookingListDto } from '@/api/types/bookings'
+
+interface StaffEditForm {
+  tripInstanceId: string
+  staffId: string
+  assignmentRole: string
+  assignmentStart: string
+  assignmentEnd: string
+  isDriver: boolean
+  sleepoverType: string
+  shiftNotes: string
+  status: string
+}
 
 interface StaffTabProps {
   tripId: string
-  trip: any
-  staff: any[]
-  bookings: any[]
+  trip: TripDetailDto
+  staff: StaffAssignmentDto[]
+  bookings: BookingListDto[]
   canWrite: boolean
 }
 
@@ -23,9 +38,9 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
   const updateStaffAssignment = useUpdateStaffAssignment()
   const deleteStaffAssignment = useDeleteStaffAssignment()
   const createStaffAssignment = useCreateStaffAssignment()
-  const [editingStaff, setEditingStaff] = useState<any>(null)
-  const [editStaffForm, setEditStaffForm] = useState<any>({})
-  const [deletingStaff, setDeletingStaff] = useState<any>(null)
+  const [editingStaff, setEditingStaff] = useState<StaffAssignmentDto | null>(null)
+  const [editStaffForm, setEditStaffForm] = useState<StaffEditForm>({} as StaffEditForm)
+  const [deletingStaff, setDeletingStaff] = useState<StaffAssignmentDto | null>(null)
 
   // Add Staff state
   const [showAddStaff, setShowAddStaff] = useState(false)
@@ -40,8 +55,8 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
   const [staffShiftNotes, setStaffShiftNotes] = useState('')
 
   // Compute availability set and already-assigned set
-  const availableStaffIds = new Set(availableStaff.map((s: any) => s.id))
-  const assignedStaffIds = new Set(staff.map((s: any) => s.staffId))
+  const availableStaffIds = new Set(availableStaff.map((s: StaffListDto) => s.id))
+  const assignedStaffIds = new Set(staff.map((s: StaffAssignmentDto) => s.staffId))
 
   const resetStaffForm = () => {
     setSelectedStaffId('')
@@ -72,7 +87,7 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
     })
   }
 
-  const openEditStaffModal = (s: any) => {
+  const openEditStaffModal = (s: StaffAssignmentDto) => {
     setEditingStaff(s)
     setEditStaffForm({
       tripInstanceId: s.tripInstanceId,
@@ -99,10 +114,10 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
       {/* Staffing summary */}
       {(() => {
         const ratioToStaff: Record<string, number> = { OneToOne: 1, OneToTwo: 0.5, OneToThree: 1/3, OneToFour: 0.25, OneToFive: 0.2, TwoToOne: 2, SharedSupport: 0.25 }
-        const activeBookings = bookings.filter((b: any) => !['Cancelled', 'NoLongerAttending'].includes(b.bookingStatus))
-        const rawTotal = activeBookings.reduce((sum: number, b: any) => sum + (ratioToStaff[b.supportRatioOverride] ?? 0), 0)
+        const activeBookings = bookings.filter((b: BookingListDto) => !['Cancelled', 'NoLongerAttending'].includes(b.bookingStatus))
+        const rawTotal = activeBookings.reduce((sum: number, b: BookingListDto) => sum + (ratioToStaff[b.supportRatioOverride ?? ''] ?? 0), 0)
         const required = Math.ceil(rawTotal)
-        const assigned = staff.filter((s: any) => s.status !== 'Cancelled').length
+        const assigned = staff.filter((s: StaffAssignmentDto) => s.status !== 'Cancelled').length
         const isStaffed = assigned >= required
         return (
           <div className="flex items-center justify-between gap-4">
@@ -139,14 +154,14 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
             key: 'assignmentRole',
             header: 'Role',
             sortable: true,
-            render: (s: any) => s.assignmentRole || '—',
+            render: (s: StaffAssignmentDto) => s.assignmentRole || '—',
           },
           {
             key: 'assignmentStart',
             header: 'Dates',
             type: 'date',
             sortable: true,
-            render: (s: any) => `${formatDateAu(s.assignmentStart)} — ${formatDateAu(s.assignmentEnd)}`,
+            render: (s: StaffAssignmentDto) => `${formatDateAu(s.assignmentStart)} — ${formatDateAu(s.assignmentEnd)}`,
           },
           {
             key: 'status',
@@ -164,13 +179,13 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
             key: 'sleepoverType',
             header: 'Sleepover',
             align: 'center',
-            render: (s: any) => s.sleepoverType !== 'None' ? <span className="text-xs">{s.sleepoverType}</span> : null,
+            render: (s: StaffAssignmentDto) => s.sleepoverType !== 'None' ? <span className="text-xs">{s.sleepoverType}</span> : null,
           },
           {
             key: 'actions',
             header: '',
             align: 'center',
-            render: (s: any) => (
+            render: (s: StaffAssignmentDto) => (
               <div className="flex items-center justify-center gap-2">
                 {s.hasConflict && <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />}
                 {canWrite && (
@@ -303,8 +318,8 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
                   className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
                   <option value="">Select staff...</option>
                   {allStaff
-                    .filter((s: any) => !assignedStaffIds.has(s.id))
-                    .map((s: any) => {
+                    .filter((s: StaffListDto) => !assignedStaffIds.has(s.id))
+                    .map((s: StaffListDto) => {
                       const isAvailable = availableStaffIds.has(s.id)
                       return (
                         <option key={s.id} value={s.id}>

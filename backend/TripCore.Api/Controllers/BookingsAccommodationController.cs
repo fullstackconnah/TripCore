@@ -5,6 +5,7 @@ using TripCore.Application.Common;
 using TripCore.Application.DTOs;
 using TripCore.Domain.Entities;
 using TripCore.Domain.Enums;
+using Npgsql;
 using TripCore.Infrastructure.Data;
 
 namespace TripCore.Api.Controllers;
@@ -141,9 +142,7 @@ public class BookingsController : ControllerBase
             await RecalculateStaffRequired(dto.TripInstanceId, ct);
             await _db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("23505") == true
-            || ex.InnerException?.Message.Contains("unique") == true
-            || ex.InnerException?.Message.Contains("duplicate") == true)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         {
             return Conflict(ApiResponse<BookingDetailDto>.Fail("This participant is already booked on this trip."));
         }

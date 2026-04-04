@@ -8,7 +8,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { DataTable } from '@/components/DataTable'
 import { Dropdown } from '@/components/Dropdown'
 import TemplateFormPanel from '@/components/TemplateFormPanel'
-import type { EventTemplateDto } from '@/api/types'
+import type { EventTemplateDto, ActivityDto, ProviderSettingsDto, SupportActivityGroupDto, SupportCatalogueItemDto, CatalogueImportPreviewDto, CatalogueImportRowDto, PublicHolidayDto } from '@/api/types'
 import type { AxiosError } from 'axios'
 import TenantsTab from '@/pages/settings/TenantsTab'
 import TenantFormPanel from '@/pages/settings/TenantFormPanel'
@@ -159,12 +159,12 @@ export default function SettingsPage() {
           columns={[
             { key: 'activityName', header: 'Activity', sortable: true, className: 'font-medium' },
             { key: 'category', header: 'Category', sortable: true },
-            { key: 'location', header: 'Location', render: (a: any) => a.location || '—' },
+            { key: 'location', header: 'Location', render: (a: ActivityDto) => a.location || '—' },
             {
               key: 'isActive',
               header: 'Status',
               sortable: true,
-              render: (a: any) => (
+              render: (a: ActivityDto) => (
                 <StatusBadge status={a.isActive ? 'Active' : 'Inactive'} />
               ),
             },
@@ -222,7 +222,7 @@ function ProviderSettingsTab() {
   const { canEditProviderSettings, showBankDetails } = usePermissions()
   const { data: settings } = useProviderSettings()
   const upsert = useUpsertProviderSettings()
-  const [form, setForm] = useState<any>({})
+  const [form, setForm] = useState<Partial<ProviderSettingsDto>>({})
   const [init, setInit] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -232,9 +232,9 @@ function ProviderSettingsTab() {
   const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
   const labelClass = 'block text-xs font-medium text-[#43493a] mb-1'
 
-  const f = (field: string) => ({
-    value: form[field] ?? '',
-    onChange: (e: any) => setForm((p: any) => ({ ...p, [field]: e.target.value })),
+  const f = (field: keyof ProviderSettingsDto) => ({
+    value: (form[field] as string) ?? '',
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((p) => ({ ...p, [field]: e.target.value })),
     className: inputClass,
   })
 
@@ -242,9 +242,10 @@ function ProviderSettingsTab() {
     setError(null)
     upsert.mutate(form, {
       onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
-      onError: (err: any) => {
-        const status = err?.response?.status
-        const msg = err?.response?.data?.errors?.[0] || err?.response?.data?.message
+      onError: (err: unknown) => {
+        const axiosErr = err as AxiosError<{ message?: string; errors?: string[] }>
+        const status = axiosErr?.response?.status
+        const msg = axiosErr?.response?.data?.errors?.[0] || axiosErr?.response?.data?.message
         if (status === 403) setError('Admin role is required to update provider settings. Ask an Admin to make this change.')
         else if (status === 400) setError(msg || 'Validation failed — check Registration Number, ABN, Organisation Name and Address are filled in.')
         else setError(msg || 'Failed to save. Please try again.')
@@ -267,17 +268,17 @@ function ProviderSettingsTab() {
             <Dropdown
               variant="form"
               value={form.state ?? 'VIC'}
-              onChange={v => setForm((p: any) => ({ ...p, state: v }))}
+              onChange={v => setForm((p) => ({ ...p, state: v }))}
               items={['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'].map(s => ({ value: s, label: s }))}
               label="Select state"
             />
           </div>
           <div className="flex items-center gap-3">
-            <input type="checkbox" checked={form.gstRegistered ?? false} onChange={e => setForm((p: any) => ({ ...p, gstRegistered: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="gst" />
+            <input type="checkbox" checked={form.gstRegistered ?? false} onChange={e => setForm((p) => ({ ...p, gstRegistered: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="gst" />
             <label htmlFor="gst" className="text-sm text-[#43493a]">GST Registered</label>
           </div>
           <div className="flex items-center gap-3">
-            <input type="checkbox" checked={form.isPaceProvider ?? false} onChange={e => setForm((p: any) => ({ ...p, isPaceProvider: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="pace" />
+            <input type="checkbox" checked={form.isPaceProvider ?? false} onChange={e => setForm((p) => ({ ...p, isPaceProvider: e.target.checked }))} className="w-4 h-4 accent-[#396200]" id="pace" />
             <label htmlFor="pace" className="text-sm text-[#43493a]">PACE Provider <span className="text-xs text-[#43493a]/60">(16-col BPR CSV)</span></label>
           </div>
         </div>
@@ -315,13 +316,13 @@ function SupportCatalogueTab() {
   const { data: groups = [] } = useSupportCatalogue()
   const [importing, setImporting] = useState(false)
   const [previewStep, setPreviewStep] = useState<'upload' | 'preview' | null>(null)
-  const [preview, setPreview] = useState<any>(null)
+  const [preview, setPreview] = useState<CatalogueImportPreviewDto | null>(null)
   const [version, setVersion] = useState('')
   const [uploading, setUploading] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const qc = useQueryClient()
 
-  const allItems = (groups as any[]).flatMap((g: any) => g.items ?? [])
+  const allItems = (groups as SupportActivityGroupDto[]).flatMap((g: SupportActivityGroupDto) => g.items ?? [])
 
   const dayTypeColor = (dt: string) => {
     switch(dt) {
@@ -346,8 +347,9 @@ function SupportCatalogueTab() {
       setPreview(data.data)
       setVersion(data.data?.detectedVersion || '')
       setPreviewStep('preview')
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Upload failed')
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<{ message?: string }>
+      alert(axiosErr?.response?.data?.message || 'Upload failed')
     } finally {
       setUploading(false)
     }
@@ -362,8 +364,9 @@ function SupportCatalogueTab() {
       setPreviewStep(null)
       setPreview(null)
       setImporting(false)
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Confirm failed')
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<{ message?: string }>
+      alert(axiosErr?.response?.data?.message || 'Confirm failed')
     } finally {
       setConfirming(false)
     }
@@ -392,7 +395,7 @@ function SupportCatalogueTab() {
             key: 'dayType',
             header: 'Day Type',
             sortable: true,
-            render: (item: any) => (
+            render: (item: SupportCatalogueItemDto) => (
               <span className={`text-xs px-2 py-0.5 rounded-full ${dayTypeColor(item.dayType)}`}>{item.dayType}</span>
             ),
           },
@@ -434,7 +437,7 @@ function SupportCatalogueTab() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">New items</p><p className="text-xl font-bold text-[#396200]">{preview.itemsToAdd}</p></div>
-                  <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">Updated</p><p className="text-xl font-bold text-amber-600">{(preview.rows ?? []).filter((r: any) => r.priceChanged).length}</p></div>
+                  <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">Updated</p><p className="text-xl font-bold text-amber-600">{(preview.rows ?? []).filter((r: CatalogueImportRowDto) => r.priceChanged).length}</p></div>
                   <div className="bg-[#f5f3ef] rounded-xl p-3"><p className="text-xs text-[#43493a]">To deactivate</p><p className="text-xl font-bold text-red-500">{preview.itemsToDeactivate}</p></div>
                 </div>
                 {(preview.warnings ?? []).length > 0 && (
@@ -553,7 +556,7 @@ function PublicHolidaysTab() {
         </div>
       )}
       <DataTable
-        data={holidays as any[]}
+        data={holidays as PublicHolidayDto[]}
         keyField="id"
         className={adding ? 'relative bg-[var(--color-card)] rounded-b-2xl border border-t-0 border-[var(--color-border)] overflow-x-auto' : undefined}
         sortable
@@ -563,7 +566,7 @@ function PublicHolidaysTab() {
           {
             key: 'state',
             header: 'State',
-            render: (h: any) => (
+            render: (h: PublicHolidayDto) => (
               <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-[var(--color-muted-foreground)]">
                 {h.state || 'All'}
               </span>
@@ -572,7 +575,7 @@ function PublicHolidaysTab() {
           {
             key: 'actions',
             header: '',
-            render: (h: any) => (
+            render: (h: PublicHolidayDto) => (
               <button onClick={() => deleteHoliday.mutate(h.id)} className="text-xs text-red-500 hover:text-red-700 hover:underline">
                 Delete
               </button>

@@ -10,11 +10,41 @@ import {
   useCancelReservation,
 } from '@/api/hooks'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { ReservationDto } from '@/api/types/reservations'
+import type { AccommodationListDto } from '@/api/types/accommodation'
+
+interface AccommFormState {
+  accommodationPropertyId: string
+  checkInDate: string
+  checkOutDate: string
+  bedroomsReserved: string
+  bedsReserved: string
+  cost: string
+  reservationStatus: string
+  comments: string
+}
+
+interface EditReservationFormState {
+  tripInstanceId: string
+  accommodationPropertyId: string
+  checkInDate: string
+  checkOutDate: string
+  bedroomsReserved: string
+  bedsReserved: string
+  cost: string
+  reservationStatus: string
+  comments: string
+  confirmationReference: string
+  dateBooked: string
+  dateConfirmed: string
+  cancellationReason: string
+}
 
 interface AccommodationTabProps {
   tripId: string
-  trip: any
-  accommodation: any[]
+  trip: TripDetailDto
+  accommodation: ReservationDto[]
   canWrite: boolean
 }
 
@@ -26,10 +56,10 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
   const cancelReservation = useCancelReservation()
   const updateReservation = useUpdateReservation()
   const [showAddAccommodation, setShowAddAccommodation] = useState(false)
-  const [deletingReservation, setDeletingReservation] = useState<any>(null)
-  const [editingReservation, setEditingReservation] = useState<any>(null)
-  const [editReservationForm, setEditReservationForm] = useState<any>({})
-  const [accommForm, setAccommForm] = useState<any>({})
+  const [deletingReservation, setDeletingReservation] = useState<ReservationDto | null>(null)
+  const [editingReservation, setEditingReservation] = useState<ReservationDto | null>(null)
+  const [editReservationForm, setEditReservationForm] = useState<EditReservationFormState>({} as EditReservationFormState)
+  const [accommForm, setAccommForm] = useState<AccommFormState>({} as AccommFormState)
   const [creatingNewProperty, setCreatingNewProperty] = useState(false)
   const [newPropertyForm, setNewPropertyForm] = useState({ propertyName: '', location: '', region: '', bedroomCount: '', bedCount: '', maxCapacity: '' })
 
@@ -48,7 +78,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
     setNewPropertyForm({ propertyName: '', location: '', region: '', bedroomCount: '', bedCount: '', maxCapacity: '' })
   }
 
-  const openEditReservation = (r: any) => {
+  const openEditReservation = (r: ReservationDto) => {
     setEditingReservation(r)
     setEditReservationForm({
       tripInstanceId: r.tripInstanceId,
@@ -120,7 +150,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
         isWheelchairAccessible: false,
         isActive: true,
       }, {
-        onSuccess: (res: any) => {
+        onSuccess: (res: { data?: { id?: string } }) => {
           const newId = res.data?.id
           if (newId) submitReservation(newId)
         },
@@ -139,7 +169,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
     const totalNights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     if (totalNights <= 0) return null
 
-    const activeReservations = accommodation.filter((r: any) =>
+    const activeReservations = accommodation.filter((r: ReservationDto) =>
       !['Cancelled', 'Unavailable'].includes(r.reservationStatus)
     )
 
@@ -185,7 +215,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
         const tripEnd = new Date(trip.endDate)
         const totalDays = Math.max(1, Math.round((tripEnd.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24)))
         const coverage = accommodationCoverage
-        const activeRes = accommodation.filter((r: any) => !['Cancelled', 'Unavailable'].includes(r.reservationStatus))
+        const activeRes = accommodation.filter((r: ReservationDto) => !['Cancelled', 'Unavailable'].includes(r.reservationStatus))
 
         // Build day labels
         const days: { date: Date; label: string; covered: boolean }[] = []
@@ -230,7 +260,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
             </div>
 
             {/* Reservation bars */}
-            {activeRes.map((r: any) => {
+            {activeRes.map((r: ReservationDto) => {
               const ci = new Date(r.checkInDate)
               const co = new Date(r.checkOutDate)
               const startOffset = Math.max(0, (ci.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24))
@@ -269,8 +299,8 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
         <p className="text-[#43493a]">No accommodation reservations</p>
       ) : (
         <div className="space-y-3">
-          {accommodation.map((r: any) => {
-            const property = allAccommodation.find((a: any) => a.id === r.accommodationPropertyId)
+          {accommodation.map((r: ReservationDto) => {
+            const property = allAccommodation.find((a: AccommodationListDto) => a.id === r.accommodationPropertyId)
             const nights = r.checkInDate && r.checkOutDate
               ? Math.round((new Date(r.checkOutDate).getTime() - new Date(r.checkInDate).getTime()) / (1000 * 60 * 60 * 24))
               : null
@@ -438,7 +468,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
                   <select value={accommForm.accommodationPropertyId} onChange={e => setAccommForm({ ...accommForm, accommodationPropertyId: e.target.value })}
                     className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
                     <option value="">Select property...</option>
-                    {allAccommodation.map((a: any) => (
+                    {allAccommodation.map((a: AccommodationListDto) => (
                       <option key={a.id} value={a.id}>{a.propertyName} — {a.location || 'No location'}</option>
                     ))}
                   </select>
@@ -538,7 +568,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
                 <label className="block text-sm font-medium mb-1">Property</label>
                 <select value={editReservationForm.accommodationPropertyId} onChange={e => setEditReservationForm({ ...editReservationForm, accommodationPropertyId: e.target.value })}
                   className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
-                  {allAccommodation.map((a: any) => (
+                  {allAccommodation.map((a: AccommodationListDto) => (
                     <option key={a.id} value={a.id}>{a.propertyName} — {a.location || 'No location'}</option>
                   ))}
                 </select>

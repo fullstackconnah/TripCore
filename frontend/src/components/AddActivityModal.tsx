@@ -64,7 +64,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
 
   const handleLibrarySelect = (activityId: string) => {
     setSelectedActivityId(activityId)
-    const a = activities.find((act: any) => act.id === activityId)
+    const a = activities.find((act: ActivityDto) => act.id === activityId)
     if (a) {
       setTitle(a.activityName)
       setLocation(a.location || '')
@@ -79,7 +79,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
     }
     setTimeError('')
 
-    const data: any = {
+    const data: Record<string, string | number | null> = {
       activityId: editingActivity
         ? (editingActivity.activityId ?? null)
         : (sourceTab === 'library' && selectedActivityId ? selectedActivityId : null),

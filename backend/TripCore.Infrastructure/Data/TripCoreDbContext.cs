@@ -19,7 +19,7 @@ public class TripCoreDbContext : DbContext
         _tenant = tenant;
     }
 
-    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<ParticipantContact> ParticipantContacts => Set<ParticipantContact>();

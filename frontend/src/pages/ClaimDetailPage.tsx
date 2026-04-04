@@ -49,7 +49,7 @@ export default function ClaimDetailPage() {
   if (isLoading) return <div className="p-8 text-[#43493a]">Loading...</div>
   if (!claim) return <div className="p-8 text-[#43493a]">Claim not found</div>
 
-  const totalAmount = (claim.lineItems ?? []).reduce((sum: number, l: any) => sum + (l.totalAmount ?? 0), 0)
+  const totalAmount = (claim.lineItems ?? []).reduce((sum: number, l: ClaimLineItemDto) => sum + (l.totalAmount ?? 0), 0)
 
   function handleSaveNotes() {
     if (!id) return
@@ -181,7 +181,7 @@ export default function ClaimDetailPage() {
               key: 'participantName',
               header: 'Participant',
               sortable: true,
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <div>
                   <p className="font-medium text-[#1b1c1a]">{item.participantName}</p>
                   <p className="text-xs text-[#43493a] font-mono">{item.ndisNumber}</p>
@@ -199,7 +199,7 @@ export default function ClaimDetailPage() {
               key: 'dayType',
               header: 'Day Type',
               sortable: true,
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <span className="text-[#43493a]">{item.dayType}</span>
               ),
             },
@@ -207,7 +207,7 @@ export default function ClaimDetailPage() {
               key: 'supportsDeliveredFrom',
               header: 'Dates',
               sortable: true,
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <span className="text-xs text-[#43493a] whitespace-nowrap">
                   {item.supportsDeliveredFrom} – {item.supportsDeliveredTo}
                 </span>
@@ -217,7 +217,7 @@ export default function ClaimDetailPage() {
               key: 'hours',
               header: 'Hours',
               align: 'right' as const,
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <span className="text-[#43493a]">{item.hours}h</span>
               ),
             },
@@ -238,14 +238,14 @@ export default function ClaimDetailPage() {
             {
               key: 'status',
               header: 'Status',
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <StatusBadge status={item.status} />
               ),
             },
             {
               key: 'actions',
               header: '',
-              render: (item: any) => (
+              render: (item: ClaimLineItemDto) => (
                 <div className="flex flex-col gap-1.5 items-start">
                   {item.claimType === 'Cancellation' ? (
                     <div className="flex flex-col gap-1 items-start">

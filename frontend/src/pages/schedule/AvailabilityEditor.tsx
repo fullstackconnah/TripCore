@@ -103,7 +103,7 @@ export default function AvailabilityEditor({ staffId, availability }: Availabili
         {availability.length === 0 && !adding && (
           <p className="text-xs text-[var(--color-muted-foreground)] italic py-1">No availability records</p>
         )}
-        {availability.map((a: any) => {
+        {availability.map((a: StaffAvailabilityDto) => {
           const e = getEdit(a)
           const dirty = isDirty(a)
           const colorClass = availTypeColors[a.availabilityType] ?? 'text-[var(--color-muted-foreground)] bg-[var(--color-surface-container)]'

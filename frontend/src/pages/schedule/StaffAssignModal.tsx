@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 import { UserPlus, X } from 'lucide-react'
 import { Dropdown } from '@/components/Dropdown'
 import { formatDate } from './helpers'
+import type { ScheduleStaffDto, ScheduleTripDto, CreateStaffAssignmentDto } from '@/api/types'
 
 interface StaffAssignModalProps {
-  staff: any
-  trip: any
+  staff: ScheduleStaffDto
+  trip: ScheduleTripDto
   onClose: () => void
-  onAssign: (data: any) => void
+  onAssign: (data: CreateStaffAssignmentDto) => void
   isLoading: boolean
 }
 

@@ -2,13 +2,14 @@ import React, { useState } from 'react'
 import { Truck, X } from 'lucide-react'
 import { Dropdown } from '@/components/Dropdown'
 import { formatDate } from './helpers'
+import type { ScheduleVehicleDto, ScheduleTripDto, ScheduleStaffDto, CreateVehicleAssignmentDto } from '@/api/types'
 
 interface VehicleAssignModalProps {
-  vehicle: any
-  trip: any
-  staff: any[]
+  vehicle: ScheduleVehicleDto
+  trip: ScheduleTripDto
+  staff: ScheduleStaffDto[]
   onClose: () => void
-  onAssign: (data: any) => void
+  onAssign: (data: CreateVehicleAssignmentDto) => void
   isLoading: boolean
 }
 
@@ -16,7 +17,7 @@ export default function VehicleAssignModal({ vehicle, trip, staff, onClose, onAs
   const [driverStaffId, setDriverStaffId] = useState('')
   const [comments, setComments] = useState('')
 
-  const eligibleDrivers = staff?.filter((s: any) => s.isDriverEligible) || []
+  const eligibleDrivers = staff?.filter((s: ScheduleStaffDto) => s.isDriverEligible) || []
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +65,7 @@ export default function VehicleAssignModal({ vehicle, trip, staff, onClose, onAs
               label="— No driver selected —"
               items={[
                 { value: '', label: '— No driver selected —' },
-                ...eligibleDrivers.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                ...eligibleDrivers.map((s: ScheduleStaffDto) => ({ value: String(s.id), label: s.fullName })),
               ]}
             />
           </div>

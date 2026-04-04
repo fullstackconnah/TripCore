@@ -1,5 +1,5 @@
 import { useTrips, useUpdateTrip, usePatchTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
-import type { TripStatus } from '@/api/types'
+import type { TripStatus, TripListDto, TripDetailDto, StaffListDto, EventTemplateDto } from '@/api/types'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
@@ -27,7 +27,7 @@ const TRIP_STATUS_ITEMS = [
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 const labelClass = 'block text-xs font-medium text-[#43493a] mb-1'
 
-function buildEditForm(t: any) {
+function buildEditForm(t: TripDetailDto) {
   return {
     tripName: t.tripName || '',
     tripCode: t.tripCode || '',
@@ -55,7 +55,7 @@ export default function TripsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<any>(null)
+  const [editForm, setEditForm] = useState<ReturnType<typeof buildEditForm> | null>(null)
   const formInitialized = useRef(false)
 
   const params: Record<string, string> = {}

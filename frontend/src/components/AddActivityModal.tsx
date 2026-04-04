@@ -149,7 +149,7 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
               searchable
               items={[
                 { value: '', label: 'Select an activity...' },
-                ...filteredActivities.map((a: any) => ({ value: String(a.id), label: `${a.activityName} (${a.category})` })),
+                ...filteredActivities.map((a: ActivityDto) => ({ value: String(a.id), label: `${a.activityName} (${a.category})` })),
               ]}
             />
           </div>

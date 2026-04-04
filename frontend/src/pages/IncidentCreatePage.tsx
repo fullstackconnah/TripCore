@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 import { FormField } from '@/components/FormField'
 import { Card } from '@/components/Card'
+import type { TripListDto, StaffListDto, ParticipantListDto } from '@/api/types'
 
 const incidentSchema = z.object({
   tripInstanceId: z.string().min(1, 'Trip is required'),
@@ -153,7 +154,7 @@ export default function IncidentCreatePage() {
           <FormField label="Trip" required error={errors.tripInstanceId?.message}>
             <select {...register('tripInstanceId')}>
               <option value="">Select a trip...</option>
-              {trips.map((t: any) => (
+              {trips.map((t: TripListDto) => (
                 <option key={t.id} value={t.id}>{t.tripName}</option>
               ))}
             </select>

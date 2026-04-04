@@ -161,19 +161,79 @@ for (const key of required) {
 
 ---
 
+## 13. Critical: JWT Stored in localStorage (XSS Risk)
+
+**Problem:** The frontend stores the JWT token in `localStorage` (`frontend/src/api/client.ts` line 16-52). If an XSS vulnerability exists anywhere in the app, an attacker can steal the token with `localStorage.getItem('tripcore_token')`. The same applies to tenant/user impersonation headers stored in localStorage.
+
+**Recommendation:** Migrate to `httpOnly` cookies for JWT storage. The backend should set the token via a `Set-Cookie` header with `httpOnly`, `Secure`, and `SameSite=Strict` flags. The frontend interceptor then no longer needs to manually attach the `Authorization` header — the browser sends the cookie automatically.
+
+---
+
+## 14. Medium: Hardcoded SuperAdmin Domain Check
+
+**Problem:** In `AuthController.cs`, super admin access is determined by checking if the user's email domain is `"tripcore.com.au"`. This is a hardcoded string, not configurable, and could be bypassed if someone registers a Firebase account with that domain.
+
+**Recommendation:** Move the allowed super admin domain(s) to configuration (`appsettings.json` or env vars). Consider an explicit super admin allowlist table in the database instead of domain-based checks.
+
+---
+
+## 15. Medium: Brittle Database Exception Handling
+
+**Problem:** `BookingsAccommodationController.cs` catches `DbUpdateException` and checks the error message with string contains (`"23505"`, `"unique"`, `"duplicate"`) to detect unique constraint violations. This is fragile and database-vendor specific.
+
+**Recommendation:** Use Npgsql's typed exception (`PostgresException`) and check the `SqlState` property directly:
+```csharp
+catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+{
+    return Conflict("Duplicate entry.");
+}
+```
+
+---
+
+## 16. Medium: Missing Pagination on List Endpoints
+
+**Problem:** Most list endpoints (`/trips`, `/participants`, `/bookings`, etc.) return all records with no pagination. As data grows, this will cause increasingly slow responses and high memory usage.
+
+**Recommendation:** Add `skip`/`take` (or `page`/`pageSize`) parameters to all list endpoints. Return total count in response metadata for frontend pagination UI.
+
+---
+
+## 17. Low: Repeated Full-Name String Concatenation
+
+**Problem:** The pattern `p.FirstName + " " + p.LastName` appears 10+ times across controllers (especially `TripsController.cs` at lines 49, 75, 264, 279, 296, 502, 541, 547, 584).
+
+**Recommendation:** Add a computed `FullName` property to domain entities or create a shared extension method to eliminate duplication and ensure consistent formatting.
+
+---
+
+## 18. Low: Multiple `window.location.reload()` Calls
+
+**Problem:** `TenantSwitcher.tsx` uses `window.location.reload()` in 4 places (lines 27, 36, 45, 67) to force state refresh after switching tenants. This is a full page reload that bypasses React's state management.
+
+**Recommendation:** Use React Query's `queryClient.invalidateQueries()` combined with React context/state to reactively update data when the tenant changes, avoiding full page reloads.
+
+---
+
 ## Summary Priority Matrix
 
 | Priority | Issue | Effort | Impact |
 |----------|-------|--------|--------|
-| Critical | Split giant components (2900+ lines) | Medium | High - maintainability |
-| High | Fix 184 `any` types | Medium | High - type safety |
-| High | Add code splitting / lazy loading | Low | High - performance |
-| High | Add test coverage | High | High - reliability |
-| Medium | Clean up raw SQL in Program.cs | Medium | Medium - maintainability |
-| Medium | Add Error Boundary | Low | Medium - UX resilience |
-| Medium | Consistent DbSet style | Low | Low - code consistency |
-| Medium | Fix silent error swallowing | Low | Medium - UX |
-| Low | Validate env vars at startup | Low | Low - DX |
-| Low | Per-query cache strategies | Low | Low - performance |
-| Low | Extract hardcoded colors | Medium | Low - maintainability |
-| Low | Swagger in staging | Low | Low - DX |
+| **Critical** | Split giant components (2900+ lines) | Medium | High - maintainability |
+| **Critical** | JWT in localStorage — XSS risk (#13) | Medium | High - security |
+| **High** | Fix 184 `any` types | Medium | High - type safety |
+| **High** | Add code splitting / lazy loading | Low | High - performance |
+| **High** | Add test coverage | High | High - reliability |
+| **Medium** | Clean up raw SQL in Program.cs | Medium | Medium - maintainability |
+| **Medium** | Add Error Boundary | Low | Medium - UX resilience |
+| **Medium** | Hardcoded SuperAdmin domain check (#14) | Low | Medium - security |
+| **Medium** | Brittle DB exception handling (#15) | Low | Medium - reliability |
+| **Medium** | Add pagination to list endpoints (#16) | Medium | Medium - performance |
+| **Medium** | Fix silent error swallowing | Low | Medium - UX |
+| **Medium** | Consistent DbSet style | Low | Low - code consistency |
+| **Low** | Validate env vars at startup | Low | Low - DX |
+| **Low** | Per-query cache strategies | Low | Low - performance |
+| **Low** | Extract hardcoded colors | Medium | Low - maintainability |
+| **Low** | Repeated full-name concatenation (#17) | Low | Low - DRY |
+| **Low** | Replace `window.location.reload()` (#18) | Low | Low - UX |
+| **Low** | Swagger in staging | Low | Low - DX |

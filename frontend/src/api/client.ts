@@ -6,6 +6,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 // Singleton refresh promise — prevents concurrent 401s from each calling /auth/exchange
@@ -64,6 +65,7 @@ apiClient.interceptors.response.use(
       } catch {
         // Firebase refresh failed — fall through to logout
       }
+      try { await apiClient.post('/auth/logout') } catch { /* ignore */ }
       localStorage.removeItem('tripcore_token')
       localStorage.removeItem('tripcore_user')
       localStorage.removeItem('tripcore_viewing_tenant')

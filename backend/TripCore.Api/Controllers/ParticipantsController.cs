@@ -21,10 +21,13 @@ public class ParticipantsController : ControllerBase
 
     /// <summary>List participants with optional filters.</summary>
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<ParticipantListDto>>>> GetAll(
+    public async Task<ActionResult<ApiResponse<PagedResult<ParticipantListDto>>>> GetAll(
         [FromQuery] string? search, [FromQuery] string? region, [FromQuery] bool? isActive,
-        [FromQuery] bool? wheelchairRequired, [FromQuery] bool? isHighSupport, CancellationToken ct)
+        [FromQuery] bool? wheelchairRequired, [FromQuery] bool? isHighSupport,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
+        pageSize = Math.Clamp(pageSize, 1, 200);
+
         var query = _db.Participants.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(p => (p.FirstName + " " + p.LastName).Contains(search) || (p.PreferredName != null && p.PreferredName.Contains(search)));
@@ -33,7 +36,7 @@ public class ParticipantsController : ControllerBase
         if (wheelchairRequired.HasValue) query = query.Where(p => p.WheelchairRequired == wheelchairRequired.Value);
         if (isHighSupport.HasValue) query = query.Where(p => p.IsHighSupport == isHighSupport.Value);
 
-        var items = await query.OrderBy(p => p.LastName).ThenBy(p => p.FirstName)
+        var projectedQuery = query.OrderBy(p => p.LastName).ThenBy(p => p.FirstName)
             .Select(p => new ParticipantListDto
             {
                 Id = p.Id, FirstName = p.FirstName, LastName = p.LastName,
@@ -43,9 +46,10 @@ public class ParticipantsController : ControllerBase
                 PlanType = p.PlanType, Region = p.Region, IsRepeatClient = p.IsRepeatClient,
                 IsActive = p.IsActive, WheelchairRequired = p.WheelchairRequired,
                 IsHighSupport = p.IsHighSupport, IsIntensiveSupport = p.IsIntensiveSupport, SupportRatio = p.SupportRatio
-            }).ToListAsync(ct);
+            });
 
-        return Ok(ApiResponse<List<ParticipantListDto>>.Ok(items));
+        var result = await PagedResult<ParticipantListDto>.CreateAsync(projectedQuery, page, pageSize, ct);
+        return Ok(ApiResponse<PagedResult<ParticipantListDto>>.Ok(result));
     }
 
     /// <summary>Get a single participant by ID.</summary>

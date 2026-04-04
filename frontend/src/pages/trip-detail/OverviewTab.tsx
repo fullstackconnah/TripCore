@@ -1,14 +1,18 @@
-import { Building2 } from 'lucide-react'
 import ItineraryTab from '@/components/ItineraryTab'
 import { PAYMENT_STATUS_ITEMS, PAYMENT_STATUS_COLORS } from '@/api/hooks'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { BookingListDto } from '@/api/types/bookings'
+import type { ReservationDto } from '@/api/types/reservations'
+import type { StaffAssignmentDto } from '@/api/types/staff'
+import type { VehicleAssignmentDto } from '@/api/types/vehicles'
 
 interface OverviewTabProps {
   tripId: string
-  trip: any
-  bookings: any[]
-  accommodation: any[]
-  staff: any[]
-  vehicles: any[]
+  trip: TripDetailDto
+  bookings: BookingListDto[]
+  accommodation: ReservationDto[]
+  staff: StaffAssignmentDto[]
+  vehicles: VehicleAssignmentDto[]
   onSwitchTab: (tab: string) => void
 }
 
@@ -72,7 +76,7 @@ export default function OverviewTab({ tripId, trip, bookings, accommodation, sta
               <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Participants</p>
               <div className="bg-white rounded-2xl shadow-[0_24px_32px_-12px_rgba(27,28,26,0.04)] overflow-hidden">
                 <div className="p-2 space-y-1">
-                {bookings.slice(0, 4).map((b: any) => (
+                {bookings.slice(0, 4).map((b: BookingListDto) => (
                   <div key={b.id} className="p-3 flex items-center gap-3 rounded-xl hover:bg-[#f5f3ef] transition-colors">
                     <div className="w-10 h-10 rounded-full bg-[#efeeea] flex items-center justify-center font-bold text-sm text-[#396200]">
                       {(b.participantName || 'P').charAt(0)}
@@ -131,7 +135,7 @@ export default function OverviewTab({ tripId, trip, bookings, accommodation, sta
             <div className="space-y-2">
               <p className="text-xs font-bold text-[#43493a] uppercase tracking-widest px-1">Staff Roster</p>
               <div className="space-y-2">
-                {staff.slice(0, 3).map((s: any, i: number) => (
+                {staff.slice(0, 3).map((s: StaffAssignmentDto, i: number) => (
                   <div key={s.id} className={`bg-[#f5f3ef] p-4 rounded-xl flex items-center justify-between ${i === 0 ? 'ring-2 ring-[#396200]/20' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-[#396200]/10 flex items-center justify-center text-[#396200] font-bold text-xs">
@@ -165,7 +169,7 @@ export default function OverviewTab({ tripId, trip, bookings, accommodation, sta
               Fleet Manifest
             </h3>
             <div className="space-y-3">
-              {vehicles.map((v: any) => (
+              {vehicles.map((v: VehicleAssignmentDto) => (
                 <div key={v.id} className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm">
                   <div className="w-12 h-12 rounded-lg bg-[#e4e2de] flex items-center justify-center">
                     <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '20px' }}>airport_shuttle</span>

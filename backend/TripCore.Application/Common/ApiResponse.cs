@@ -32,4 +32,13 @@ public class PagedResult<T>
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
     public bool HasNext => Page < TotalPages;
     public bool HasPrevious => Page > 1;
+
+    public static async Task<PagedResult<T>> CreateAsync(
+        IQueryable<T> query, int page, int pageSize, CancellationToken ct = default)
+    {
+        var totalCount = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(query, ct);
+        var items = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            query.Skip((page - 1) * pageSize).Take(pageSize), ct);
+        return new PagedResult<T> { Items = items, TotalCount = totalCount, Page = page, PageSize = pageSize };
+    }
 }

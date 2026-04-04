@@ -187,7 +187,7 @@ export default function TripDetailPage() {
         )}
 
         {activeTab === 'bookings' && (
-          <BookingsTab tripId={id} trip={trip} bookings={bookings} participants={participants} staff={staff} canWrite={canWrite} isReadOnly={isReadOnly} />
+          <BookingsTab tripId={id} trip={trip} bookings={bookings} participants={participants} canWrite={canWrite} isReadOnly={isReadOnly} />
         )}
 
         {activeTab === 'accommodation' && (

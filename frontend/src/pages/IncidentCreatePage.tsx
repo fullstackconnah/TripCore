@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 import { FormField } from '@/components/FormField'
 import { Card } from '@/components/Card'
+import type { TripListDto, StaffListDto, ParticipantListDto } from '@/api/types'
 
 const incidentSchema = z.object({
   tripInstanceId: z.string().min(1, 'Trip is required'),
@@ -106,7 +107,7 @@ export default function IncidentCreatePage() {
   }, [id, isEdit, existingIncident, reset])
 
   const onSubmit = async (data: IncidentFormData) => {
-    const payload: any = { ...data }
+    const payload: Record<string, unknown> = { ...data }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }
@@ -153,7 +154,7 @@ export default function IncidentCreatePage() {
           <FormField label="Trip" required error={errors.tripInstanceId?.message}>
             <select {...register('tripInstanceId')}>
               <option value="">Select a trip...</option>
-              {trips.map((t: any) => (
+              {trips.map((t: TripListDto) => (
                 <option key={t.id} value={t.id}>{t.tripName}</option>
               ))}
             </select>
@@ -198,7 +199,7 @@ export default function IncidentCreatePage() {
           <FormField label="Reported By" required error={errors.reportedByStaffId?.message}>
             <select {...register('reportedByStaffId')}>
               <option value="">Select staff member...</option>
-              {staff.map((s: any) => (
+              {staff.map((s: StaffListDto) => (
                 <option key={s.id} value={s.id}>{s.fullName}</option>
               ))}
             </select>
@@ -207,7 +208,7 @@ export default function IncidentCreatePage() {
           <FormField label="Involved Participant">
             <select {...register('involvedParticipantId')}>
               <option value="">None</option>
-              {participants.map((p: any) => (
+              {participants.map((p: ParticipantListDto) => (
                 <option key={p.id} value={p.id}>{p.fullName || `${p.firstName} ${p.lastName}`}</option>
               ))}
             </select>
@@ -216,7 +217,7 @@ export default function IncidentCreatePage() {
           <FormField label="Involved Staff Member">
             <select {...register('involvedStaffId')}>
               <option value="">None</option>
-              {staff.map((s: any) => (
+              {staff.map((s: StaffListDto) => (
                 <option key={s.id} value={s.id}>{s.fullName}</option>
               ))}
             </select>
@@ -291,7 +292,7 @@ export default function IncidentCreatePage() {
               <FormField label="Reviewed By">
                 <select {...register('reviewedByStaffId')}>
                   <option value="">Not reviewed</option>
-                  {staff.map((s: any) => (
+                  {staff.map((s: StaffListDto) => (
                     <option key={s.id} value={s.id}>{s.fullName}</option>
                   ))}
                 </select>

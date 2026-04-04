@@ -2,9 +2,32 @@ import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useUpdateTrip, useEventTemplates, useStaff } from '@/api/hooks'
 import { Dropdown } from '@/components/Dropdown'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { EventTemplateDto } from '@/api/types/events'
+import type { StaffListDto } from '@/api/types/staff'
+
+interface TripEditFormState {
+  tripName: string
+  tripCode: string
+  eventTemplateId: string
+  destination: string
+  region: string
+  startDate: string
+  durationDays: number
+  bookingCutoffDate: string
+  status: string
+  leadCoordinatorId: string
+  minParticipants: number | string
+  maxParticipants: number | string
+  requiredWheelchairCapacity: number | string
+  requiredBeds: number | string
+  requiredBedrooms: number | string
+  minStaffRequired: number | string
+  notes: string
+}
 
 interface EditTripModalProps {
-  trip: any
+  trip: TripDetailDto
   onClose: () => void
 }
 
@@ -12,7 +35,7 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
   const updateTrip = useUpdateTrip()
   const { data: templates = [] } = useEventTemplates()
   const { data: allStaff = [] } = useStaff()
-  const [tripEditForm, setTripEditForm] = useState<any>(null)
+  const [tripEditForm, setTripEditForm] = useState<TripEditFormState | null>(null)
   const initialized = useRef(false)
 
   useEffect(() => {
@@ -91,7 +114,7 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
                     label="None"
                     items={[
                       { value: '', label: 'None' },
-                      ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                      ...templates.map((t: EventTemplateDto) => ({ value: String(t.id), label: t.templateName })),
                     ]}
                   />
                 </div>
@@ -154,7 +177,7 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
                     label="None"
                     items={[
                       { value: '', label: 'None' },
-                      ...allStaff.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                      ...allStaff.map((s: StaffListDto) => ({ value: String(s.id), label: s.fullName })),
                     ]}
                   />
                 </div>

@@ -1,5 +1,5 @@
 import { useTrips, useUpdateTrip, usePatchTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
-import type { TripStatus } from '@/api/types'
+import type { TripStatus, TripListDto, TripDetailDto, StaffListDto, EventTemplateDto } from '@/api/types'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
@@ -27,7 +27,7 @@ const TRIP_STATUS_ITEMS = [
 const inputClass = 'w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all'
 const labelClass = 'block text-xs font-medium text-[#43493a] mb-1'
 
-function buildEditForm(t: any) {
+function buildEditForm(t: TripDetailDto) {
   return {
     tripName: t.tripName || '',
     tripCode: t.tripCode || '',
@@ -55,7 +55,7 @@ export default function TripsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<any>(null)
+  const [editForm, setEditForm] = useState<ReturnType<typeof buildEditForm> | null>(null)
   const formInitialized = useRef(false)
 
   const params: Record<string, string> = {}
@@ -74,7 +74,7 @@ export default function TripsPage() {
   const { data: templates = [] } = useEventTemplates()
 
   const trips = tab === 'active' && !statusFilter
-    ? allTrips.filter((t: any) => activeStatuses.includes(t.status))
+    ? allTrips.filter((t: TripListDto) => activeStatuses.includes(t.status))
     : allTrips
 
   const statusOptions = tab === 'active'
@@ -206,7 +206,7 @@ export default function TripsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {trips.map((t: any) => (
+          {trips.map((t: TripListDto) => (
             <div key={t.id} className="bg-white rounded-2xl p-5 hover:shadow-[0_24px_32px_-12px_rgba(27,28,26,0.08)] transition-all group">
               {/* Title row */}
               <Link to={`/trips/${t.id}`} className="block mb-3">
@@ -294,7 +294,7 @@ export default function TripsPage() {
                         label="None"
                         items={[
                           { value: '', label: 'None' },
-                          ...templates.map((t: any) => ({ value: String(t.id), label: t.templateName })),
+                          ...templates.map((t: EventTemplateDto) => ({ value: String(t.id), label: t.eventName })),
                         ]}
                       />
                     </div>
@@ -357,7 +357,7 @@ export default function TripsPage() {
                         label="None"
                         items={[
                           { value: '', label: 'None' },
-                          ...staffList.map((s: any) => ({ value: String(s.id), label: s.fullName })),
+                          ...staffList.map((s: StaffListDto) => ({ value: String(s.id), label: s.fullName })),
                         ]}
                       />
                     </div>

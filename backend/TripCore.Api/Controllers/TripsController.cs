@@ -27,10 +27,13 @@ public class TripsController : ControllerBase
 
     /// <summary>List trips with optional filters.</summary>
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<TripListDto>>>> GetAll(
+    public async Task<ActionResult<ApiResponse<PagedResult<TripListDto>>>> GetAll(
         [FromQuery] TripStatus? status, [FromQuery] string? region, [FromQuery] string? search,
-        [FromQuery] DateOnly? startFrom, [FromQuery] DateOnly? startTo, CancellationToken ct)
+        [FromQuery] DateOnly? startFrom, [FromQuery] DateOnly? startTo,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
+        pageSize = Math.Clamp(pageSize, 1, 200);
+
         var query = _db.TripInstances.Include(t => t.LeadCoordinator).Include(t => t.Bookings).AsQueryable();
         if (status.HasValue) query = query.Where(t => t.Status == status.Value);
         if (!string.IsNullOrWhiteSpace(region)) query = query.Where(t => t.Region == region);
@@ -38,7 +41,7 @@ public class TripsController : ControllerBase
         if (startFrom.HasValue) query = query.Where(t => t.StartDate >= startFrom.Value);
         if (startTo.HasValue) query = query.Where(t => t.StartDate <= startTo.Value);
 
-        var items = await query.OrderByDescending(t => t.StartDate)
+        var projectedQuery = query.OrderByDescending(t => t.StartDate)
             .Select(t => new TripListDto
             {
                 Id = t.Id, TripName = t.TripName, TripCode = t.TripCode, Destination = t.Destination,
@@ -47,9 +50,10 @@ public class TripsController : ControllerBase
                 CurrentParticipantCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Confirmed),
                 WaitlistCount = t.Bookings.Count(b => b.BookingStatus == BookingStatus.Waitlist),
                 LeadCoordinatorName = t.LeadCoordinator != null ? t.LeadCoordinator.FirstName + " " + t.LeadCoordinator.LastName : null
-            }).ToListAsync(ct);
+            });
 
-        return Ok(ApiResponse<List<TripListDto>>.Ok(items));
+        var result = await PagedResult<TripListDto>.CreateAsync(projectedQuery, page, pageSize, ct);
+        return Ok(ApiResponse<PagedResult<TripListDto>>.Ok(result));
     }
 
     /// <summary>Get full trip detail including computed counts.</summary>

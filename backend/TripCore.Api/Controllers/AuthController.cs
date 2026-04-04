@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using TripCore.Application.Common;
 using TripCore.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using TripCore.Infrastructure.Data;
 
@@ -73,9 +74,12 @@ public class AuthController : ControllerBase
             superAdmin.LastLoginAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
 
+            var superAdminToken = GenerateSuperAdminJwtToken(superAdmin);
+            SetJwtCookie(superAdminToken);
+
             return Ok(ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
             {
-                Token = GenerateSuperAdminJwtToken(superAdmin),
+                Token = superAdminToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(30),
                 Username = superAdmin.Username,
                 FullName = superAdmin.FullName,
@@ -108,9 +112,12 @@ public class AuthController : ControllerBase
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
+        var tenantToken = GenerateJwtToken(user, tenant.Id);
+        SetJwtCookie(tenantToken);
+
         return Ok(ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
         {
-            Token = GenerateJwtToken(user, tenant.Id),
+            Token = tenantToken,
             ExpiresAt = DateTime.UtcNow.AddMinutes(30),
             Username = user.Username,
             FullName = user.FullName,
@@ -118,6 +125,26 @@ public class AuthController : ControllerBase
             TenantName = tenant.Name,
             TenantId = tenant.Id
         }));
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("tripcore_jwt", new CookieOptions { Path = "/api" });
+        return Ok(ApiResponse<object>.Ok(null, "Logged out."));
+    }
+
+    private void SetJwtCookie(string token)
+    {
+        Response.Cookies.Append("tripcore_jwt", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Path = "/api"
+        });
     }
 
     private string GenerateJwtToken(Domain.Entities.User user, Guid tenantId)

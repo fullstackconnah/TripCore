@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { usePreviewClaim, useGenerateClaim } from '@/api/hooks'
 import { Modal } from '@/components/Modal'
 import { DataTable } from '@/components/DataTable'
+import type { TripDetailDto, ClaimPreviewResponseDto, ClaimPreviewLineItemDto } from '@/api/types'
+import type { AxiosError } from 'axios'
 
 interface GenerateClaimModalProps {
   tripId: string
-  trip: any
+  trip: TripDetailDto
   onClose: () => void
   onSuccess: () => void
 }
@@ -26,7 +28,7 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
   const [departureTime, setDepartureTime] = useState(trip.departureTime || '08:00')
   const [returnTime, setReturnTime] = useState(trip.returnTime || '18:00')
   const [activeHoursPerDay, setActiveHoursPerDay] = useState(trip.activeHoursPerDay || 8)
-  const [previewData, setPreviewData] = useState<any>(null)
+  const [previewData, setPreviewData] = useState<ClaimPreviewResponseDto | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const previewClaim = usePreviewClaim()
@@ -47,8 +49,9 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
           setPreviewData(data)
           setStep('preview')
         },
-        onError: (err: any) => {
-          setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to generate preview. Check provider settings and confirm the trip has confirmed bookings.')
+        onError: (err: unknown) => {
+          const axiosErr = err as AxiosError<{ message?: string; errors?: string[] }>
+          setError(axiosErr?.response?.data?.errors?.[0] || axiosErr?.response?.data?.message || 'Failed to generate preview. Check provider settings and confirm the trip has confirmed bookings.')
         },
       },
     )
@@ -60,8 +63,9 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
       { tripId, data: { departureTime, returnTime, activeHoursPerDay } },
       {
         onSuccess: () => onSuccess(),
-        onError: (err: any) => {
-          setError(err?.response?.data?.errors?.[0] || err?.response?.data?.message || 'Failed to generate claim.')
+        onError: (err: unknown) => {
+          const axiosErr = err as AxiosError<{ message?: string; errors?: string[] }>
+          setError(axiosErr?.response?.data?.errors?.[0] || axiosErr?.response?.data?.message || 'Failed to generate claim.')
         },
       },
     )
@@ -214,19 +218,19 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
             <div className="mb-5">
               <h4 className="text-sm font-medium text-[var(--color-muted-foreground)] mb-3">Line Items</h4>
               <DataTable
-                data={(previewData.lineItems ?? []).map((item: any, i: number) => ({ ...item, _idx: i }))}
+                data={(previewData.lineItems ?? []).map((item: ClaimPreviewLineItemDto, i: number) => ({ ...item, _idx: i }))}
                 keyField="_idx"
                 columns={[
                   { key: 'participantName', header: 'Participant' },
                   {
                     key: 'dayType',
                     header: 'Day Type',
-                    render: (item: any) => item.dayTypeLabel || dayTypeLabel(item.dayType),
+                    render: (item: ClaimPreviewLineItemDto & { _idx: number }) => item.dayTypeLabel || dayTypeLabel(item.dayType),
                   },
                   {
                     key: 'supportsDeliveredFrom',
                     header: 'Dates',
-                    render: (item: any) => {
+                    render: (item: ClaimPreviewLineItemDto & { _idx: number }) => {
                       const from = item.supportsDeliveredFrom ? new Date(item.supportsDeliveredFrom).toLocaleDateString('en-AU') : '—'
                       const to = item.supportsDeliveredTo && item.supportsDeliveredTo !== item.supportsDeliveredFrom
                         ? ` – ${new Date(item.supportsDeliveredTo).toLocaleDateString('en-AU')}`

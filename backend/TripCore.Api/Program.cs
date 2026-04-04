@@ -51,6 +51,17 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.FromMinutes(2)
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("tripcore_jwt", out var cookieToken))
+            {
+                context.Token = cookieToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -206,7 +217,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TripCoreDbContext>();
 
-    // Ensure the migrations history table exists before we try to use it.
+    // Bootstrap: create the EF migrations history table if it doesn't exist yet.
+    // This is needed for fresh deployments where the database was created outside
+    // of EF Core (e.g. by a prior deployment or a DBA script).  Without this
+    // table the pre-population INSERT below would fail, and MigrateAsync itself
+    // would not be able to record which migrations it has already applied.
     await db.Database.ExecuteSqlRawAsync(
         """
         CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
@@ -216,9 +231,11 @@ using (var scope = app.Services.CreateScope())
         );
         """);
 
-    // If the DB tables already exist (e.g. from a prior deployment that didn't track
-    // migration history), mark all known migrations as applied so MigrateAsync doesn't
-    // try to re-run them and crash with "relation already exists".
+    // Pre-populate migration history for databases that were created before EF
+    // migration tracking was introduced.  Without this, MigrateAsync would
+    // attempt to re-run these migrations and fail with "relation already exists".
+    // The guard checks for an existing application table so this only fires on
+    // legacy databases, not brand-new ones.
     await db.Database.ExecuteSqlRawAsync(
         """
         INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
@@ -237,9 +254,9 @@ using (var scope = app.Services.CreateScope())
         ON CONFLICT DO NOTHING;
         """);
 
-    // Repair: if AddNdisClaiming was falsely marked as applied by the pre-population
-    // block but the tables don't actually exist, remove the false history entry so
-    // MigrateAsync re-runs the migration and creates the tables properly.
+    // Repair: if AddNdisClaiming was falsely marked as applied by the
+    // pre-population block but the tables don't actually exist, remove the
+    // false history entry so MigrateAsync re-runs the migration properly.
     await db.Database.ExecuteSqlRawAsync(
         """
         DELETE FROM "__EFMigrationsHistory"
@@ -251,40 +268,10 @@ using (var scope = app.Services.CreateScope())
         );
         """);
 
-    // Apply pending EF Core migrations automatically on startup
+    // Apply pending EF Core migrations (includes ConsolidateSchemaFixes which
+    // adds all previously-hacked-in columns via idempotent ALTER statements).
     await db.Database.MigrateAsync();
-    // Add new columns that migrations won't add to existing tables
-    await db.Database.ExecuteSqlRawAsync(
-        """ALTER TABLE "TripInstances" ADD COLUMN IF NOT EXISTS "CalculatedStaffRequired" numeric NOT NULL DEFAULT 0""");
-    // ScheduledActivity tracking fields
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "Status" integer NOT NULL DEFAULT 0;
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "BookingReference" character varying(200);
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderName" character varying(200);
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderPhone" character varying(50);
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderEmail" character varying(200);
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "ProviderWebsite" character varying(500);
-        ALTER TABLE "ScheduledActivities" ADD COLUMN IF NOT EXISTS "EstimatedCost" numeric(18,2);
-        CREATE INDEX IF NOT EXISTS "IX_ScheduledActivities_Status" ON "ScheduledActivities" ("Status");
-        """);
-    // Insurance tracking fields on ParticipantBookings
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsuranceProvider" text;
-        ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsurancePolicyNumber" text;
-        ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsuranceCoverageStart" date;
-        ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsuranceCoverageEnd" date;
-        ALTER TABLE "ParticipantBookings" ADD COLUMN IF NOT EXISTS "InsuranceStatus" integer NOT NULL DEFAULT 0;
-        CREATE INDEX IF NOT EXISTS "IX_ParticipantBookings_InsuranceStatus" ON "ParticipantBookings" ("InsuranceStatus");
-        """);
-    await db.Database.ExecuteSqlRawAsync(
-        """
-        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "FirstAidExpiryDate" date;
-        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "DriverLicenceExpiryDate" date;
-        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "ManualHandlingExpiryDate" date;
-        ALTER TABLE "Staff" ADD COLUMN IF NOT EXISTS "MedicationCompetencyExpiryDate" date;
-        """);
+
     await DbSeeder.SeedAsync(db);
     await DbSeeder.SeedNdisDataAsync(db);
 }

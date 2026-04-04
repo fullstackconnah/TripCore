@@ -1,4 +1,5 @@
 import { useVehicles, useDeleteVehicle, useUpdateVehicle } from '@/api/hooks'
+import type { VehicleDetailDto } from '@/api/types'
 import { Link } from 'react-router-dom'
 import { formatDateAu } from '@/lib/utils'
 import { Plus, Pencil, Trash2, ArchiveRestore, Car, Bus, Truck, Users, Wrench, Calendar, Accessibility } from 'lucide-react'
@@ -56,7 +57,7 @@ export default function VehiclesPage() {
   const deleteVehicle = useDeleteVehicle()
   const updateVehicle = useUpdateVehicle()
 
-  const handleRestore = (e: React.MouseEvent, v: any) => {
+  const handleRestore = (e: React.MouseEvent, v: VehicleDetailDto) => {
     e.stopPropagation()
     if (window.confirm(`Restore "${v.vehicleName}"?`)) {
       updateVehicle.mutate({ id: v.id, data: { ...v, isActive: true } })
@@ -70,9 +71,9 @@ export default function VehiclesPage() {
     }
   }
 
-  const totalSeats = vehicles.reduce((sum: number, v: any) => sum + (v.totalSeats || 0), 0)
-  const totalWheelchair = vehicles.reduce((sum: number, v: any) => sum + (v.wheelchairPositions || 0), 0)
-  const accessibleCount = vehicles.filter((v: any) => v.vehicleType === 'AccessibleVan' || v.wheelchairPositions > 0).length
+  const totalSeats = vehicles.reduce((sum: number, v: VehicleDetailDto) => sum + (v.totalSeats || 0), 0)
+  const totalWheelchair = vehicles.reduce((sum: number, v: VehicleDetailDto) => sum + (v.wheelchairPositions || 0), 0)
+  const accessibleCount = vehicles.filter((v: VehicleDetailDto) => v.vehicleType === 'AccessibleVan' || v.wheelchairPositions > 0).length
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -127,7 +128,7 @@ export default function VehiclesPage() {
       ) : (
         /* Vehicle grid */
         <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-          {vehicles.map((v: any) => {
+          {vehicles.map((v: VehicleDetailDto) => {
             const typeKey = (v.vehicleType as VehicleTypeKey) in vehicleTypeConfig
               ? (v.vehicleType as VehicleTypeKey)
               : 'Other'

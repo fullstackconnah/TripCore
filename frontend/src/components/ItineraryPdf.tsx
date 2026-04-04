@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer'
+import type { ItineraryDto, ItineraryAccommodationDto, ItineraryVehicleDto, ItineraryStaffDto, ItineraryParticipantDto, ItineraryDayDto, ItineraryActivityDto, ItineraryDayAccommodationEventDto } from '@/api/types'
 
 type ExportVersion = 'staff' | 'participant'
 
@@ -83,7 +84,7 @@ function formatDayName(date: string) {
   return parseLocalDate(date).toLocaleDateString('en-AU', { weekday: 'long' })
 }
 
-function ItineraryDocument({ data, version }: { data: any; version: ExportVersion }) {
+function ItineraryDocument({ data, version }: { data: ItineraryDto; version: ExportVersion }) {
   const isStaff = version === 'staff'
 
   return (
@@ -129,7 +130,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
           <View>
             <Text style={styles.sectionTitle}>Accommodation</Text>
             <View style={styles.grid}>
-              {data.accommodation.map((a: any, i: number) => (
+              {data.accommodation.map((a: ItineraryAccommodationDto, i: number) => (
                 <View key={i} style={[styles.infoCard, styles.gridHalf]}>
                   <Text style={styles.infoName}>{a.propertyName}</Text>
                   {(a.address || a.suburb) && <Text style={styles.infoDetail}>{[a.address, a.suburb, a.state].filter(Boolean).join(', ')}</Text>}
@@ -148,7 +149,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
           <View>
             <Text style={styles.sectionTitle}>Vehicles</Text>
             <View style={styles.grid}>
-              {data.vehicles.map((v: any, i: number) => (
+              {data.vehicles.map((v: ItineraryVehicleDto, i: number) => (
                 <View key={i} style={[styles.infoCard, styles.gridHalf]}>
                   <Text style={styles.infoName}>{v.vehicleName}</Text>
                   <Text style={styles.infoDetail}>{v.vehicleType} · {v.totalSeats} seats{v.wheelchairPositions > 0 ? ` · ${v.wheelchairPositions} wheelchair pos.` : ''}</Text>
@@ -165,7 +166,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
         {isStaff && data.staff.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>Staff Roster</Text>
-            {data.staff.map((s: any, i: number) => (
+            {data.staff.map((s: ItineraryStaffDto, i: number) => (
               <View key={i} style={[styles.infoCard, { flexDirection: 'row', justifyContent: 'space-between' }]}>
                 <View>
                   <Text style={styles.infoName}>{s.name}</Text>
@@ -186,7 +187,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
           <View>
             <Text style={styles.sectionTitle}>Participants ({data.participants.length})</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {data.participants.map((p: any) => (
+              {data.participants.map((p: ItineraryParticipantDto) => (
                 <View key={p.id} style={styles.participantChip}>
                   <Text style={styles.participantName}>{p.name}</Text>
                   {(p.wheelchairRequired || p.highSupportRequired || p.nightSupportRequired) && (
@@ -197,10 +198,10 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
                 </View>
               ))}
             </View>
-            {isStaff && data.participants.some((p: any) => p.mobilityNotes || p.medicalSummary) && (
+            {isStaff && data.participants.some((p: ItineraryParticipantDto) => p.mobilityNotes || p.medicalSummary) && (
               <View style={{ marginTop: 8 }}>
                 <Text style={[styles.infoDetail, { fontFamily: 'Helvetica-Bold', marginBottom: 4 }]}>Support Notes</Text>
-                {data.participants.filter((p: any) => p.mobilityNotes || p.medicalSummary).map((p: any) => (
+                {data.participants.filter((p: ItineraryParticipantDto) => p.mobilityNotes || p.medicalSummary).map((p: ItineraryParticipantDto) => (
                   <View key={p.id} style={{ marginBottom: 4 }}>
                     <Text style={[styles.infoDetail, { fontFamily: 'Helvetica-Bold' }]}>{p.name}</Text>
                     {p.mobilityNotes && <Text style={styles.infoDetail}>Mobility: {p.mobilityNotes}</Text>}
@@ -223,7 +224,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
         <Page size="A4" style={styles.page} wrap>
           <Text style={[styles.sectionTitle, { marginTop: 0 }]}>Day-by-Day Schedule</Text>
 
-          {data.days.map((day: any) => (
+          {data.days.map((day: ItineraryDayDto) => (
             <View key={day.dayNumber} style={styles.dayCard} wrap={false}>
               <View style={styles.dayHeader}>
                 <View style={styles.dayBadge}>
@@ -237,7 +238,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
               <View style={styles.dayBody}>
                 {day.dayNotes && <Text style={[styles.infoDetail, { marginBottom: 6 }]}>{day.dayNotes}</Text>}
 
-                {day.accommodationEvents?.map((ae: any, i: number) => (
+                {day.accommodationEvents?.map((ae: ItineraryDayAccommodationEventDto, i: number) => (
                   <View key={`ae-${i}`} style={styles.accommEvent}>
                     <Text style={styles.accommEventType}>{ae.eventType}</Text>
                     <Text style={styles.accommEventName}>{ae.propertyName}{ae.address ? ` · ${ae.address}` : ''}</Text>
@@ -248,7 +249,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
                   <Text style={styles.staffOnDuty}>Staff: {day.staffOnDuty.join(', ')}</Text>
                 )}
 
-                {day.activities?.length > 0 ? day.activities.map((a: any, i: number) => (
+                {day.activities?.length > 0 ? day.activities.map((a: ItineraryActivityDto, i: number) => (
                   <View key={i} style={styles.activityRow}>
                     <Text style={styles.activityTime}>
                       {formatTime(a.startTime)}{a.endTime ? `–${formatTime(a.endTime)}` : ''}
@@ -283,7 +284,7 @@ function ItineraryDocument({ data, version }: { data: any; version: ExportVersio
   )
 }
 
-export async function generateItineraryPdf(data: any, version: ExportVersion) {
+export async function generateItineraryPdf(data: ItineraryDto, version: ExportVersion) {
   const blob = await pdf(<ItineraryDocument data={data} version={version} />).toBlob()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

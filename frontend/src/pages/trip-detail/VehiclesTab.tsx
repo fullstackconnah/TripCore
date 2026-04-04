@@ -2,18 +2,20 @@ import { useState } from 'react'
 import { Plus, XCircle, AlertTriangle, Car } from 'lucide-react'
 import AddVehicleModal from '@/components/AddVehicleModal'
 import { getStatusColor } from '@/lib/utils'
+import type { VehicleAssignmentDto } from '@/api/types/vehicles'
+import type { StaffAssignmentDto } from '@/api/types/staff'
 
 interface VehiclesTabProps {
   tripId: string
-  vehicles: any[]
-  staff: any[]
+  vehicles: VehicleAssignmentDto[]
+  staff: StaffAssignmentDto[]
   canWrite: boolean
 }
 
 export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: VehiclesTabProps) {
   const [showAddVehicle, setShowAddVehicle] = useState(false)
 
-  const tripDrivers = staff.filter((s: any) => s.isDriver)
+  const tripDrivers = staff.filter((s: StaffAssignmentDto) => s.isDriver)
   const needed = vehicles.length
   const assigned = tripDrivers.length
   const shortfall = needed - assigned
@@ -39,7 +41,7 @@ export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: Vehic
               <span>{assigned} / {needed} · need {shortfall} more</span>
             </div>
             <span className="text-xs text-[#43493a]">
-              {tripDrivers.map((s: any) => s.staffName).join(', ')}
+              {tripDrivers.map((s: StaffAssignmentDto) => s.staffName).join(', ')}
             </span>
           </div>
         ) : (
@@ -49,7 +51,7 @@ export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: Vehic
               <span>{assigned} / {needed}</span>
             </div>
             <span className="text-xs text-[#43493a]">
-              {tripDrivers.map((s: any) => s.staffName).join(', ')}
+              {tripDrivers.map((s: StaffAssignmentDto) => s.staffName).join(', ')}
             </span>
           </div>
         )}
@@ -65,7 +67,7 @@ export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: Vehic
 
       {/* Vehicle cards */}
       <div className="grid gap-4 md:grid-cols-2">
-        {vehicles.length === 0 ? null : vehicles.map((v: any) => (
+        {vehicles.length === 0 ? null : vehicles.map((v: VehicleAssignmentDto) => (
           <div key={v.id} className="bg-white rounded-2xl p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -88,7 +90,7 @@ export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: Vehic
       {showAddVehicle && (
         <AddVehicleModal
           tripInstanceId={tripId}
-          assignedVehicleIds={new Set(vehicles.map((v: any) => v.vehicleId))}
+          assignedVehicleIds={new Set(vehicles.map((v: VehicleAssignmentDto) => v.vehicleId))}
           onClose={() => setShowAddVehicle(false)}
         />
       )}

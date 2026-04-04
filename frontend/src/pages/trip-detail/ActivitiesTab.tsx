@@ -3,11 +3,13 @@ import { Plus, ChevronDown, ChevronRight, Pencil, Trash2, ExternalLink, X } from
 import { useGenerateSchedule, useDeleteScheduledActivity } from '@/api/hooks'
 import { formatDateAu } from '@/lib/utils'
 import AddActivityModal from '@/components/AddActivityModal'
+import type { TripDetailDto } from '@/api/types/trips'
+import type { TripDayDto, ScheduledActivityDto } from '@/api/types/activities'
 
 interface ActivitiesTabProps {
   tripId: string
-  trip: any
-  schedule: any[]
+  trip: TripDetailDto
+  schedule: TripDayDto[]
   canWrite: boolean
   isReadOnly: boolean
 }
@@ -28,9 +30,9 @@ export default function ActivitiesTab({ tripId, trip, schedule, canWrite, isRead
   const deleteScheduledActivity = useDeleteScheduledActivity()
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set())
   const [showAddActivity, setShowAddActivity] = useState(false)
-  const [editingScheduledActivity, setEditingScheduledActivity] = useState<any>(null)
+  const [editingScheduledActivity, setEditingScheduledActivity] = useState<ScheduledActivityDto | null>(null)
   const [addActivityDayId, setAddActivityDayId] = useState('')
-  const [deletingActivity, setDeletingActivity] = useState<any>(null)
+  const [deletingActivity, setDeletingActivity] = useState<ScheduledActivityDto | null>(null)
 
   // Auto-generate trip days when tab is opened
   const hasTriedGenerate = useRef(false)
@@ -67,7 +69,7 @@ export default function ActivitiesTab({ tripId, trip, schedule, canWrite, isRead
             <p>No schedule available. Check that the trip has dates configured.</p>
           )}
         </div>
-      ) : schedule.map((day: any) => (
+      ) : schedule.map((day: TripDayDto) => (
         <div key={day.id} className="bg-white rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -89,7 +91,7 @@ export default function ActivitiesTab({ tripId, trip, schedule, canWrite, isRead
 
           {day.scheduledActivities?.length > 0 ? (
             <div className="space-y-2">
-              {day.scheduledActivities.map((a: any) => {
+              {day.scheduledActivities.map((a: ScheduledActivityDto) => {
                 const isExpanded = expandedActivities.has(a.id)
                 return (
                   <div key={a.id} className="bg-[#f5f3ef] rounded-2xl">

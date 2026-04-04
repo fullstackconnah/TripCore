@@ -218,19 +218,19 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
             <div className="mb-5">
               <h4 className="text-sm font-medium text-[var(--color-muted-foreground)] mb-3">Line Items</h4>
               <DataTable
-                data={(previewData.lineItems ?? []).map((item: any, i: number) => ({ ...item, _idx: i }))}
+                data={(previewData.lineItems ?? []).map((item: ClaimPreviewLineItemDto, i: number) => ({ ...item, _idx: i }))}
                 keyField="_idx"
                 columns={[
                   { key: 'participantName', header: 'Participant' },
                   {
                     key: 'dayType',
                     header: 'Day Type',
-                    render: (item: any) => item.dayTypeLabel || dayTypeLabel(item.dayType),
+                    render: (item: ClaimPreviewLineItemDto & { _idx: number }) => item.dayTypeLabel || dayTypeLabel(item.dayType),
                   },
                   {
                     key: 'supportsDeliveredFrom',
                     header: 'Dates',
-                    render: (item: any) => {
+                    render: (item: ClaimPreviewLineItemDto & { _idx: number }) => {
                       const from = item.supportsDeliveredFrom ? new Date(item.supportsDeliveredFrom).toLocaleDateString('en-AU') : '—'
                       const to = item.supportsDeliveredTo && item.supportsDeliveredTo !== item.supportsDeliveredFrom
                         ? ` – ${new Date(item.supportsDeliveredTo).toLocaleDateString('en-AU')}`

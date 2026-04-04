@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useActivities, useCreateScheduledActivity, useUpdateScheduledActivity } from '@/api/hooks'
 import { Modal } from '@/components/Modal'
 import { Dropdown } from './Dropdown'
+import type { ActivityDto, ScheduledActivityDto, CreateScheduledActivityDto, UpdateScheduledActivityDto, ScheduledActivityStatus } from '@/api/types'
 
 interface AddActivityModalProps {
   tripDayId: string
-  editingActivity?: any
+  editingActivity?: ScheduledActivityDto
   eventTemplateId?: string
   onClose: () => void
 }
@@ -36,8 +37,8 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
   const updateActivity = useUpdateScheduledActivity()
 
   const filteredActivities = eventTemplateId
-    ? activities.filter((a: any) => a.isActive && (!a.eventTemplateId || a.eventTemplateId === eventTemplateId))
-    : activities.filter((a: any) => a.isActive)
+    ? activities.filter((a: ActivityDto) => a.isActive && (!a.eventTemplateId || a.eventTemplateId === eventTemplateId))
+    : activities.filter((a: ActivityDto) => a.isActive)
 
   useEffect(() => {
     if (editingActivity) {

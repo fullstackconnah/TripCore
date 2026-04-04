@@ -238,7 +238,7 @@ function ItineraryDocument({ data, version }: { data: ItineraryDto; version: Exp
               <View style={styles.dayBody}>
                 {day.dayNotes && <Text style={[styles.infoDetail, { marginBottom: 6 }]}>{day.dayNotes}</Text>}
 
-                {day.accommodationEvents?.map((ae: any, i: number) => (
+                {day.accommodationEvents?.map((ae: ItineraryDayAccommodationEventDto, i: number) => (
                   <View key={`ae-${i}`} style={styles.accommEvent}>
                     <Text style={styles.accommEventType}>{ae.eventType}</Text>
                     <Text style={styles.accommEventName}>{ae.propertyName}{ae.address ? ` · ${ae.address}` : ''}</Text>
@@ -249,7 +249,7 @@ function ItineraryDocument({ data, version }: { data: ItineraryDto; version: Exp
                   <Text style={styles.staffOnDuty}>Staff: {day.staffOnDuty.join(', ')}</Text>
                 )}
 
-                {day.activities?.length > 0 ? day.activities.map((a: any, i: number) => (
+                {day.activities?.length > 0 ? day.activities.map((a: ItineraryActivityDto, i: number) => (
                   <View key={i} style={styles.activityRow}>
                     <Text style={styles.activityTime}>
                       {formatTime(a.startTime)}{a.endTime ? `–${formatTime(a.endTime)}` : ''}
@@ -284,7 +284,7 @@ function ItineraryDocument({ data, version }: { data: ItineraryDto; version: Exp
   )
 }
 
-export async function generateItineraryPdf(data: any, version: ExportVersion) {
+export async function generateItineraryPdf(data: ItineraryDto, version: ExportVersion) {
   const blob = await pdf(<ItineraryDocument data={data} version={version} />).toBlob()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

@@ -1,4 +1,4 @@
-import React from 'react'
+// TripStatusBadge component
 
 export default function TripStatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {

@@ -80,7 +80,7 @@ export default function VehiclesTab({ tripId, vehicles, staff, canWrite }: Vehic
               </div>
             </div>
             <div className="mt-3 text-sm text-[#43493a]">
-              <p className="flex items-center gap-1">{v.vehicleType} · {v.totalSeats} seats{v.wheelchairPositions ? <> · <span className="material-symbols-outlined text-sm leading-none">accessible</span> {v.wheelchairPositions}</> : ''}</p>
+              <p className="flex items-center gap-1">{v.registration || 'N/A'} · {v.seatRequirement ?? '?'} seats{v.wheelchairPositionRequirement ? <> · <span className="material-symbols-outlined text-sm leading-none">accessible</span> {v.wheelchairPositionRequirement}</> : ''}</p>
             </div>
           </div>
         ))}

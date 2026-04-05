@@ -120,14 +120,14 @@ export default function TripsPage() {
 
   const handleSaveEdit = () => {
     if (!editingTripId || !editForm) return
-    const payload = { ...editForm }
+    const payload: Record<string, unknown> = { ...editForm }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }
     for (const key of ['minParticipants', 'maxParticipants', 'requiredWheelchairCapacity', 'requiredBeds', 'requiredBedrooms', 'minStaffRequired']) {
       if (!payload[key] && payload[key] !== 0) payload[key] = null
     }
-    updateTrip.mutate({ id: editingTripId, data: payload }, { onSuccess: handleCloseEdit })
+    updateTrip.mutate({ id: editingTripId, data: payload as unknown as import('@/api/types').UpdateTripDto }, { onSuccess: handleCloseEdit })
   }
 
   return (
@@ -335,7 +335,7 @@ export default function TripsPage() {
                       <Dropdown
                         variant="form"
                         value={editForm.status}
-                        onChange={val => setEditForm({ ...editForm, status: val })}
+                        onChange={val => setEditForm({ ...editForm, status: val as import('@/api/types').TripStatus })}
                         items={[
                           { value: 'Draft', label: 'Draft' },
                           { value: 'Planning', label: 'Planning' },

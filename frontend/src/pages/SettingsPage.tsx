@@ -240,7 +240,7 @@ function ProviderSettingsTab() {
 
   function handleSave() {
     setError(null)
-    upsert.mutate(form, {
+    upsert.mutate(form as import('@/api/types').UpsertProviderSettingsDto, {
       onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000) },
       onError: (err: unknown) => {
         const axiosErr = err as AxiosError<{ message?: string; errors?: string[] }>

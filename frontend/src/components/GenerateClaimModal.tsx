@@ -184,11 +184,11 @@ export default function GenerateClaimModal({ tripId, trip, onClose, onSuccess }:
               <div className="bg-[var(--color-surface)] rounded-xl p-4 grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-[var(--color-muted-foreground)]">Staff Assigned</span>
-                  <p className="font-medium">{trip.staffAssignedCount ?? trip.staffAssignments?.length ?? '—'}</p>
+                  <p className="font-medium">{trip.staffAssignedCount ?? '—'}</p>
                 </div>
                 <div>
                   <span className="text-[var(--color-muted-foreground)]">Confirmed Bookings</span>
-                  <p className="font-medium">{trip.currentParticipantCount ?? trip.confirmedBookings ?? '—'}</p>
+                  <p className="font-medium">{trip.currentParticipantCount ?? '—'}</p>
                 </div>
               </div>
             </div>

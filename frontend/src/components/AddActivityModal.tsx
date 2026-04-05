@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useActivities, useCreateScheduledActivity, useUpdateScheduledActivity } from '@/api/hooks'
 import { Modal } from '@/components/Modal'
 import { Dropdown } from './Dropdown'
-import type { ActivityDto, ScheduledActivityDto, CreateScheduledActivityDto, UpdateScheduledActivityDto, ScheduledActivityStatus } from '@/api/types'
+import type { ActivityDto, ScheduledActivityDto } from '@/api/types'
 
 interface AddActivityModalProps {
   tripDayId: string
@@ -100,9 +100,9 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
     }
 
     if (editingActivity) {
-      updateActivity.mutate({ id: editingActivity.id, data }, { onSuccess: () => onClose() })
+      updateActivity.mutate({ id: editingActivity.id, data: data as unknown as import('@/api/types').UpdateScheduledActivityDto }, { onSuccess: () => onClose() })
     } else {
-      createActivity.mutate({ tripDayId, data }, { onSuccess: () => onClose() })
+      createActivity.mutate({ tripDayId, data: data as unknown as import('@/api/types').CreateScheduledActivityDto }, { onSuccess: () => onClose() })
     }
   }
 

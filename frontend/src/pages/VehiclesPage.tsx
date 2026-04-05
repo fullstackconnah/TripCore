@@ -1,5 +1,5 @@
 import { useVehicles, useDeleteVehicle, useUpdateVehicle } from '@/api/hooks'
-import type { VehicleDetailDto } from '@/api/types'
+import type { VehicleListDto } from '@/api/types'
 import { Link } from 'react-router-dom'
 import { formatDateAu } from '@/lib/utils'
 import { Plus, Pencil, Trash2, ArchiveRestore, Car, Bus, Truck, Users, Wrench, Calendar, Accessibility } from 'lucide-react'
@@ -57,10 +57,17 @@ export default function VehiclesPage() {
   const deleteVehicle = useDeleteVehicle()
   const updateVehicle = useUpdateVehicle()
 
-  const handleRestore = (e: React.MouseEvent, v: VehicleDetailDto) => {
+  const handleRestore = (e: React.MouseEvent, v: VehicleListDto) => {
     e.stopPropagation()
     if (window.confirm(`Restore "${v.vehicleName}"?`)) {
-      updateVehicle.mutate({ id: v.id, data: { ...v, isActive: true } })
+      const { id: _id, ...rest } = v
+      updateVehicle.mutate({ id: v.id, data: {
+        ...rest,
+        isActive: true,
+        registration: rest.registration ?? undefined,
+        serviceDueDate: rest.serviceDueDate ?? undefined,
+        registrationDueDate: rest.registrationDueDate ?? undefined,
+      } })
     }
   }
 
@@ -71,9 +78,9 @@ export default function VehiclesPage() {
     }
   }
 
-  const totalSeats = vehicles.reduce((sum: number, v: VehicleDetailDto) => sum + (v.totalSeats || 0), 0)
-  const totalWheelchair = vehicles.reduce((sum: number, v: VehicleDetailDto) => sum + (v.wheelchairPositions || 0), 0)
-  const accessibleCount = vehicles.filter((v: VehicleDetailDto) => v.vehicleType === 'AccessibleVan' || v.wheelchairPositions > 0).length
+  const totalSeats = vehicles.reduce((sum: number, v: VehicleListDto) => sum + (v.totalSeats || 0), 0)
+  const totalWheelchair = vehicles.reduce((sum: number, v: VehicleListDto) => sum + (v.wheelchairPositions || 0), 0)
+  const accessibleCount = vehicles.filter((v: VehicleListDto) => v.vehicleType === 'AccessibleVan' || v.wheelchairPositions > 0).length
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -128,7 +135,7 @@ export default function VehiclesPage() {
       ) : (
         /* Vehicle grid */
         <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-          {vehicles.map((v: VehicleDetailDto) => {
+          {vehicles.map((v: VehicleListDto) => {
             const typeKey = (v.vehicleType as VehicleTypeKey) in vehicleTypeConfig
               ? (v.vehicleType as VehicleTypeKey)
               : 'Other'
@@ -185,17 +192,17 @@ export default function VehiclesPage() {
                     />
                   </div>
 
-                  {/* Accessibility note */}
-                  {v.rampHoistDetails && (
+                  {/* Accessibility note (available when detail data is present) */}
+                  {('rampHoistDetails' in v) && (v as import('@/api/types').VehicleDetailDto).rampHoistDetails && (
                     <div className="bg-[var(--color-surface-container-low)] rounded-xl px-4 py-3 mb-5 text-sm">
                       <span className="font-bold text-[#7a2169]">Accessibility: </span>
-                      <span className="text-[var(--color-muted-foreground)]">{v.rampHoistDetails}</span>
+                      <span className="text-[var(--color-muted-foreground)]">{(v as import('@/api/types').VehicleDetailDto).rampHoistDetails}</span>
                     </div>
                   )}
 
-                  {/* Notes preview */}
-                  {v.notes && (
-                    <p className="text-sm text-[var(--color-muted-foreground)] line-clamp-2 mb-4">{v.notes}</p>
+                  {/* Notes preview (available when detail data is present) */}
+                  {('notes' in v) && (v as import('@/api/types').VehicleDetailDto).notes && (
+                    <p className="text-sm text-[var(--color-muted-foreground)] line-clamp-2 mb-4">{(v as import('@/api/types').VehicleDetailDto).notes}</p>
                   )}
 
                   {/* Action row */}

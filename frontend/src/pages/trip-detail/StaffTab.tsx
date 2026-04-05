@@ -104,7 +104,7 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
 
   const handleUpdateStaffAssignment = () => {
     if (!editingStaff) return
-    updateStaffAssignment.mutate({ id: editingStaff.id, data: editStaffForm }, {
+    updateStaffAssignment.mutate({ id: editingStaff.id, data: editStaffForm as unknown as import('@/api/types/staff').UpdateStaffAssignmentDto }, {
       onSuccess: () => setEditingStaff(null),
     })
   }
@@ -425,7 +425,7 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => updateStaffAssignment.mutate({ id: deletingStaff.id, data: { ...deletingStaff, status: 'Cancelled' } }, { onSuccess: () => setDeletingStaff(null) })}
+                onClick={() => updateStaffAssignment.mutate({ id: deletingStaff.id, data: { ...deletingStaff, assignmentRole: deletingStaff.assignmentRole ?? undefined, status: 'Cancelled' as const } as import('@/api/types/staff').UpdateStaffAssignmentDto }, { onSuccess: () => setDeletingStaff(null) })}
                 disabled={updateStaffAssignment.isPending || deleteStaffAssignment.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel assignment</span>

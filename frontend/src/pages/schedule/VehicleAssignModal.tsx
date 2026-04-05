@@ -25,8 +25,8 @@ export default function VehicleAssignModal({ vehicle, trip, staff, onClose, onAs
       tripInstanceId: trip.id,
       vehicleId: vehicle.id,
       driverStaffId: driverStaffId || undefined,
-      seatRequirement: null,
-      wheelchairPositionRequirement: null,
+      seatRequirement: undefined,
+      wheelchairPositionRequirement: undefined,
       comments: comments || undefined,
     })
   }

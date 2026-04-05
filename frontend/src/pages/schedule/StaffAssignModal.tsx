@@ -15,7 +15,7 @@ interface StaffAssignModalProps {
 export default function StaffAssignModal({ staff, trip, onClose, onAssign, isLoading }: StaffAssignModalProps) {
   const [role, setRole] = useState('Support Worker')
   const [isDriver, setIsDriver] = useState(false)
-  const [sleepoverType, setSleepoverType] = useState('None')
+  const [sleepoverType, setSleepoverType] = useState<import('@/api/types').SleepoverType>('None')
   const [shiftNotes, setShiftNotes] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -75,7 +75,7 @@ export default function StaffAssignModal({ staff, trip, onClose, onAssign, isLoa
             <Dropdown
               variant="form"
               value={sleepoverType}
-              onChange={setSleepoverType}
+              onChange={(val: string) => setSleepoverType(val as import('@/api/types').SleepoverType)}
               items={[
                 { value: 'None', label: 'None' },
                 { value: 'ActiveNight', label: 'Active Night' },

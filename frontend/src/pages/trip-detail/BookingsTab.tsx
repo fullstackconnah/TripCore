@@ -160,6 +160,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, canW
 
   const openEditModal = (booking: BookingListDto) => {
     setEditingBooking(booking)
+    const detail = booking as BookingListDto & Partial<import('@/api/types').BookingDetailDto>
     setEditForm({
       tripInstanceId: booking.tripInstanceId,
       participantId: booking.participantId,
@@ -169,11 +170,11 @@ export default function BookingsTab({ tripId, trip, bookings, participants, canW
       nightSupportRequired: booking.nightSupportRequired ?? false,
       hasRestrictivePracticeFlag: booking.hasRestrictivePracticeFlag ?? false,
       supportRatioOverride: booking.supportRatioOverride ?? '',
-      bookingNotes: booking.bookingNotes ?? '',
-      insuranceProvider: booking.insuranceProvider || '',
-      insurancePolicyNumber: booking.insurancePolicyNumber || '',
-      insuranceCoverageStart: booking.insuranceCoverageStart || '',
-      insuranceCoverageEnd: booking.insuranceCoverageEnd || '',
+      bookingNotes: detail.bookingNotes ?? '',
+      insuranceProvider: detail.insuranceProvider || '',
+      insurancePolicyNumber: detail.insurancePolicyNumber || '',
+      insuranceCoverageStart: detail.insuranceCoverageStart || '',
+      insuranceCoverageEnd: detail.insuranceCoverageEnd || '',
       insuranceStatus: booking.insuranceStatus || 'None',
     })
   }
@@ -753,7 +754,7 @@ export default function BookingsTab({ tripId, trip, bookings, participants, canW
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => cancelBooking.mutate({ id: deletingBooking.id, data: deletingBooking }, { onSuccess: () => setDeletingBooking(null) })}
+                onClick={() => cancelBooking.mutate({ id: deletingBooking.id, data: deletingBooking as unknown as import('@/api/types').UpdateBookingDto }, { onSuccess: () => setDeletingBooking(null) })}
                 disabled={cancelBooking.isPending || deleteBooking.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel booking</span>

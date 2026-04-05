@@ -118,10 +118,10 @@ export default function IncidentCreatePage() {
 
     try {
       if (isEdit) {
-        const res = await updateIncident.mutateAsync({ id, data: payload })
+        const res = await updateIncident.mutateAsync({ id, data: payload as unknown as import('@/api/types').UpdateIncidentDto })
         if (res.success) navigate('/incidents')
       } else {
-        const res = await createIncident.mutateAsync(payload)
+        const res = await createIncident.mutateAsync(payload as unknown as import('@/api/types').CreateIncidentDto)
         if (res.success) navigate('/incidents')
       }
     } catch {

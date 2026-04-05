@@ -175,9 +175,9 @@ export default function OverviewTab({ tripId, trip, bookings, accommodation, sta
                     <span className="material-symbols-outlined text-[#43493a]" style={{ fontSize: '20px' }}>airport_shuttle</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#1b1c1a] truncate">{v.vehicleName || `${v.make} ${v.model}`}</p>
+                    <p className="text-sm font-bold text-[#1b1c1a] truncate">{v.vehicleName || 'Vehicle'}</p>
                     <p className="text-[10px] text-[#43493a]">
-                      {[v.wheelchairCapacity && `${v.wheelchairCapacity} WC`, v.capacity && `${v.capacity} seats`].filter(Boolean).join(' · ') || 'Vehicle'}
+                      {[v.wheelchairPositionRequirement && `${v.wheelchairPositionRequirement} WC`, v.seatRequirement && `${v.seatRequirement} seats`].filter(Boolean).join(' · ') || 'Vehicle'}
                     </p>
                   </div>
                 </div>

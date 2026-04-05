@@ -64,14 +64,14 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
 
   const handleSave = () => {
     if (!trip?.id || !tripEditForm) return
-    const payload = { ...tripEditForm }
+    const payload: Record<string, unknown> = { ...tripEditForm }
     for (const key of Object.keys(payload)) {
       if (payload[key] === '' || payload[key] === undefined) payload[key] = null
     }
     for (const key of ['minParticipants', 'maxParticipants', 'requiredWheelchairCapacity', 'requiredBeds', 'requiredBedrooms', 'minStaffRequired']) {
       if (!payload[key] && payload[key] !== 0) payload[key] = null
     }
-    updateTrip.mutate({ id: trip.id, data: payload }, { onSuccess: onClose })
+    updateTrip.mutate({ id: trip.id, data: payload as unknown as import('@/api/types/trips').UpdateTripDto }, { onSuccess: onClose })
   }
 
   return (
@@ -114,7 +114,7 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
                     label="None"
                     items={[
                       { value: '', label: 'None' },
-                      ...templates.map((t: EventTemplateDto) => ({ value: String(t.id), label: t.templateName })),
+                      ...templates.map((t: EventTemplateDto) => ({ value: String(t.id), label: t.eventName })),
                     ]}
                   />
                 </div>

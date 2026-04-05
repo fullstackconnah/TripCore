@@ -85,9 +85,9 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
       accommodationPropertyId: r.accommodationPropertyId,
       checkInDate: r.checkInDate ?? '',
       checkOutDate: r.checkOutDate ?? '',
-      bedroomsReserved: r.bedroomsReserved ?? '',
-      bedsReserved: r.bedsReserved ?? '',
-      cost: r.cost ?? '',
+      bedroomsReserved: r.bedroomsReserved != null ? String(r.bedroomsReserved) : '',
+      bedsReserved: r.bedsReserved != null ? String(r.bedsReserved) : '',
+      cost: r.cost != null ? String(r.cost) : '',
       reservationStatus: r.reservationStatus ?? 'Researching',
       comments: r.comments ?? '',
       confirmationReference: r.confirmationReference ?? '',
@@ -101,15 +101,15 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
     if (!editingReservation) return
     updateReservation.mutate({ id: editingReservation.id, data: {
       ...editReservationForm,
-      bedroomsReserved: editReservationForm.bedroomsReserved ? parseInt(editReservationForm.bedroomsReserved) : null,
-      bedsReserved: editReservationForm.bedsReserved ? parseInt(editReservationForm.bedsReserved) : null,
-      cost: editReservationForm.cost ? parseFloat(editReservationForm.cost) : null,
-      confirmationReference: editReservationForm.confirmationReference || null,
-      dateBooked: editReservationForm.dateBooked || null,
-      dateConfirmed: editReservationForm.dateConfirmed || null,
-      cancellationReason: editReservationForm.cancellationReason || null,
-      comments: editReservationForm.comments || null,
-    }}, {
+      bedroomsReserved: editReservationForm.bedroomsReserved ? parseInt(editReservationForm.bedroomsReserved) : undefined,
+      bedsReserved: editReservationForm.bedsReserved ? parseInt(editReservationForm.bedsReserved) : undefined,
+      cost: editReservationForm.cost ? parseFloat(editReservationForm.cost) : undefined,
+      confirmationReference: editReservationForm.confirmationReference || undefined,
+      dateBooked: editReservationForm.dateBooked || undefined,
+      dateConfirmed: editReservationForm.dateConfirmed || undefined,
+      cancellationReason: editReservationForm.cancellationReason || undefined,
+      comments: editReservationForm.comments || undefined,
+    } as import('@/api/types/reservations').UpdateReservationDto}, {
       onSuccess: () => setEditingReservation(null),
     })
   }
@@ -124,7 +124,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
       bedroomsReserved: accommForm.bedroomsReserved ? parseInt(accommForm.bedroomsReserved) : undefined,
       bedsReserved: accommForm.bedsReserved ? parseInt(accommForm.bedsReserved) : undefined,
       cost: accommForm.cost ? parseFloat(accommForm.cost) : undefined,
-      reservationStatus: accommForm.reservationStatus,
+      reservationStatus: accommForm.reservationStatus as import('@/api/types/enums').ReservationStatus,
       comments: accommForm.comments || undefined,
     }, {
       onSuccess: () => {
@@ -150,8 +150,8 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
         isWheelchairAccessible: false,
         isActive: true,
       }, {
-        onSuccess: (res: { data?: { id?: string } }) => {
-          const newId = res.data?.id
+        onSuccess: (res) => {
+          const newId = (res as { data?: { id?: string } })?.data?.id
           if (newId) submitReservation(newId)
         },
       })
@@ -697,7 +697,7 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => cancelReservation.mutate({ id: deletingReservation.id, data: deletingReservation }, { onSuccess: () => setDeletingReservation(null) })}
+                onClick={() => cancelReservation.mutate({ id: deletingReservation.id, data: deletingReservation as unknown as import('@/api/types/reservations').UpdateReservationDto }, { onSuccess: () => setDeletingReservation(null) })}
                 disabled={cancelReservation.isPending || deleteReservation.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel reservation</span>

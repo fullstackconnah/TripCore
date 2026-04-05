@@ -295,10 +295,10 @@ export default function SchedulePage() {
                             <div className="relative inline-block">
                               <StatusBadge
                                 status={ts.status}
-                                role={ts.assignmentRole}
+                                role={ts.assignmentRole ?? undefined}
                                 clickable={isAvailable && canWrite}
                                 onClick={isAvailable && canWrite ? () => setAssignModal({ type: 'staff', resource: s, trip }) : undefined}
-                                onUnassign={canWrite && ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId, {
+                                onUnassign={canWrite && ts.status === 'Assigned' && ts.assignmentId ? () => staffUnassign.mutate(ts.assignmentId!, {
                                   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedule-overview'] })
                                 }) : undefined}
                               />
@@ -396,7 +396,7 @@ export default function SchedulePage() {
       {/* ── Assignment Modals ── */}
       {assignModal?.type === 'staff' && (
         <StaffAssignModal
-          staff={assignModal.resource}
+          staff={assignModal.resource as ScheduleStaffDto}
           trip={assignModal.trip}
           onClose={() => setAssignModal(null)}
           onAssign={handleStaffAssign}
@@ -405,7 +405,7 @@ export default function SchedulePage() {
       )}
       {assignModal?.type === 'vehicle' && (
         <VehicleAssignModal
-          vehicle={assignModal.resource}
+          vehicle={assignModal.resource as ScheduleVehicleDto}
           trip={assignModal.trip}
           staff={staff || []}
           onClose={() => setAssignModal(null)}

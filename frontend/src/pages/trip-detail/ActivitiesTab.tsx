@@ -153,7 +153,7 @@ export default function ActivitiesTab({ tripId, trip, schedule, canWrite, isRead
       {showAddActivity && (
         <AddActivityModal
           tripDayId={addActivityDayId}
-          editingActivity={editingScheduledActivity}
+          editingActivity={editingScheduledActivity ?? undefined}
           eventTemplateId={trip?.eventTemplateId ?? undefined}
           onClose={() => { setShowAddActivity(false); setEditingScheduledActivity(null); setAddActivityDayId('') }}
         />

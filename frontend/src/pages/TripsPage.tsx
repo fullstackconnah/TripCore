@@ -1,5 +1,5 @@
 import { useTrips, useUpdateTrip, usePatchTrip, useTrip, useStaff, useEventTemplates } from '@/api/hooks'
-import type { TripStatus, TripListDto, TripDetailDto, StaffListDto, EventTemplateDto } from '@/api/types'
+import type { TripStatus, TripListDto, TripDetailDto, StaffListDto, EventTemplateDto, UpdateTripDto } from '@/api/types'
 import { formatDateAu, getStatusColor } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, CheckCircle2, Pencil, X } from 'lucide-react'
@@ -120,14 +120,28 @@ export default function TripsPage() {
 
   const handleSaveEdit = () => {
     if (!editingTripId || !editForm) return
-    const payload: Record<string, unknown> = { ...editForm }
-    for (const key of Object.keys(payload)) {
-      if (payload[key] === '' || payload[key] === undefined) payload[key] = null
+    const toOptionalString = (v: string) => v || undefined
+    const toOptionalNumber = (v: number | string) => (v === '' || v === null) ? undefined : Number(v) || undefined
+    const data: UpdateTripDto = {
+      tripName: editForm.tripName,
+      tripCode: toOptionalString(editForm.tripCode),
+      eventTemplateId: toOptionalString(editForm.eventTemplateId),
+      destination: toOptionalString(editForm.destination),
+      region: toOptionalString(editForm.region),
+      startDate: editForm.startDate,
+      durationDays: typeof editForm.durationDays === 'number' ? editForm.durationDays : 1,
+      bookingCutoffDate: toOptionalString(editForm.bookingCutoffDate),
+      status: editForm.status as TripStatus,
+      leadCoordinatorId: toOptionalString(editForm.leadCoordinatorId),
+      minParticipants: toOptionalNumber(editForm.minParticipants),
+      maxParticipants: toOptionalNumber(editForm.maxParticipants),
+      requiredWheelchairCapacity: toOptionalNumber(editForm.requiredWheelchairCapacity),
+      requiredBeds: toOptionalNumber(editForm.requiredBeds),
+      requiredBedrooms: toOptionalNumber(editForm.requiredBedrooms),
+      minStaffRequired: toOptionalNumber(editForm.minStaffRequired),
+      notes: toOptionalString(editForm.notes),
     }
-    for (const key of ['minParticipants', 'maxParticipants', 'requiredWheelchairCapacity', 'requiredBeds', 'requiredBedrooms', 'minStaffRequired']) {
-      if (!payload[key] && payload[key] !== 0) payload[key] = null
-    }
-    updateTrip.mutate({ id: editingTripId, data: payload as unknown as import('@/api/types').UpdateTripDto }, { onSuccess: handleCloseEdit })
+    updateTrip.mutate({ id: editingTripId, data }, { onSuccess: handleCloseEdit })
   }
 
   return (

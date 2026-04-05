@@ -7,7 +7,8 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 import { FormField } from '@/components/FormField'
 import { Card } from '@/components/Card'
-import type { TripListDto, StaffListDto, ParticipantListDto } from '@/api/types'
+import type { TripListDto, StaffListDto, ParticipantListDto, CreateIncidentDto, UpdateIncidentDto } from '@/api/types'
+import type { IncidentType, IncidentSeverity, IncidentStatus, QscReportingStatus } from '@/api/types/enums'
 
 const incidentSchema = z.object({
   tripInstanceId: z.string().min(1, 'Trip is required'),
@@ -107,21 +108,45 @@ export default function IncidentCreatePage() {
   }, [id, isEdit, existingIncident, reset])
 
   const onSubmit = async (data: IncidentFormData) => {
-    const payload: Record<string, unknown> = { ...data }
-    for (const key of Object.keys(payload)) {
-      if (payload[key] === '' || payload[key] === undefined) payload[key] = null
+    const base: CreateIncidentDto = {
+      tripInstanceId: data.tripInstanceId,
+      reportedByStaffId: data.reportedByStaffId,
+      incidentType: data.incidentType as IncidentType,
+      severity: data.severity as IncidentSeverity,
+      title: data.title,
+      description: data.description,
+      incidentDateTime: data.incidentDateTime,
+      participantBookingId: data.participantBookingId || undefined,
+      involvedParticipantId: data.involvedParticipantId || undefined,
+      involvedStaffId: data.involvedStaffId || undefined,
+      location: data.location || undefined,
+      immediateActionsTaken: data.immediateActionsTaken || undefined,
+      wereEmergencyServicesCalled: data.wereEmergencyServicesCalled ?? false,
+      emergencyServicesDetails: data.emergencyServicesDetails || undefined,
+      witnessNames: data.witnessNames || undefined,
+      witnessStatements: data.witnessStatements || undefined,
     }
-    // Ensure booleans stay booleans
-    payload.wereEmergencyServicesCalled = data.wereEmergencyServicesCalled ?? false
-    payload.familyNotified = data.familyNotified ?? false
-    payload.supportCoordinatorNotified = data.supportCoordinatorNotified ?? false
 
     try {
       if (isEdit) {
-        const res = await updateIncident.mutateAsync({ id, data: payload as unknown as import('@/api/types').UpdateIncidentDto })
+        const updateData: UpdateIncidentDto = {
+          ...base,
+          status: (data.status || 'Draft') as IncidentStatus,
+          qscReportingStatus: (data.qscReportingStatus || 'NotRequired') as QscReportingStatus,
+          qscReportedAt: data.qscReportedAt || undefined,
+          qscReferenceNumber: data.qscReferenceNumber || undefined,
+          reviewedByStaffId: data.reviewedByStaffId || undefined,
+          reviewNotes: data.reviewNotes || undefined,
+          correctiveActions: data.correctiveActions || undefined,
+          familyNotified: data.familyNotified ?? false,
+          familyNotifiedAt: data.familyNotifiedAt || undefined,
+          supportCoordinatorNotified: data.supportCoordinatorNotified ?? false,
+          supportCoordinatorNotifiedAt: data.supportCoordinatorNotifiedAt || undefined,
+        }
+        const res = await updateIncident.mutateAsync({ id, data: updateData })
         if (res.success) navigate('/incidents')
       } else {
-        const res = await createIncident.mutateAsync(payload as unknown as import('@/api/types').CreateIncidentDto)
+        const res = await createIncident.mutateAsync(base)
         if (res.success) navigate('/incidents')
       }
     } catch {

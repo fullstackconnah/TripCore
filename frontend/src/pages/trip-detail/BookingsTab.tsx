@@ -754,7 +754,22 @@ export default function BookingsTab({ tripId, trip, bookings, participants, canW
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => cancelBooking.mutate({ id: deletingBooking.id, data: deletingBooking as unknown as import('@/api/types').UpdateBookingDto }, { onSuccess: () => setDeletingBooking(null) })}
+                onClick={() => {
+                  const data: import('@/api/types/bookings').UpdateBookingDto = {
+                    tripInstanceId: deletingBooking.tripInstanceId,
+                    participantId: deletingBooking.participantId,
+                    bookingStatus: 'Cancelled',
+                    nightSupportRequired: deletingBooking.nightSupportRequired,
+                    wheelchairRequired: deletingBooking.wheelchairRequired,
+                    highSupportRequired: deletingBooking.highSupportRequired,
+                    hasRestrictivePracticeFlag: deletingBooking.hasRestrictivePracticeFlag,
+                    supportRatioOverride: deletingBooking.supportRatioOverride ?? undefined,
+                    paymentStatus: deletingBooking.paymentStatus,
+                    actionRequired: deletingBooking.actionRequired,
+                    insuranceStatus: deletingBooking.insuranceStatus,
+                  }
+                  cancelBooking.mutate({ id: deletingBooking.id, data }, { onSuccess: () => setDeletingBooking(null) })
+                }}
                 disabled={cancelBooking.isPending || deleteBooking.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel booking</span>

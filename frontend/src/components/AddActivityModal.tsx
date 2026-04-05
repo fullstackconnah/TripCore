@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useActivities, useCreateScheduledActivity, useUpdateScheduledActivity } from '@/api/hooks'
 import { Modal } from '@/components/Modal'
 import { Dropdown } from './Dropdown'
-import type { ActivityDto, ScheduledActivityDto } from '@/api/types'
+import type { ActivityDto, ScheduledActivityDto, CreateScheduledActivityDto, UpdateScheduledActivityDto } from '@/api/types'
+import type { ScheduledActivityStatus } from '@/api/types/enums'
 
 interface AddActivityModalProps {
   tripDayId: string
@@ -79,30 +80,49 @@ export default function AddActivityModal({ tripDayId, editingActivity, eventTemp
     }
     setTimeError('')
 
-    const data: Record<string, string | number | null> = {
-      activityId: editingActivity
-        ? (editingActivity.activityId ?? null)
-        : (sourceTab === 'library' && selectedActivityId ? selectedActivityId : null),
-      title,
-      startTime: startTime || null,
-      endTime: endTime || null,
-      location: location || null,
-      status,
-      bookingReference: bookingReference || null,
-      estimatedCost: estimatedCost ? parseFloat(estimatedCost) : null,
-      providerName: providerName || null,
-      providerPhone: providerPhone || null,
-      providerEmail: providerEmail || null,
-      providerWebsite: providerWebsite || null,
-      accessibilityNotes: accessibilityNotes || null,
-      notes: notes || null,
-      sortOrder: editingActivity?.sortOrder ?? 0,
-    }
+    const activityId = editingActivity
+      ? (editingActivity.activityId ?? undefined)
+      : (sourceTab === 'library' && selectedActivityId ? selectedActivityId : undefined)
+    const sortOrder = editingActivity?.sortOrder ?? 0
 
     if (editingActivity) {
-      updateActivity.mutate({ id: editingActivity.id, data: data as unknown as import('@/api/types').UpdateScheduledActivityDto }, { onSuccess: () => onClose() })
+      const data: UpdateScheduledActivityDto = {
+        activityId,
+        title,
+        startTime: startTime || undefined,
+        endTime: endTime || undefined,
+        location: location || undefined,
+        status: status as ScheduledActivityStatus,
+        bookingReference: bookingReference || undefined,
+        estimatedCost: estimatedCost ? parseFloat(estimatedCost) : undefined,
+        providerName: providerName || undefined,
+        providerPhone: providerPhone || undefined,
+        providerEmail: providerEmail || undefined,
+        providerWebsite: providerWebsite || undefined,
+        accessibilityNotes: accessibilityNotes || undefined,
+        notes: notes || undefined,
+        sortOrder,
+      }
+      updateActivity.mutate({ id: editingActivity.id, data }, { onSuccess: () => onClose() })
     } else {
-      createActivity.mutate({ tripDayId, data: data as unknown as import('@/api/types').CreateScheduledActivityDto }, { onSuccess: () => onClose() })
+      const data: CreateScheduledActivityDto = {
+        activityId,
+        title,
+        startTime: startTime || undefined,
+        endTime: endTime || undefined,
+        location: location || undefined,
+        status: status as ScheduledActivityStatus,
+        bookingReference: bookingReference || undefined,
+        estimatedCost: estimatedCost ? parseFloat(estimatedCost) : undefined,
+        providerName: providerName || undefined,
+        providerPhone: providerPhone || undefined,
+        providerEmail: providerEmail || undefined,
+        providerWebsite: providerWebsite || undefined,
+        accessibilityNotes: accessibilityNotes || undefined,
+        notes: notes || undefined,
+        sortOrder,
+      }
+      createActivity.mutate({ tripDayId, data }, { onSuccess: () => onClose() })
     }
   }
 

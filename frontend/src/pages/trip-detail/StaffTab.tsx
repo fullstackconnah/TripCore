@@ -9,9 +9,9 @@ import {
 } from '@/api/hooks'
 import { DataTable } from '@/components/DataTable'
 import { formatDateAu } from '@/lib/utils'
-import type { SleepoverType } from '@/api/types/enums'
+import type { SleepoverType, AssignmentStatus } from '@/api/types/enums'
 import type { TripDetailDto } from '@/api/types/trips'
-import type { StaffAssignmentDto, StaffListDto } from '@/api/types/staff'
+import type { StaffAssignmentDto, StaffListDto, UpdateStaffAssignmentDto } from '@/api/types/staff'
 import type { BookingListDto } from '@/api/types/bookings'
 
 interface StaffEditForm {
@@ -21,9 +21,9 @@ interface StaffEditForm {
   assignmentStart: string
   assignmentEnd: string
   isDriver: boolean
-  sleepoverType: string
+  sleepoverType: SleepoverType
   shiftNotes: string
-  status: string
+  status: AssignmentStatus
 }
 
 interface StaffTabProps {
@@ -104,7 +104,18 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
 
   const handleUpdateStaffAssignment = () => {
     if (!editingStaff) return
-    updateStaffAssignment.mutate({ id: editingStaff.id, data: editStaffForm as unknown as import('@/api/types/staff').UpdateStaffAssignmentDto }, {
+    const data: UpdateStaffAssignmentDto = {
+      tripInstanceId: editStaffForm.tripInstanceId,
+      staffId: editStaffForm.staffId,
+      assignmentRole: editStaffForm.assignmentRole || undefined,
+      assignmentStart: editStaffForm.assignmentStart,
+      assignmentEnd: editStaffForm.assignmentEnd,
+      isDriver: editStaffForm.isDriver,
+      sleepoverType: editStaffForm.sleepoverType || undefined,
+      shiftNotes: editStaffForm.shiftNotes || undefined,
+      status: editStaffForm.status,
+    }
+    updateStaffAssignment.mutate({ id: editingStaff.id, data }, {
       onSuccess: () => setEditingStaff(null),
     })
   }
@@ -227,7 +238,7 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
               {/* Status */}
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
-                <select value={editStaffForm.status} onChange={e => setEditStaffForm({ ...editStaffForm, status: e.target.value })}
+                <select value={editStaffForm.status} onChange={e => setEditStaffForm({ ...editStaffForm, status: e.target.value as AssignmentStatus })}
                   className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
                   {['Proposed', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
                     <option key={s} value={s}>{s}</option>
@@ -261,7 +272,7 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
               {/* Sleepover Type */}
               <div>
                 <label className="block text-sm font-medium mb-1">Sleepover Type</label>
-                <select value={editStaffForm.sleepoverType} onChange={e => setEditStaffForm({ ...editStaffForm, sleepoverType: e.target.value })}
+                <select value={editStaffForm.sleepoverType} onChange={e => setEditStaffForm({ ...editStaffForm, sleepoverType: e.target.value as SleepoverType })}
                   className="w-full px-3 py-2 rounded-2xl bg-[#f5f3ef] text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#396200]/30 transition-all">
                   <option value="None">None</option>
                   <option value="ActiveNight">Active Night</option>
@@ -425,7 +436,20 @@ export default function StaffTab({ tripId, trip, staff, bookings, canWrite }: St
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => updateStaffAssignment.mutate({ id: deletingStaff.id, data: { ...deletingStaff, assignmentRole: deletingStaff.assignmentRole ?? undefined, status: 'Cancelled' as const } as import('@/api/types/staff').UpdateStaffAssignmentDto }, { onSuccess: () => setDeletingStaff(null) })}
+                onClick={() => {
+                  const data: UpdateStaffAssignmentDto = {
+                    tripInstanceId: deletingStaff.tripInstanceId,
+                    staffId: deletingStaff.staffId,
+                    assignmentRole: deletingStaff.assignmentRole ?? undefined,
+                    assignmentStart: deletingStaff.assignmentStart,
+                    assignmentEnd: deletingStaff.assignmentEnd,
+                    isDriver: deletingStaff.isDriver,
+                    sleepoverType: deletingStaff.sleepoverType,
+                    shiftNotes: deletingStaff.shiftNotes ?? undefined,
+                    status: 'Cancelled',
+                  }
+                  updateStaffAssignment.mutate({ id: deletingStaff.id, data }, { onSuccess: () => setDeletingStaff(null) })
+                }}
                 disabled={updateStaffAssignment.isPending || deleteStaffAssignment.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel assignment</span>

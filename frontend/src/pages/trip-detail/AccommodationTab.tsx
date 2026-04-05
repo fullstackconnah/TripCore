@@ -99,17 +99,22 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
 
   const handleUpdateReservation = () => {
     if (!editingReservation) return
-    updateReservation.mutate({ id: editingReservation.id, data: {
-      ...editReservationForm,
+    const data: import('@/api/types/reservations').UpdateReservationDto = {
+      tripInstanceId: editReservationForm.tripInstanceId,
+      accommodationPropertyId: editReservationForm.accommodationPropertyId,
+      checkInDate: editReservationForm.checkInDate,
+      checkOutDate: editReservationForm.checkOutDate,
       bedroomsReserved: editReservationForm.bedroomsReserved ? parseInt(editReservationForm.bedroomsReserved) : undefined,
       bedsReserved: editReservationForm.bedsReserved ? parseInt(editReservationForm.bedsReserved) : undefined,
       cost: editReservationForm.cost ? parseFloat(editReservationForm.cost) : undefined,
+      reservationStatus: editReservationForm.reservationStatus as import('@/api/types/enums').ReservationStatus,
       confirmationReference: editReservationForm.confirmationReference || undefined,
       dateBooked: editReservationForm.dateBooked || undefined,
       dateConfirmed: editReservationForm.dateConfirmed || undefined,
       cancellationReason: editReservationForm.cancellationReason || undefined,
       comments: editReservationForm.comments || undefined,
-    } as import('@/api/types/reservations').UpdateReservationDto}, {
+    }
+    updateReservation.mutate({ id: editingReservation.id, data }, {
       onSuccess: () => setEditingReservation(null),
     })
   }
@@ -697,7 +702,21 @@ export default function AccommodationTab({ tripId, trip, accommodation, canWrite
             )}
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => cancelReservation.mutate({ id: deletingReservation.id, data: deletingReservation as unknown as import('@/api/types/reservations').UpdateReservationDto }, { onSuccess: () => setDeletingReservation(null) })}
+                onClick={() => {
+                  const data: import('@/api/types/reservations').UpdateReservationDto = {
+                    tripInstanceId: deletingReservation.tripInstanceId,
+                    accommodationPropertyId: deletingReservation.accommodationPropertyId,
+                    checkInDate: deletingReservation.checkInDate,
+                    checkOutDate: deletingReservation.checkOutDate,
+                    bedroomsReserved: deletingReservation.bedroomsReserved ?? undefined,
+                    bedsReserved: deletingReservation.bedsReserved ?? undefined,
+                    cost: deletingReservation.cost ?? undefined,
+                    reservationStatus: 'Cancelled',
+                    comments: deletingReservation.comments ?? undefined,
+                    confirmationReference: deletingReservation.confirmationReference ?? undefined,
+                  }
+                  cancelReservation.mutate({ id: deletingReservation.id, data }, { onSuccess: () => setDeletingReservation(null) })
+                }}
                 disabled={cancelReservation.isPending || deleteReservation.isPending}
                 className="w-full px-4 py-2 rounded-2xl bg-[#fef3c7]/60 text-sm font-medium hover:bg-[#fef3c7] transition-colors disabled:opacity-50 text-left">
                 <span className="font-semibold">Cancel reservation</span>

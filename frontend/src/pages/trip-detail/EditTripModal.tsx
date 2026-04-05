@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useUpdateTrip, useEventTemplates, useStaff } from '@/api/hooks'
 import { Dropdown } from '@/components/Dropdown'
-import type { TripDetailDto } from '@/api/types/trips'
+import type { TripDetailDto, UpdateTripDto } from '@/api/types/trips'
+import type { TripStatus } from '@/api/types/enums'
 import type { EventTemplateDto } from '@/api/types/events'
 import type { StaffListDto } from '@/api/types/staff'
 
@@ -15,7 +16,7 @@ interface TripEditFormState {
   startDate: string
   durationDays: number
   bookingCutoffDate: string
-  status: string
+  status: TripStatus
   leadCoordinatorId: string
   minParticipants: number | string
   maxParticipants: number | string
@@ -64,14 +65,28 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
 
   const handleSave = () => {
     if (!trip?.id || !tripEditForm) return
-    const payload: Record<string, unknown> = { ...tripEditForm }
-    for (const key of Object.keys(payload)) {
-      if (payload[key] === '' || payload[key] === undefined) payload[key] = null
+    const toOptionalString = (v: string) => v || undefined
+    const toOptionalNumber = (v: number | string) => (v === '' || v === null) ? undefined : Number(v) || undefined
+    const data: UpdateTripDto = {
+      tripName: tripEditForm.tripName,
+      tripCode: toOptionalString(tripEditForm.tripCode),
+      eventTemplateId: toOptionalString(tripEditForm.eventTemplateId),
+      destination: toOptionalString(tripEditForm.destination),
+      region: toOptionalString(tripEditForm.region),
+      startDate: tripEditForm.startDate,
+      durationDays: tripEditForm.durationDays,
+      bookingCutoffDate: toOptionalString(tripEditForm.bookingCutoffDate),
+      status: tripEditForm.status,
+      leadCoordinatorId: toOptionalString(tripEditForm.leadCoordinatorId),
+      minParticipants: toOptionalNumber(tripEditForm.minParticipants),
+      maxParticipants: toOptionalNumber(tripEditForm.maxParticipants),
+      requiredWheelchairCapacity: toOptionalNumber(tripEditForm.requiredWheelchairCapacity),
+      requiredBeds: toOptionalNumber(tripEditForm.requiredBeds),
+      requiredBedrooms: toOptionalNumber(tripEditForm.requiredBedrooms),
+      minStaffRequired: toOptionalNumber(tripEditForm.minStaffRequired),
+      notes: toOptionalString(tripEditForm.notes),
     }
-    for (const key of ['minParticipants', 'maxParticipants', 'requiredWheelchairCapacity', 'requiredBeds', 'requiredBedrooms', 'minStaffRequired']) {
-      if (!payload[key] && payload[key] !== 0) payload[key] = null
-    }
-    updateTrip.mutate({ id: trip.id, data: payload as unknown as import('@/api/types/trips').UpdateTripDto }, { onSuccess: onClose })
+    updateTrip.mutate({ id: trip.id, data }, { onSuccess: onClose })
   }
 
   return (
@@ -155,7 +170,7 @@ export default function EditTripModal({ trip, onClose }: EditTripModalProps) {
                   <Dropdown
                     variant="form"
                     value={tripEditForm.status}
-                    onChange={val => setTripEditForm({ ...tripEditForm, status: val })}
+                    onChange={val => setTripEditForm({ ...tripEditForm, status: val as TripStatus })}
                     items={[
                       { value: 'Draft', label: 'Draft' },
                       { value: 'Planning', label: 'Planning' },
